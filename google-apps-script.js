@@ -32,23 +32,27 @@ var CONFIG = {
   WHATSAPP_CS: "6285388597684" // WhatsApp Admin untuk bantuan pembeli
 };
 
-// 2. MAPPING FOLDER GOOGLE DRIVE PER GAME
+// 2. MAPPING FOLDER GOOGLE DRIVE PER GAME (14 Official Titles)
 // Cara ambil ID folder: Buka folder di drive.google.com, salin kode setelah "/folders/..."
 // Contoh URL: https://drive.google.com/drive/folders/1ABCxyz123_456
 // Maka ID-nya adalah: 1ABCxyz123_456
 var GDRIVE_FOLDER_MAP = {
-  // Ganti nilai di bawah ini dengan ID folder Google Drive game Anda masing-masing:
-  "game-re4-subindo": "1ABCxyz_RE4_REMAKE_FOLDER_ID",
-  "game-gta5-subindo": "1ABCxyz_GTA_V_FOLDER_ID",
+  "game-it-takes-two-subindo": "1ABCxyz_IT_TAKES_TWO_FOLDER_ID",
   "game-gow-ragnarok-subindo": "1ABCxyz_GOW_RAGNAROK_FOLDER_ID",
-  "game-pes-2025-subindo": "1ABCxyz_PES_2025_FOLDER_ID",
-  "game-tlou-part1-subindo": "1ABCxyz_TLOU_FOLDER_ID",
-  "game-rdr2-subindo": "1ABCxyz_RDR2_FOLDER_ID",
   "game-ghost-tsushima-subindo": "1ABCxyz_GHOST_TSUSHIMA_FOLDER_ID",
-  "game-fc25-ps4": "1ABCxyz_FC25_FOLDER_ID",
-  "game-wukong-ps5": "1ABCxyz_WUKONG_FOLDER_ID",
+  "game-tlou-part2-subindo": "1ABCxyz_TLOU_PART2_FOLDER_ID",
+  "game-gta5-subindo": "1ABCxyz_GTA_V_MOD_FOLDER_ID",
+  "game-mk11-subindo": "1ABCxyz_MK11_ULTIMATE_FOLDER_ID",
+  "game-hogwarts-legacy-subindo": "1ABCxyz_HOGWARTS_LEGACY_FOLDER_ID",
+  "game-uncharted-4-subindo": "1ABCxyz_UNCHARTED_4_FOLDER_ID",
+  "game-stray-subindo": "1ABCxyz_STRAY_FOLDER_ID",
+  "game-ac-odyssey-subindo": "1ABCxyz_AC_ODYSSEY_FOLDER_ID",
+  "game-one-piece-odyssey-subindo": "1ABCxyz_ONE_PIECE_FOLDER_ID",
+  "game-watch-dogs-subindo": "1ABCxyz_WATCH_DOGS_FOLDER_ID",
+  "game-spiderman-subindo": "1ABCxyz_SPIDERMAN_FOLDER_ID",
+  "game-pes-2027-bitbox": "1ABCxyz_PES_2027_FOLDER_ID",
   
-  // FOLDER DEFAULT / UTAMA (Jika game belum punya folder khusus, folder ini yang dibagikan)
+  // FOLDER DEFAULT / MASTER (Jika game belum diset folder terpisah, folder ini yang dibagikan)
   "default": "1ABCxyz_DEFAULT_MASTER_FOLDER_ID"
 };
 

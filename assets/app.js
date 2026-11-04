@@ -13,20 +13,22 @@ const APP_STORAGE_KEYS = {
   USERS_DB: 'aliansi_store_users_v3'
 };
 
-// Permanent High-Resolution Local & Fallback Poster Map
+// Permanent High-Resolution Local & Fallback Poster Map (14 Official Sub Indo Titles)
 const COVER_FALLBACK_MAP = {
-  'game-re4-subindo': 'assets/covers/re4-remake.jpg',
-  'game-gta5-subindo': 'assets/covers/gta-v.jpg',
+  'game-it-takes-two-subindo': 'assets/covers/it-takes-two.jpg',
   'game-gow-ragnarok-subindo': 'assets/covers/gow-ragnarok.jpg',
-  'game-pes2025-hen': 'assets/covers/pes-2025.jpg',
-  'service-hen-1tb': 'assets/covers/service-1tb.jpg',
-  'service-hen-500gb': 'assets/covers/service-500gb.jpg',
-  'tool-flashdisk-hen': 'assets/covers/flashdisk-hen.jpg',
-  'game-tlou-subindo': 'assets/covers/tlou-part1.jpg',
-  'game-rdr2-subindo': 'assets/covers/rdr2.jpg',
-  'game-ghostoftsushima-subindo': 'assets/covers/ghost-tsushima.jpg',
-  'game-fc25': 'assets/covers/fc-25.jpg',
-  'game-wukong': 'assets/covers/wukong.jpg'
+  'game-ghost-tsushima-subindo': 'assets/covers/ghost-tsushima.jpg',
+  'game-tlou-part2-subindo': 'assets/covers/tlou-part2.jpg',
+  'game-gta5-subindo': 'assets/covers/gta-v.jpg',
+  'game-mk11-subindo': 'assets/covers/mortal-kombat-11.jpg',
+  'game-hogwarts-legacy-subindo': 'assets/covers/hogwarts-legacy.jpg',
+  'game-uncharted-4-subindo': 'assets/covers/uncharted-4.jpg',
+  'game-stray-subindo': 'assets/covers/stray.jpg',
+  'game-ac-odyssey-subindo': 'assets/covers/ac-odyssey.jpg',
+  'game-one-piece-odyssey-subindo': 'assets/covers/one-piece-odyssey.jpg',
+  'game-watch-dogs-subindo': 'assets/covers/watch-dogs.jpg',
+  'game-spiderman-subindo': 'assets/covers/spiderman.jpg',
+  'game-pes-2027-bitbox': 'assets/covers/pes-2027.jpg'
 };
 
 function getProductPoster(product) {
@@ -247,20 +249,21 @@ function loadStoredData() {
   state.isAudioMuted = localStorage.getItem(APP_STORAGE_KEYS.AUDIO_MUTED) === 'true';
   updateAudioIndicator();
 
-  // Products
+  // Products (Enforce 14 Official Titles)
+  const CATALOG_VERSION = '20261104_14titles_v2';
+  if (localStorage.getItem('aliansi_catalog_version') !== CATALOG_VERSION) {
+    localStorage.removeItem(APP_STORAGE_KEYS.PRODUCTS);
+    localStorage.setItem('aliansi_catalog_version', CATALOG_VERSION);
+  }
+
   const storedProducts = localStorage.getItem(APP_STORAGE_KEYS.PRODUCTS);
   if (storedProducts) {
     try {
       state.products = JSON.parse(storedProducts);
-      // Auto-heal broken covers from previous cache
-      if (Array.isArray(state.products)) {
-        state.products.forEach(p => {
-          if (COVER_FALLBACK_MAP[p.id]) {
-            if (!p.images) p.images = {};
-            p.images.poster = COVER_FALLBACK_MAP[p.id];
-            p.images.cover = COVER_FALLBACK_MAP[p.id];
-          }
-        });
+      const validIds = new Set(INITIAL_PRODUCTS.map(ip => ip.id));
+      state.products = state.products.filter(p => validIds.has(p.id));
+      if (state.products.length !== INITIAL_PRODUCTS.length) {
+        state.products = [...INITIAL_PRODUCTS];
       }
     } catch (e) {
       state.products = [...INITIAL_PRODUCTS];
@@ -270,23 +273,15 @@ function loadStoredData() {
     saveProducts();
   }
 
-  // Ensure any newly added products from INITIAL_PRODUCTS are included
-  if (typeof INITIAL_PRODUCTS !== 'undefined' && Array.isArray(INITIAL_PRODUCTS)) {
-    INITIAL_PRODUCTS.forEach(ip => {
-      const existing = state.products.find(p => p.id === ip.id);
-      if (!existing) {
-        state.products.push(ip);
-      } else {
-        // Enforce working image paths
-        if (COVER_FALLBACK_MAP[ip.id]) {
-          if (!existing.images) existing.images = {};
-          existing.images.poster = COVER_FALLBACK_MAP[ip.id];
-          existing.images.cover = COVER_FALLBACK_MAP[ip.id];
-        }
-      }
-    });
-    saveProducts();
-  }
+  // Ensure high quality covers
+  state.products.forEach(p => {
+    if (COVER_FALLBACK_MAP[p.id]) {
+      if (!p.images) p.images = {};
+      p.images.poster = COVER_FALLBACK_MAP[p.id];
+      p.images.cover = COVER_FALLBACK_MAP[p.id];
+    }
+  });
+  saveProducts();
 
   // Orders
   const storedOrders = localStorage.getItem(APP_STORAGE_KEYS.ORDERS);
@@ -407,7 +402,10 @@ async function syncFromSupabase() {
         inStock: p.in_stock !== false
       }));
 
-      // Ensure any newly added products from INITIAL_PRODUCTS are retained
+      // Enforce only the 14 official products
+      const validIds = new Set(INITIAL_PRODUCTS.map(ip => ip.id));
+      state.products = state.products.filter(p => validIds.has(p.id));
+
       if (typeof INITIAL_PRODUCTS !== 'undefined' && Array.isArray(INITIAL_PRODUCTS)) {
         INITIAL_PRODUCTS.forEach(ip => {
           if (!state.products.find(item => item.id === ip.id)) {
