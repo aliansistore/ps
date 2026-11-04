@@ -46,7 +46,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <!-- Custom Next-Gen Stylesheet (with cache buster query) -->
-  <link rel="stylesheet" href="assets/style.css?v=20261104_3" />
+  <link rel="stylesheet" href="assets/style.css?v=20261104_mobile1" />
 
   <!-- Critical Inline Styles to Guarantee Immediate High-Contrast Rendering (Dark & Light Mode) -->
   <style>
@@ -843,16 +843,16 @@
     </div>
 
     <!-- Floating Capsule HUD Navigation Bar -->
-    <header class="sticky top-3 z-40 px-4 sm:px-8 py-2">
-      <div class="max-w-7xl mx-auto nav-capsule px-4 sm:px-6 h-20 min-h-[5rem] flex items-center justify-between gap-4 shadow-2xl">
+    <header class="sticky top-2 sm:top-3 z-40 px-2 sm:px-8 py-1.5 sm:py-2">
+      <div class="max-w-7xl mx-auto nav-capsule px-3 sm:px-6 h-16 sm:h-20 min-h-[4rem] sm:min-h-[5rem] flex items-center justify-between gap-2 sm:gap-4 shadow-2xl">
         
         <!-- Brand Logo & PlayStation Shapes Badge -->
-        <a href="#store-view" onclick="playSfx('click')" class="flex items-center gap-3 shrink-0 group">
-          <div class="brand-logo-pill py-1.5 px-3.5 sm:px-5">
+        <a href="#store-view" onclick="playSfx('click')" class="flex items-center gap-2 sm:gap-3 shrink-0 group">
+          <div class="brand-logo-pill py-1 px-2.5 sm:py-1.5 sm:px-5">
             <img 
               src="assets/logo.png?v=20261103_7" 
               alt="ALIANSI STORE" 
-              class="h-11 sm:h-13 md:h-14 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+              class="h-8 sm:h-12 md:h-14 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
             />
           </div>
           <div class="hidden lg:flex items-center gap-1.5 text-[11px] font-mono tracking-widest pl-2 border-l border-slate-800">
@@ -879,10 +879,19 @@
         </div>
 
         <!-- Action Controls -->
-        <div class="flex items-center gap-2 sm:gap-2.5">
+        <div class="flex items-center gap-1.5 sm:gap-2.5">
+          <!-- Mobile Quick Search Trigger -->
           <button 
             onclick="playSfx('click'); document.getElementById('modal-search-order').classList.remove('hidden')" 
-            class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 hover:border-sky-500/50 transition-all flex items-center gap-1.5"
+            class="md:hidden p-2 rounded-full text-xs font-bold bg-slate-900/90 text-sky-400 border border-slate-800 hover:border-sky-500/50 flex items-center justify-center"
+            title="Lacak Invoice"
+          >
+            <i data-lucide="scan-line" class="w-4 h-4 text-sky-400"></i>
+          </button>
+
+          <button 
+            onclick="playSfx('click'); document.getElementById('modal-search-order').classList.remove('hidden')" 
+            class="hidden sm:flex px-3.5 py-1.5 rounded-full text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 hover:border-sky-500/50 transition-all items-center gap-1.5"
             title="Lacak Invoice Pesanan"
           >
             <i data-lucide="scan-line" class="w-3.5 h-3.5 text-sky-400"></i>
@@ -891,10 +900,10 @@
 
           <button 
             onclick="openCartDrawer()" 
-            class="relative px-3.5 py-1.5 rounded-full text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 hover:border-sky-500/50 transition-all flex items-center gap-1.5"
+            class="relative p-2 sm:px-3.5 sm:py-1.5 rounded-full text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 hover:border-sky-500/50 transition-all flex items-center gap-1.5"
             title="Keranjang Belanja"
           >
-            <i data-lucide="shopping-bag" class="w-3.5 h-3.5 text-sky-400"></i>
+            <i data-lucide="shopping-bag" class="w-4 h-4 sm:w-3.5 sm:h-3.5 text-sky-400"></i>
             <span class="hidden sm:inline">Keranjang</span>
             <span class="cart-badge hidden w-4 h-4 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 text-white text-[10px] font-black flex items-center justify-center">
               0
@@ -915,9 +924,14 @@
             <button 
               id="btn-nav-login"
               onclick="openAuthModal('login')" 
-              class="relative px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs font-black cyber-button flex items-center gap-1.5 shadow-md hover:shadow-sky-500/30 transition-all cursor-pointer"
+              class="relative px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs font-black cyber-button flex items-center gap-1.5 shadow-md hover:shadow-sky-500/30 transition-all cursor-pointer"
               title="Masuk ke Akun ALIANSI STORE"
             >
+              <i data-lucide="user" class="w-3.5 h-3.5"></i>
+              <span class="hidden xs:inline">Login</span>
+            </button>
+          </div>
+        </div>
               <i data-lucide="user" class="w-3.5 h-3.5"></i>
               <span>Login</span>
             </button>
@@ -947,23 +961,23 @@
               </div>
             </div>
 
-            <h1 id="hero-game-title" class="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-none mb-3 font-display">
+            <h1 id="hero-game-title" class="text-2xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight mb-2 sm:mb-3 font-display">
               Resident Evil 4 Remake (Full Sub Indo)
             </h1>
 
-            <p id="hero-game-tagline" class="text-sm sm:text-base text-slate-300 max-w-2xl mb-6 leading-relaxed line-clamp-2">
+            <p id="hero-game-tagline" class="text-xs sm:text-base text-slate-300 max-w-2xl mb-4 sm:mb-6 leading-relaxed line-clamp-2">
               Misi Penyelamatan Leon di Eropa dengan Full Subtitle Bahasa Indonesia Lengkap & Rapi (Support PS4 HEN & Digital).
             </p>
 
-            <div class="inline-flex items-center gap-4 p-3.5 rounded-2xl bg-slate-900/85 backdrop-blur-xl border border-sky-500/30 mb-6 shadow-2xl">
+            <div class="inline-flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 p-2.5 sm:p-3.5 rounded-2xl bg-slate-900/85 backdrop-blur-xl border border-sky-500/30 mb-5 sm:mb-6 shadow-2xl">
               <div>
-                <span class="text-[10px] text-sky-300 font-extrabold uppercase tracking-wider block">AKUN PRIMARY / PS4 HEN</span>
-                <span id="hero-price-primary" class="text-xl sm:text-2xl font-black text-white font-display">Rp 290.000</span>
+                <span class="text-[9px] sm:text-[10px] text-sky-300 font-extrabold uppercase tracking-wider block">AKUN PRIMARY / PS4 HEN</span>
+                <span id="hero-price-primary" class="text-lg sm:text-2xl font-black text-white font-display">Rp 290.000</span>
               </div>
-              <div class="h-8 w-px bg-slate-700"></div>
+              <div class="h-6 sm:h-8 w-px bg-slate-700"></div>
               <div>
-                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">AKUN SECONDARY</span>
-                <span id="hero-price-secondary" class="text-lg sm:text-xl font-bold text-sky-400 font-display">Rp 160.000</span>
+                <span class="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider block">AKUN SECONDARY</span>
+                <span id="hero-price-secondary" class="text-base sm:text-xl font-bold text-sky-400 font-display">Rp 160.000</span>
               </div>
               <div class="hidden sm:block pl-2 border-l border-slate-800">
                 <span class="text-[10px] text-slate-500 block">Harga Asli PS Store:</span>
@@ -971,17 +985,17 @@
               </div>
             </div>
 
-            <div class="flex flex-wrap items-center gap-3">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3">
               <button 
                 id="hero-btn-buy"
-                class="px-7 py-3.5 rounded-xl text-xs font-black uppercase tracking-wider cyber-button flex items-center gap-2"
+                class="w-full sm:w-auto px-6 sm:px-7 py-3 sm:py-3.5 rounded-xl text-xs font-black uppercase tracking-wider cyber-button flex items-center justify-center gap-2 shadow-lg shadow-sky-600/30"
               >
                 <i data-lucide="zap" class="w-4 h-4"></i> Beli Sekarang (Fulfillment Instan)
               </button>
               
               <button 
                 id="hero-btn-detail"
-                class="px-5 py-3.5 rounded-xl text-xs font-bold bg-slate-900/90 hover:bg-slate-800 text-slate-200 border border-slate-700 hover:border-sky-500 transition-all flex items-center gap-2"
+                class="w-full sm:w-auto px-5 py-3 sm:py-3.5 rounded-xl text-xs font-bold bg-slate-900/90 hover:bg-slate-800 text-slate-200 border border-slate-700 hover:border-sky-500 transition-all flex items-center justify-center gap-2"
               >
                 <i data-lucide="info" class="w-4 h-4 text-sky-400"></i> Detail & Review
               </button>
@@ -989,11 +1003,11 @@
           </div>
 
           <div class="lg:col-span-4 flex flex-col items-start lg:items-end">
-            <div class="text-xs font-black uppercase tracking-widest text-sky-400 mb-3 flex items-center gap-2">
+            <div class="text-xs font-black uppercase tracking-widest text-sky-400 mb-2.5 sm:mb-3 flex items-center gap-2">
               <i data-lucide="flame" class="w-4 h-4"></i> GAME PILIHAN TERPOPULER
             </div>
 
-            <div id="hero-spotlight-thumbs" class="flex lg:flex-col gap-2.5 overflow-x-auto pb-2 lg:pb-0 w-full justify-start lg:justify-end"></div>
+            <div id="hero-spotlight-thumbs" class="flex lg:flex-col gap-2.5 overflow-x-auto pb-2 lg:pb-0 w-full justify-start lg:justify-end no-scrollbar"></div>
           </div>
 
         </div>
@@ -2160,8 +2174,35 @@
     </div>
   </div>
 
+  <!-- Sleek Native Mobile Bottom Navigation Bar (Mobile Only) -->
+  <nav id="mobile-bottom-nav" class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-[#060c1a]/95 backdrop-blur-xl border-t border-sky-500/20 px-3 py-2 flex items-center justify-around shadow-[0_-10px_25px_rgba(0,0,0,0.6)]">
+    <a href="#katalog" onclick="playSfx('click')" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-sky-400 active:text-sky-400 py-1 px-2 transition-colors">
+      <i data-lucide="gamepad-2" class="w-5 h-5"></i>
+      <span class="text-[10px] font-bold">Katalog</span>
+    </a>
+    <button onclick="playSfx('click'); document.getElementById('modal-search-order').classList.remove('hidden')" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-sky-400 active:text-sky-400 py-1 px-2 transition-colors">
+      <i data-lucide="scan-line" class="w-5 h-5 text-sky-400"></i>
+      <span class="text-[10px] font-bold">Lacak Invoice</span>
+    </button>
+    <button onclick="openCartDrawer()" class="relative flex flex-col items-center gap-0.5 text-slate-400 hover:text-sky-400 active:text-sky-400 py-1 px-2 transition-colors">
+      <div class="relative">
+        <i data-lucide="shopping-bag" class="w-5 h-5 text-sky-400"></i>
+        <span class="cart-badge hidden absolute -top-1.5 -right-2 w-4 h-4 rounded-full bg-rose-600 text-white text-[9px] font-black flex items-center justify-center shadow">0</span>
+      </div>
+      <span class="text-[10px] font-bold">Keranjang</span>
+    </button>
+    <a href="https://wa.me/6281234567890" target="_blank" onclick="playSfx('click')" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-emerald-400 active:text-emerald-400 py-1 px-2 transition-colors">
+      <i data-lucide="message-circle" class="w-5 h-5 text-emerald-400"></i>
+      <span class="text-[10px] font-bold">CS WA</span>
+    </a>
+    <button onclick="toggleTheme()" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-amber-400 active:text-amber-400 py-1 px-2 transition-colors">
+      <i data-lucide="sun" class="w-5 h-5 theme-icon text-amber-400"></i>
+      <span class="text-[10px] font-bold theme-text">Mode</span>
+    </button>
+  </nav>
+
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261104_db1"></script>
-  <script src="assets/app.js?v=20261104_db1"></script>
+  <script src="assets/products-data.js?v=20261104_mobile1"></script>
+  <script src="assets/app.js?v=20261104_mobile1"></script>
 </body>
 </html>

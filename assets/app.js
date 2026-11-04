@@ -800,12 +800,12 @@ function renderProducts() {
 
     return `
       <div 
-        class="game-card-nextgen group relative bg-[#080f22] hover:bg-[#0c1630] rounded-2xl border border-slate-800/80 hover:border-sky-500/60 p-3.5 transition-all duration-300 flex flex-col justify-between glow-card"
+        class="game-card-nextgen group relative bg-[#080f22] hover:bg-[#0c1630] rounded-xl sm:rounded-2xl border border-slate-800/80 hover:border-sky-500/60 p-2.5 sm:p-3.5 transition-all duration-300 flex flex-col justify-between glow-card active:scale-[0.99]"
         onmouseenter="playSfx('hover')"
       >
         <div>
           <!-- Poster Container with Next-Gen Aspect Ratio -->
-          <div class="relative w-full aspect-[3/4] rounded-xl overflow-hidden mb-3.5 bg-slate-950 cursor-pointer shadow-lg" onclick="openProductDetail('${product.id}')">
+          <div class="relative w-full aspect-[3/4] rounded-lg sm:rounded-xl overflow-hidden mb-2.5 sm:mb-3.5 bg-slate-950 cursor-pointer shadow-md sm:shadow-lg" onclick="openProductDetail('${product.id}')">
             <img 
               src="${product.images.poster || product.images.cover}" 
               alt="${product.title}"
@@ -816,46 +816,45 @@ function renderProducts() {
             
             <!-- Badge Top Left -->
             ${product.badge ? `
-              <div class="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-lg text-[10px] font-extrabold tracking-wider uppercase bg-gradient-to-r from-sky-600 to-blue-700 text-white backdrop-blur-md shadow-lg border border-sky-400/40">
+              <div class="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg text-[9px] sm:text-[10px] font-extrabold tracking-wider uppercase bg-gradient-to-r from-sky-600 to-blue-700 text-white backdrop-blur-md shadow-md border border-sky-400/40">
                 ${product.badge}
               </div>
             ` : ''}
 
             <!-- In Stock Neon Tag -->
-            <div class="absolute bottom-2.5 left-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-black/80 text-emerald-400 backdrop-blur-md border border-emerald-500/30">
+            <div class="absolute bottom-2 left-2 sm:bottom-2.5 sm:left-2.5 flex items-center gap-1 sm:gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-bold bg-black/80 text-emerald-400 backdrop-blur-md border border-emerald-500/30">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-neon"></span>
-              Stok Ready
+              Ready
             </div>
 
             <!-- Discount Percent if Original exists -->
             ${product.prices.original ? `
-              <div class="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-md text-[10px] font-black bg-rose-600 text-white shadow-md">
+              <div class="absolute top-2 right-2 sm:top-2.5 sm:right-2.5 px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-black bg-rose-600 text-white shadow-md">
                 -${Math.round((1 - product.prices.primary / product.prices.original) * 100)}%
               </div>
             ` : ''}
 
             <!-- Quick View Overlay Button -->
-            <button class="absolute inset-0 bg-sky-950/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300 text-white font-bold text-xs gap-2 backdrop-blur-[2px]">
+            <button class="hidden sm:flex absolute inset-0 bg-sky-950/40 opacity-0 group-hover:opacity-100 items-center justify-center transition-opacity duration-300 text-white font-bold text-xs gap-2 backdrop-blur-[2px]">
               <i data-lucide="eye" class="w-4 h-4"></i> Preview Game
             </button>
           </div>
 
           <!-- Platforms & Star Rating -->
-          <div class="flex items-center justify-between gap-1 mb-2">
-            <div class="flex items-center gap-1.5 flex-wrap">
+          <div class="flex items-center justify-between gap-1 mb-1.5 sm:mb-2">
+            <div class="flex items-center gap-1 flex-wrap">
               ${subIndoTag}
               ${platformsHtml}
             </div>
-            <div class="flex items-center gap-1 text-amber-400 text-xs font-bold shrink-0">
-              <i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400"></i>
+            <div class="flex items-center gap-1 text-amber-400 text-[11px] sm:text-xs font-bold shrink-0">
+              <i data-lucide="star" class="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-amber-400 text-amber-400"></i>
               <span>${product.rating || '4.9'}</span>
-              <span class="text-slate-500 font-normal text-[10px]">(${product.soldCount || 100}+)</span>
             </div>
           </div>
 
           <!-- Title -->
           <h3 
-            class="font-bold text-slate-100 text-sm sm:text-base leading-snug line-clamp-2 hover:text-sky-400 transition-colors cursor-pointer mb-2.5"
+            class="font-bold text-slate-100 text-xs sm:text-sm md:text-base leading-snug line-clamp-2 hover:text-sky-400 transition-colors cursor-pointer mb-2"
             onclick="openProductDetail('${product.id}')"
           >
             ${product.title}
@@ -863,58 +862,58 @@ function renderProducts() {
 
           <!-- Interactive Primary vs Secondary Switcher Pill Right on the Card! -->
           ${!isSpecial ? `
-            <div class="price-toggle-pill mb-3">
+            <div class="price-toggle-pill mb-2 sm:mb-3">
               <button 
                 id="btn-var-primary-${product.id}"
                 onclick="event.stopPropagation(); toggleCardVariant('${product.id}', 'primary')" 
-                class="price-toggle-btn ${currentVariant === 'primary' ? 'active' : ''}"
+                class="price-toggle-btn text-[9px] sm:text-[10px] py-1 px-1.5 sm:px-2.5 ${currentVariant === 'primary' ? 'active' : ''}"
               >
                 PRIMARY
               </button>
               <button 
                 id="btn-var-secondary-${product.id}"
                 onclick="event.stopPropagation(); toggleCardVariant('${product.id}', 'secondary')" 
-                class="price-toggle-btn ${currentVariant === 'secondary' ? 'active' : ''}"
+                class="price-toggle-btn text-[9px] sm:text-[10px] py-1 px-1.5 sm:px-2.5 ${currentVariant === 'secondary' ? 'active' : ''}"
               >
                 SECONDARY
               </button>
             </div>
           ` : `
-            <div class="px-2.5 py-1 rounded-lg bg-purple-950/40 border border-purple-800/40 text-[10px] text-purple-300 font-semibold mb-3 flex items-center gap-1">
+            <div class="px-2 py-1 rounded-lg bg-purple-950/40 border border-purple-800/40 text-[9px] sm:text-[10px] text-purple-300 font-semibold mb-2 sm:mb-3 flex items-center gap-1">
               <i data-lucide="sparkles" class="w-3 h-3 text-purple-400"></i>
-              <span>${product.category === 'hen' ? 'Full Game Request + Sub Indo' : 'Lisensi Resmi PlayStation'}</span>
+              <span class="truncate">${product.category === 'hen' ? 'Full Game Request + Sub Indo' : 'Lisensi Resmi PlayStation'}</span>
             </div>
           `}
         </div>
 
         <!-- Price & Action Button -->
-        <div class="pt-3 border-t border-slate-800/80 mt-1">
-          <div class="flex items-baseline justify-between mb-3">
+        <div class="pt-2 sm:pt-3 border-t border-slate-800/80 mt-1">
+          <div class="flex items-baseline justify-between mb-2 sm:mb-3">
             <div>
-              <span class="text-[10px] text-slate-400 block font-mono">Harga Akun</span>
-              <span id="card-price-${product.id}" class="text-lg font-extrabold text-sky-400 font-display">
+              <span class="text-[9px] sm:text-[10px] text-slate-400 block font-mono">Harga Akun</span>
+              <span id="card-price-${product.id}" class="text-xs sm:text-base md:text-lg font-black text-sky-400 font-display">
                 ${formatRupiah(activePrice)}
               </span>
             </div>
             ${product.prices.original ? `
-              <span class="text-xs text-slate-500 line-through font-mono">
+              <span class="text-[10px] sm:text-xs text-slate-500 line-through font-mono">
                 ${formatRupiah(product.prices.original)}
               </span>
             ` : ''}
           </div>
 
-          <div class="grid grid-cols-2 gap-2">
+          <div class="grid grid-cols-2 gap-1.5 sm:gap-2">
             <button 
               onclick="openProductDetail('${product.id}')"
-              class="btn-card-detail w-full py-2 px-2.5 rounded-xl text-xs font-bold bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700/60 transition-all flex items-center justify-center gap-1.5"
+              class="btn-card-detail w-full py-1.5 sm:py-2 px-1 sm:px-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700/60 transition-all flex items-center justify-center gap-1 sm:gap-1.5"
             >
-              <i data-lucide="info" class="w-3.5 h-3.5 text-sky-400"></i> Detail
+              <i data-lucide="info" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-sky-400"></i> Detail
             </button>
             <button 
               onclick="buyCardVariant('${product.id}')"
-              class="w-full py-2 px-2.5 rounded-xl text-xs font-extrabold cyber-button shadow-md flex items-center justify-center gap-1.5"
+              class="w-full py-1.5 sm:py-2 px-1 sm:px-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-extrabold cyber-button shadow-md flex items-center justify-center gap-1 sm:gap-1.5"
             >
-              <i data-lucide="zap" class="w-3.5 h-3.5"></i> Beli
+              <i data-lucide="zap" class="w-3 h-3 sm:w-3.5 sm:h-3.5"></i> Beli
             </button>
           </div>
         </div>
