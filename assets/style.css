@@ -593,9 +593,9 @@ html:not(.dark) footer {
   color: #475569 !important;
 }
 html:not(.dark) footer .brand-logo-pill {
-  background: #f8fafc !important;
-  border: 1px solid #e2e8f0 !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 html:not(.dark) footer h5 {
   color: #0f172a !important;
@@ -690,18 +690,25 @@ html:not(.dark) .force-white {
    SHARED UI ELEMENTS
    ========================================================================== */
 .brand-logo-pill {
-  background: #ffffff;
-  padding: 6px 18px;
-  border-radius: 9999px;
+  background: transparent !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  border: none !important;
   display: inline-flex;
   align-items: center;
-  box-shadow: 0 4px 20px rgba(0, 112, 209, 0.25), 0 0 15px rgba(0, 150, 255, 0.2);
+  box-shadow: none !important;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .brand-logo-pill:hover {
   transform: scale(1.04);
-  box-shadow: 0 6px 28px rgba(0, 112, 209, 0.45), 0 0 25px rgba(0, 245, 255, 0.4);
+  filter: drop-shadow(0 0 14px rgba(0, 150, 255, 0.4));
 }
+
+/* Dynamic Logo Theme Switching */
+html.dark .logo-dark-theme { display: inline-block !important; }
+html.dark .logo-light-theme { display: none !important; }
+html:not(.dark) .logo-dark-theme { display: none !important; }
+html:not(.dark) .logo-light-theme { display: inline-block !important; }
 
 .ps-triangle { color: #00f5ff; }
 .ps-circle { color: #ef4444; }
@@ -874,11 +881,14 @@ html:not(.dark) #mobile-bottom-nav button:active {
   }
 
   .brand-logo-pill {
-    padding: 3px 8px !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
   }
   .brand-logo-pill img {
-    height: 30px !important;
-    max-height: 30px !important;
+    height: 34px !important;
+    max-height: 34px !important;
   }
 
   /* Compact Hero Spotlight */
