@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>ALIANSI STORE | Next-Gen PlayStation Game Marketplace</title>
-  <meta name="description" content="Marketplace game PlayStation modern & legal di Indonesia. Beli game digital PS4 & PS5 Akun Primary / Secondary, Jasa Isi HEN Sub Indo, PS Plus, dan PSN Gift Card instan." />
+  <meta name="description" content="Marketplace game PlayStation modern di Indonesia. Spesialis Game PS4 HEN, Subtitle Indonesia (Format File PKG Google Drive), Jasa Isi Harddisk, dan Layanan Konsol Instan." />
   
   <!-- Browser Tab Thumbnail / Favicon -->
   <link rel="icon" type="image/png" href="assets/favicon.png?v=20261103_1" />
@@ -46,7 +46,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <!-- Custom Next-Gen Stylesheet (with cache buster query) -->
-  <link rel="stylesheet" href="assets/style.css?v=20261105_pw_v2" />
+  <link rel="stylesheet" href="assets/style.css?v=20261105_hen_v1" />
 
   <!-- Critical Inline Styles to Guarantee Immediate High-Contrast Rendering (Dark & Light Mode) -->
   <style>
@@ -350,9 +350,9 @@
       border-color: #e2e8f0 !important;
     }
     html:not(.dark) .cart-item-variant {
-      background-color: #e0f2fe !important;
-      color: #0284c7 !important;
-      border: 1px solid #bae6fd !important;
+      background-color: #f3e8ff !important;
+      color: #7e22ce !important;
+      border: 1px solid #d8b4fe !important;
     }
     html:not(.dark) .cart-item-platform {
       background-color: #f1f5f9 !important;
@@ -1017,19 +1017,22 @@
               Misi Penyelamatan Leon di Eropa dengan Full Subtitle Bahasa Indonesia Lengkap & Rapi (Support PS4 HEN & Digital).
             </p>
 
-            <div class="inline-flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 p-2.5 sm:p-3.5 rounded-2xl bg-slate-900/85 backdrop-blur-xl border border-sky-500/30 mb-5 sm:mb-6 shadow-2xl">
+            <div class="inline-flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 p-2.5 sm:p-3.5 rounded-2xl bg-slate-900/85 backdrop-blur-xl border border-purple-500/30 mb-5 sm:mb-6 shadow-2xl">
               <div>
-                <span class="text-[9px] sm:text-[10px] text-sky-300 font-extrabold uppercase tracking-wider block">AKUN PRIMARY / PS4 HEN</span>
-                <span id="hero-price-primary" class="text-lg sm:text-2xl font-black text-white font-display">Rp 290.000</span>
+                <span class="text-[9px] sm:text-[10px] text-purple-300 font-extrabold uppercase tracking-wider flex items-center gap-1">
+                  <i data-lucide="package" class="w-3.5 h-3.5 text-purple-400"></i> HARGA GAME PS4 HEN (FILE PKG)
+                </span>
+                <span id="hero-price-primary" class="text-lg sm:text-2xl font-black text-white font-display">Rp 120.000</span>
               </div>
               <div class="h-6 sm:h-8 w-px bg-slate-700"></div>
-              <div>
-                <span class="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider block">AKUN SECONDARY</span>
-                <span id="hero-price-secondary" class="text-base sm:text-xl font-bold text-sky-400 font-display">Rp 160.000</span>
+              <div class="hidden sm:block pl-1">
+                <span class="text-[10px] text-slate-400 block font-bold">Harga Asli PS Store:</span>
+                <span id="hero-price-original" class="text-xs text-slate-400 line-through font-mono">Rp 829.000</span>
               </div>
-              <div class="hidden sm:block pl-2 border-l border-slate-800">
-                <span class="text-[10px] text-slate-500 block">Harga Asli PS Store:</span>
-                <span id="hero-price-original" class="text-xs text-slate-500 line-through font-mono">Rp 829.000</span>
+              <div class="pl-2 border-l border-slate-800 flex items-center gap-1.5">
+                <span class="text-[10px] px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30 flex items-center gap-1">
+                  <i data-lucide="check-circle" class="w-3 h-3 text-emerald-400"></i> Google Drive Siap Pasang
+                </span>
               </div>
             </div>
 
@@ -1478,8 +1481,8 @@
             <thead>
               <tr class="border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-900/60">
                 <th class="py-3 px-3">Judul & Platform</th>
-                <th class="py-3 px-3">Harga Primary</th>
-                <th class="py-3 px-3">Harga Secondary</th>
+                <th class="py-3 px-3">Harga Game HEN</th>
+                <th class="py-3 px-3">Harga Coret Asli</th>
                 <th class="py-3 px-3">Status Stok</th>
                 <th class="py-3 px-3 text-right">Tindakan</th>
               </tr>
@@ -1540,8 +1543,8 @@
 
         <div class="mb-5">
           <div class="flex items-center justify-between mb-2">
-            <label class="text-xs font-black text-white uppercase tracking-wider">Pilih Tipe Akun Game:</label>
-            <button onclick="document.getElementById('modal-account-guide').classList.remove('hidden')" class="text-xs text-sky-400 hover:underline flex items-center gap-1 font-semibold">
+            <label id="modal-variant-label" class="text-xs font-black text-white uppercase tracking-wider">Format & Tipe Game:</label>
+            <button id="btn-modal-account-guide" onclick="document.getElementById('modal-account-guide').classList.remove('hidden')" class="text-xs text-sky-400 hover:underline flex items-center gap-1 font-semibold hidden">
               <i data-lucide="help-circle" class="w-3.5 h-3.5"></i> Beda Primary & Secondary?
             </button>
           </div>
@@ -2229,12 +2232,12 @@
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-bold text-slate-300 mb-1">Harga Akun Primary (Rp) <span class="text-rose-400">*</span></label>
-            <input type="number" id="new-game-price-primary" placeholder="350000" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" />
+            <label class="block text-xs font-bold text-slate-300 mb-1">Harga Game HEN (Rp) <span class="text-rose-400">*</span></label>
+            <input type="number" id="new-game-price-primary" placeholder="120000" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" />
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-300 mb-1">Harga Akun Secondary (Rp)</label>
-            <input type="number" id="new-game-price-secondary" placeholder="190000" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" />
+            <label class="block text-xs font-bold text-slate-300 mb-1">Harga Coret Asli PS Store (Rp)</label>
+            <input type="number" id="new-game-price-secondary" placeholder="479000" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" />
           </div>
         </div>
         <div>
@@ -2266,11 +2269,11 @@
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-bold text-slate-300 mb-1">Harga Primary (Rp)</label>
+            <label class="block text-xs font-bold text-slate-300 mb-1">Harga Game HEN (Rp)</label>
             <input type="number" id="edit-game-price-primary" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" />
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-300 mb-1">Harga Secondary (Rp)</label>
+            <label class="block text-xs font-bold text-slate-300 mb-1">Harga Coret Asli PS Store (Rp)</label>
             <input type="number" id="edit-game-price-secondary" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" />
           </div>
         </div>
@@ -2292,31 +2295,31 @@
 
   <!-- DRAWER: Cart -->
   <div id="drawer-cart" class="hidden fixed inset-0 z-50 overflow-hidden">
-    <div class="absolute inset-0 bg-black/75 backdrop-blur-md transition-opacity" onclick="closeCartDrawer()"></div>
+    <div class="absolute inset-0 bg-black/60 dark:bg-black/75 backdrop-blur-md transition-opacity" onclick="closeCartDrawer()"></div>
     <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
-      <div id="cart-drawer-panel" class="w-screen max-w-md bg-[#070d1e] border-l border-slate-800 p-6 flex flex-col justify-between shadow-2xl relative">
+      <div id="cart-drawer-panel" class="w-screen max-w-md bg-white dark:bg-[#070d1e] border-l border-slate-200 dark:border-slate-800 p-6 flex flex-col justify-between shadow-2xl relative text-slate-900 dark:text-white">
         <div>
-          <div class="flex items-center justify-between pb-4 border-b border-slate-800 mb-4">
+          <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 mb-4">
             <div class="flex items-center gap-2">
-              <i data-lucide="shopping-bag" class="w-5 h-5 text-sky-400"></i>
-              <h3 class="text-base font-bold text-white font-display">Keranjang Belanja</h3>
+              <i data-lucide="shopping-bag" class="w-5 h-5 text-sky-500 dark:text-sky-400"></i>
+              <h3 class="text-base font-bold text-slate-900 dark:text-white font-display">Keranjang Belanja</h3>
             </div>
-            <button onclick="closeCartDrawer()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800">
+            <button onclick="closeCartDrawer()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
               <i data-lucide="x" class="w-5 h-5"></i>
             </button>
           </div>
           <div id="cart-items-list" class="space-y-3 max-h-[60vh] overflow-y-auto pr-1"></div>
           <div id="cart-empty-state" class="hidden py-12 text-center">
-            <i data-lucide="shopping-bag" class="w-12 h-12 text-slate-600 mx-auto mb-3"></i>
-            <h4 class="text-sm font-bold text-slate-300 mb-1">Keranjang Masih Kosong</h4>
+            <i data-lucide="shopping-bag" class="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3"></i>
+            <h4 class="text-sm font-bold text-slate-800 dark:text-slate-300 mb-1">Keranjang Masih Kosong</h4>
             <p class="text-xs text-slate-500 mb-4">Pilih game favorit Anda di katalog!</p>
-            <button onclick="closeCartDrawer()" class="px-4 py-2 rounded-xl bg-sky-600 text-white text-xs font-bold">Mulai Belanja</button>
+            <button onclick="closeCartDrawer()" class="px-4 py-2 rounded-xl bg-sky-600 text-white text-xs font-bold hover:bg-sky-500 transition-colors">Mulai Belanja</button>
           </div>
         </div>
-        <div id="cart-footer-actions" class="pt-4 border-t border-slate-800">
+        <div id="cart-footer-actions" class="pt-4 border-t border-slate-200 dark:border-slate-800">
           <div class="flex items-center justify-between mb-4">
-            <span class="text-xs text-slate-400">Total Belanja:</span>
-            <span id="cart-subtotal" class="text-lg font-black text-sky-400 font-display">Rp 0</span>
+            <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Belanja:</span>
+            <span id="cart-subtotal" class="text-lg font-black text-sky-600 dark:text-sky-400 font-display">Rp 0</span>
           </div>
           <button onclick="openCheckout()" class="w-full py-3.5 rounded-xl cyber-button font-black text-xs shadow-lg flex items-center justify-center gap-2">
             <i data-lucide="credit-card" class="w-4 h-4"></i> Lanjut Checkout (Guest / Member)
@@ -2354,7 +2357,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261105_pw_v2"></script>
-  <script src="assets/app.js?v=20261105_pw_v2"></script>
+  <script src="assets/products-data.js?v=20261105_hen_v1"></script>
+  <script src="assets/app.js?v=20261105_hen_v1"></script>
 </body>
 </html>

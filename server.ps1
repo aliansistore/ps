@@ -96,38 +96,45 @@ try {
             continue
         }
 
-        $filePath = Join-Path $baseDir $localPath
+        try {
+            $filePath = Join-Path $baseDir $localPath
 
-        if (Test-Path $filePath -PathType Leaf) {
-            $ext = [System.IO.Path]::GetExtension($filePath).ToLower()
-            $contentType = switch ($ext) {
-                ".html" { "text/html; charset=utf-8" }
-                ".htm"  { "text/html; charset=utf-8" }
-                ".css"  { "text/css; charset=utf-8" }
-                ".js"   { "application/javascript; charset=utf-8" }
-                ".json" { "application/json; charset=utf-8" }
-                ".png"  { "image/png" }
-                ".jpg"  { "image/jpeg" }
-                ".jpeg" { "image/jpeg" }
-                ".webp" { "image/webp" }
-                ".svg"  { "image/svg+xml" }
-                ".ico"  { "image/x-icon" }
-                Default { "application/octet-stream" }
+            if (Test-Path $filePath -PathType Leaf) {
+                $ext = [System.IO.Path]::GetExtension($filePath).ToLower()
+                $contentType = switch ($ext) {
+                    ".html" { "text/html; charset=utf-8" }
+                    ".htm"  { "text/html; charset=utf-8" }
+                    ".css"  { "text/css; charset=utf-8" }
+                    ".js"   { "application/javascript; charset=utf-8" }
+                    ".json" { "application/json; charset=utf-8" }
+                    ".png"  { "image/png" }
+                    ".jpg"  { "image/jpeg" }
+                    ".jpeg" { "image/jpeg" }
+                    ".webp" { "image/webp" }
+                    ".svg"  { "image/svg+xml" }
+                    ".ico"  { "image/x-icon" }
+                    Default { "application/octet-stream" }
+                }
+
+                $bytes = [System.IO.File]::ReadAllBytes($filePath)
+                $response.ContentType = $contentType
+                $response.ContentLength64 = $bytes.Length
+                $response.StatusCode = 200
+                $response.OutputStream.Write($bytes, 0, $bytes.Length)
             }
-
-            $bytes = [System.IO.File]::ReadAllBytes($filePath)
-            $response.ContentType = $contentType
-            $response.ContentLength64 = $bytes.Length
-            $response.StatusCode = 200
-            $response.OutputStream.Write($bytes, 0, $bytes.Length)
+            else {
+                $response.StatusCode = 404
+                $errBytes = [System.Text.Encoding]::UTF8.GetBytes("404 Not Found: $localPath")
+                $response.ContentLength64 = $errBytes.Length
+                $response.OutputStream.Write($errBytes, 0, $errBytes.Length)
+            }
         }
-        else {
-            $response.StatusCode = 404
-            $errBytes = [System.Text.Encoding]::UTF8.GetBytes("404 Not Found: $localPath")
-            $response.OutputStream.Write($errBytes, 0, $errBytes.Length)
+        catch {
+            Write-Host "Request handler warning: $($_.Exception.Message)" -ForegroundColor Yellow
         }
-
-        $response.Close()
+        finally {
+            try { $response.Close() } catch {}
+        }
     }
 }
 catch {

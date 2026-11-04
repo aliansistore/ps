@@ -36,7 +36,7 @@ const INITIAL_PRODUCTS = [
     features: [
       "100% Subtitle Indonesia (Dialog Cody, May, & Dr. Hakim)",
       "Mendukung Split-screen 2 Pemain Offline & Online",
-      "Kompatibel PS4 HEN (Firmware 5.05 - 11.00) & Akun Digital",
+      "Kompatibel Semua Firmware PS4 HEN (5.05 - 11.00)",
       "Termasuk Panduan Pasang File PKG Mudah",
       "Garansi Game Lancar Bebas Bug"
     ],
@@ -75,7 +75,7 @@ const INITIAL_PRODUCTS = [
     description: "Mahakarya aksi petualangan mitologi Nordik paling fenomenal. Kratos dan Atreus bertualang ke setiap sembilan alam untuk mencari jawaban saat pasukan Asgard bersiap menghadapi pertempuran besar Ragnarok. Full Subtitle Indonesia teks dialog dan narasi rapi.",
     features: [
       "Full Subtitle Bahasa Indonesia Semua Dialog Utama & Side Quest",
-      "Kompatibel Firmware PS4 HEN & Akun Resmi PSN",
+      "Kompatibel Semua Firmware PS4 HEN (5.05 - 11.00)",
       "Termasuk DLC Valhalla Roguelike Update Terbaru",
       "Support Audio Dubbing Inggris Asli dengan Sub Indo Selaras",
       "File Game PKG Lengkap + Panduan Install Anti Gagal"
@@ -317,7 +317,7 @@ const INITIAL_PRODUCTS = [
       "100% Subtitle Indonesia Semua Dialog Nate, Sam, & Sully",
       "Aksi Parkour dan Tembak-Menembak Sinematik Terbaik Naughty Dog",
       "Grafis Sangat Memukau untuk Konsol PS4",
-      "Kompatibel PS4 HEN dan Akun Resmi PSN",
+      "Kompatibel Semua Firmware PS4 HEN (5.05 - 11.00)",
       "Pengiriman Link Google Drive Berkecepatan Tinggi"
     ],
     inStock: true
@@ -587,7 +587,7 @@ const INITIAL_ORDERS = [
       {
         productId: "game-gow-ragnarok-subindo",
         title: "God of War Ragnarök (Full Subtitle Indonesia)",
-        variant: "primary",
+        variant: "PS4 HEN",
         price: 250000,
         qty: 1,
         platform: "PS4 HEN"
@@ -618,7 +618,7 @@ const INITIAL_ORDERS = [
       {
         productId: "game-pes-2027-bitbox",
         title: "PES 2027 Bitbox Summer Update",
-        variant: "primary",
+        variant: "PS4 HEN",
         price: 135000,
         qty: 1,
         platform: "PS4 HEN"
@@ -709,7 +709,7 @@ const INITIAL_USERS = [
 // Initial Store Config
 const INITIAL_CONFIG = {
   storeName: "ALIANSI STORE",
-  tagline: "Spesialis Game PS4 HEN, Game Subtitle Indonesia & Akun Digital Terpercaya",
+  tagline: "Spesialis Game PS4 HEN, Game Subtitle Indonesia & File PKG Google Drive Terpercaya",
   whatsappNumber: "6281234567890",
   whatsappFormatted: "+62 812-3456-7890",
   adminPin: "1234",

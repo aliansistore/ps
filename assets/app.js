@@ -327,6 +327,14 @@ function loadStoredData() {
   if (storedCart) {
     try {
       state.cart = JSON.parse(storedCart);
+      // Auto-migrate legacy 'primary' variant to 'PS4 HEN' for HEN games
+      if (Array.isArray(state.cart)) {
+        state.cart.forEach(item => {
+          if (!item.variant || item.variant.toLowerCase() === 'primary') {
+            item.variant = 'PS4 HEN';
+          }
+        });
+      }
     } catch (e) {
       state.cart = [];
     }
@@ -706,10 +714,22 @@ function updateSpotlightDisplay(index) {
   }
 
   // Prices
-  document.getElementById('hero-price-primary').textContent = formatRupiah(game.prices.primary);
-  document.getElementById('hero-price-secondary').textContent = formatRupiah(game.prices.secondary);
-  if (game.prices.original) {
-    document.getElementById('hero-price-original').textContent = formatRupiah(game.prices.original);
+  const pPriEl = document.getElementById('hero-price-primary');
+  if (pPriEl) pPriEl.textContent = formatRupiah(game.prices.primary);
+
+  const pSecEl = document.getElementById('hero-price-secondary');
+  if (pSecEl) {
+    if (game.prices.secondary && !game.isHen) {
+      pSecEl.textContent = formatRupiah(game.prices.secondary);
+      pSecEl.parentElement?.classList.remove('hidden');
+    } else {
+      pSecEl.parentElement?.classList.add('hidden');
+    }
+  }
+
+  const pOriEl = document.getElementById('hero-price-original');
+  if (pOriEl && game.prices.original) {
+    pOriEl.textContent = formatRupiah(game.prices.original);
   }
 
   // Action Buttons
@@ -791,7 +811,7 @@ function getFilteredProducts() {
   if (state.sortOption === 'popular') {
     list.sort((a, b) => (b.soldCount || 0) - (a.soldCount || 0));
   } else if (state.sortOption === 'price-low') {
-    list.sort((a, b) => (a.prices.secondary || a.prices.primary) - (b.prices.secondary || b.prices.primary));
+    list.sort((a, b) => (a.prices.primary || 0) - (b.prices.primary || 0));
   } else if (state.sortOption === 'price-high') {
     list.sort((a, b) => (b.prices.primary || 0) - (a.prices.primary || 0));
   } else if (state.sortOption === 'newest') {
@@ -847,9 +867,10 @@ function renderProducts() {
   if (emptyState) emptyState.classList.add('hidden');
 
   container.innerHTML = items.map(product => {
-    const isSpecial = product.category === 'service-hen' || product.category === 'tool' || (product.prices.primary === product.prices.secondary);
-    const currentVariant = state.cardVariants[product.id] || 'primary';
-    const activePrice = currentVariant === 'secondary' ? product.prices.secondary : product.prices.primary;
+    const isHenGame = product.isHen || product.category === 'subindo' || product.category === 'hen';
+    const isSpecial = product.category === 'service-hen' || product.category === 'tool' || isHenGame || (product.prices.primary === product.prices.secondary);
+    const currentVariant = isHenGame ? 'PS4 HEN' : (state.cardVariants[product.id] || 'primary');
+    const activePrice = product.prices.primary;
 
     // Platform tags
     const platformsHtml = product.platform.map(pl => {
@@ -928,8 +949,13 @@ function renderProducts() {
             ${product.title}
           </h3>
 
-          <!-- Interactive Primary vs Secondary Switcher Pill Right on the Card! -->
-          ${!isSpecial ? `
+          <!-- Game HEN Clean Info Tag (No Primary/Secondary for HEN) -->
+          ${isHenGame ? `
+            <div class="mb-2 sm:mb-3 text-[10px] text-purple-300 font-extrabold flex items-center justify-between py-1.5 px-2.5 rounded-lg bg-purple-950/60 border border-purple-500/30">
+              <span class="flex items-center gap-1"><i data-lucide="package" class="w-3.5 h-3.5 text-purple-400"></i> File PKG (PS4 HEN)</span>
+              <span class="text-emerald-400 font-bold">Google Drive</span>
+            </div>
+          ` : (!isSpecial ? `
             <div class="price-toggle-pill mb-2 sm:mb-3">
               <button 
                 id="btn-var-primary-${product.id}"
@@ -949,16 +975,16 @@ function renderProducts() {
           ` : `
             <div class="px-2 py-1 rounded-lg bg-purple-950/40 border border-purple-800/40 text-[9px] sm:text-[10px] text-purple-300 font-semibold mb-2 sm:mb-3 flex items-center gap-1">
               <i data-lucide="sparkles" class="w-3 h-3 text-purple-400"></i>
-              <span class="truncate">${product.category === 'hen' ? 'Full Game Request + Sub Indo' : 'Lisensi Resmi PlayStation'}</span>
+              <span class="truncate">Lisensi Resmi PlayStation</span>
             </div>
-          `}
+          `)}
         </div>
 
         <!-- Price & Action Button -->
         <div class="pt-2 sm:pt-3 border-t border-slate-800/80 mt-1">
           <div class="flex items-baseline justify-between mb-2 sm:mb-3">
             <div>
-              <span class="text-[9px] sm:text-[10px] text-slate-400 block font-mono">Harga Akun</span>
+              <span class="text-[9px] sm:text-[10px] text-slate-400 block font-mono">${isHenGame ? 'Harga Game HEN' : 'Harga Akun'}</span>
               <span id="card-price-${product.id}" class="text-xs sm:text-base md:text-lg font-black text-sky-400 font-display">
                 ${formatRupiah(activePrice)}
               </span>
@@ -994,9 +1020,10 @@ function renderProducts() {
 
 function buyCardVariant(productId) {
   playSfx('click');
-  const variant = state.cardVariants[productId] || 'primary';
   const product = state.products.find(p => p.id === productId);
   if (!product) return;
+  const isHenGame = product.isHen || product.category === 'subindo' || product.category === 'hen';
+  const variant = isHenGame ? 'PS4 HEN' : (state.cardVariants[productId] || 'primary');
 
   addToCart(product.id, variant, product.platform[0], 1, false);
   openCheckout();
@@ -1012,7 +1039,19 @@ function openProductDetail(productId) {
   const modal = document.getElementById('modal-product-detail');
   if (!modal) return;
 
-  const isSpecial = product.category === 'hen' || product.category === 'psplus' || product.category === 'voucher';
+  const isHenGame = product.isHen || product.category === 'subindo' || product.category === 'hen';
+  const isSpecial = product.category === 'service-hen' || product.category === 'tool' || isHenGame;
+
+  // Toggle account guide button & label for HEN vs Digital
+  const guideBtn = document.getElementById('btn-modal-account-guide');
+  const variantLabel = document.getElementById('modal-variant-label');
+  if (guideBtn) {
+    if (isHenGame) guideBtn.classList.add('hidden');
+    else guideBtn.classList.remove('hidden');
+  }
+  if (variantLabel) {
+    variantLabel.textContent = isHenGame ? 'Format Game & Pengiriman:' : 'Pilih Tipe Akun Game:';
+  }
 
   document.getElementById('modal-product-title').textContent = product.title;
   document.getElementById('modal-product-publisher').textContent = product.publisher || 'PlayStation Store';
@@ -1048,7 +1087,28 @@ function openProductDetail(productId) {
   // Variant selector
   const variantContainer = document.getElementById('modal-variant-container');
   if (variantContainer) {
-    if (isSpecial) {
+    if (isHenGame) {
+      variantContainer.innerHTML = `
+        <div class="p-4 rounded-2xl bg-purple-950/40 border-2 border-purple-500/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 variant-card shadow-lg">
+          <div>
+            <div class="flex items-center gap-2 mb-1.5">
+              <span class="px-2.5 py-0.5 text-[10px] font-black rounded-lg bg-purple-600 text-white uppercase tracking-wider flex items-center gap-1">
+                <i data-lucide="package" class="w-3.5 h-3.5"></i> FULL GAME PS4 HEN (PKG)
+              </span>
+              <span class="px-2 py-0.5 text-[9px] font-black rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">BEBAS AKUN</span>
+            </div>
+            <p class="text-xs text-slate-300 font-medium leading-relaxed">
+              <strong>Bukan sistem akun!</strong> Dikirim dalam format file game PKG full via Google Drive high-speed. Bebas main offline selamanya di konsol PS4 HEN tanpa takut banned atau terkunci.
+            </p>
+          </div>
+          <div class="text-left sm:text-right shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-purple-500/20 w-full sm:w-auto">
+            <span class="text-lg sm:text-2xl font-black text-sky-400 font-display block">${formatRupiah(product.prices.primary)}</span>
+            ${product.prices.original ? `<div class="text-[11px] text-slate-400 line-through font-mono">PS Store: ${formatRupiah(product.prices.original)}</div>` : ''}
+          </div>
+        </div>
+        <input type="hidden" id="selected-variant" value="PS4 HEN" />
+      `;
+    } else if (isSpecial) {
       variantContainer.innerHTML = `
         <div class="p-3.5 rounded-xl bg-sky-950/40 border border-sky-500/30 flex items-center justify-between">
           <div>
@@ -1059,7 +1119,7 @@ function openProductDetail(productId) {
             ${formatRupiah(product.prices.primary)}
           </div>
         </div>
-        <input type="hidden" id="selected-variant" value="primary" />
+        <input type="hidden" id="selected-variant" value="Paket Resmi" />
       `;
     } else {
       variantContainer.innerHTML = `
@@ -1156,30 +1216,36 @@ function quickBuy(productId) {
   const product = state.products.find(p => p.id === productId);
   if (!product) return;
 
-  addToCart(product.id, 'primary', product.platform[0], 1, false);
+  const isHenGame = product.isHen || product.category === 'subindo' || product.category === 'hen';
+  const defaultVar = isHenGame ? 'PS4 HEN' : 'primary';
+
+  addToCart(product.id, defaultVar, product.platform[0], 1, false);
   openCheckout();
 }
 
 // Add To Cart
-function addToCart(productId, variant = 'primary', platform = null, qty = 1, showNotification = true) {
+function addToCart(productId, variant = null, platform = null, qty = 1, showNotification = true) {
   const product = state.products.find(p => p.id === productId);
   if (!product) return;
 
+  const isHenGame = product.isHen || product.category === 'subindo' || product.category === 'hen';
+  const finalVariant = isHenGame ? 'PS4 HEN' : (variant || 'primary');
   const targetPlatform = platform || product.platform[0];
-  const unitPrice = variant === 'secondary' ? product.prices.secondary : product.prices.primary;
+  const unitPrice = finalVariant === 'secondary' ? (product.prices.secondary || product.prices.primary) : product.prices.primary;
 
   const existingIndex = state.cart.findIndex(item => 
-    item.productId === productId && item.variant === variant && item.platform === targetPlatform
+    item.productId === productId && (item.variant === finalVariant || (isHenGame && (item.variant === 'primary' || item.variant === 'PS4 HEN'))) && item.platform === targetPlatform
   );
 
   if (existingIndex > -1) {
+    state.cart[existingIndex].variant = finalVariant;
     state.cart[existingIndex].qty += qty;
   } else {
     state.cart.push({
       productId: product.id,
       title: product.title,
       poster: getProductPoster(product),
-      variant: variant,
+      variant: finalVariant,
       platform: targetPlatform,
       unitPrice: unitPrice,
       qty: qty
@@ -1190,14 +1256,15 @@ function addToCart(productId, variant = 'primary', platform = null, qty = 1, sho
 
   if (showNotification) {
     playSfx('success');
-    showToast(`${product.title} (${variant.toUpperCase()}) masuk keranjang!`, 'success');
+    showToast(`${product.title} (${finalVariant}) masuk keranjang!`, 'success');
   }
 }
 
 function addCurrentModalToCart() {
   if (!state.selectedProduct) return;
+  const isHenGame = state.selectedProduct.isHen || state.selectedProduct.category === 'subindo' || state.selectedProduct.category === 'hen';
   const variantInput = document.getElementById('selected-variant');
-  const variant = variantInput ? variantInput.value : 'primary';
+  const variant = isHenGame ? 'PS4 HEN' : (variantInput ? variantInput.value : 'primary');
 
   const platformRadio = document.querySelector('input[name="selected-platform"]:checked');
   const platform = platformRadio ? platformRadio.value : state.selectedProduct.platform[0];
@@ -1208,8 +1275,9 @@ function addCurrentModalToCart() {
 
 function buyCurrentModalNow() {
   if (!state.selectedProduct) return;
+  const isHenGame = state.selectedProduct.isHen || state.selectedProduct.category === 'subindo' || state.selectedProduct.category === 'hen';
   const variantInput = document.getElementById('selected-variant');
-  const variant = variantInput ? variantInput.value : 'primary';
+  const variant = isHenGame ? 'PS4 HEN' : (variantInput ? variantInput.value : 'primary');
 
   const platformRadio = document.querySelector('input[name="selected-platform"]:checked');
   const platform = platformRadio ? platformRadio.value : state.selectedProduct.platform[0];
@@ -1269,36 +1337,45 @@ function renderCartDrawer() {
   let subtotal = 0;
 
   itemsContainer.innerHTML = state.cart.map((item, idx) => {
+    const prod = state.products.find(p => p.id === item.productId);
+    const isHen = item.variant === 'PS4 HEN' || item.variant === 'primary' || (prod && prod.isHen);
+    const displayVariant = isHen ? 'PS4 HEN' : item.variant;
+    item.variant = displayVariant;
+
     const itemTotal = item.unitPrice * item.qty;
     subtotal += itemTotal;
 
+    const variantBadgeClass = isHen 
+      ? 'bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-800/60'
+      : 'bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-400 border border-sky-300 dark:border-sky-800/50';
+
     return `
-      <div class="cart-item-card flex items-center gap-3 p-3 rounded-2xl bg-[#080e22] border border-slate-800 transition-all">
+      <div class="cart-item-card flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-[#080e22] border border-slate-200 dark:border-slate-800 transition-all">
         <img 
           src="${getProductPoster(item)}" 
           alt="${item.title}" 
-          class="w-14 h-18 object-cover rounded-xl shrink-0 bg-slate-900 border border-slate-800"
+          class="w-14 h-18 object-cover rounded-xl shrink-0 bg-slate-200 dark:bg-slate-900 border border-slate-200 dark:border-slate-800"
           onerror="this.onerror=null; this.src='assets/covers/service-1tb.jpg'"
         />
         <div class="flex-1 min-w-0">
-          <h4 class="text-xs font-bold text-white truncate">${item.title}</h4>
+          <h4 class="text-xs font-bold text-slate-900 dark:text-white truncate">${item.title}</h4>
           <div class="flex items-center gap-1.5 mt-1">
-            <span class="cart-item-variant text-[10px] px-2 py-0.5 rounded bg-sky-950 text-sky-400 font-extrabold border border-sky-800/50 uppercase">${item.variant}</span>
-            <span class="cart-item-platform text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold">${item.platform}</span>
+            <span class="cart-item-variant text-[10px] px-2 py-0.5 rounded font-extrabold uppercase ${variantBadgeClass}">${displayVariant}</span>
+            <span class="cart-item-platform text-[10px] px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold">${item.platform}</span>
           </div>
-          <div class="cart-item-price text-xs font-bold text-sky-400 mt-1 font-display">
+          <div class="cart-item-price text-xs font-bold text-sky-600 dark:text-sky-400 mt-1 font-display">
             ${formatRupiah(item.unitPrice)}
           </div>
         </div>
 
         <div class="flex flex-col items-end gap-2">
-          <button onclick="removeFromCart(${idx})" class="cart-remove-btn text-slate-500 hover:text-rose-400 transition-colors p-1 cursor-pointer" title="Hapus">
+          <button onclick="removeFromCart(${idx})" class="cart-remove-btn text-slate-400 hover:text-rose-500 transition-colors p-1 cursor-pointer" title="Hapus">
             <i data-lucide="trash-2" class="w-4 h-4"></i>
           </button>
-          <div class="cart-qty-stepper flex items-center border border-slate-700 rounded-lg overflow-hidden bg-slate-900">
-            <button onclick="changeCartQty(${idx}, -1)" class="cart-qty-btn w-6 h-6 flex items-center justify-center text-slate-300 hover:bg-slate-800 text-xs cursor-pointer">-</button>
-            <span class="cart-qty-val w-6 text-center text-xs font-bold text-white">${item.qty}</span>
-            <button onclick="changeCartQty(${idx}, 1)" class="cart-qty-btn w-6 h-6 flex items-center justify-center text-slate-300 hover:bg-slate-800 text-xs cursor-pointer">+</button>
+          <div class="cart-qty-stepper flex items-center border border-slate-300 dark:border-slate-700 rounded-lg overflow-hidden bg-white dark:bg-slate-900">
+            <button onclick="changeCartQty(${idx}, -1)" class="cart-qty-btn w-6 h-6 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold cursor-pointer">-</button>
+            <span class="cart-qty-val w-6 text-center text-xs font-bold text-slate-900 dark:text-white">${item.qty}</span>
+            <button onclick="changeCartQty(${idx}, 1)" class="cart-qty-btn w-6 h-6 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold cursor-pointer">+</button>
           </div>
         </div>
       </div>

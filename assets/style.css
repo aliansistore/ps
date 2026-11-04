@@ -371,9 +371,9 @@ html:not(.dark) .cart-item-card img {
   border-color: #e2e8f0 !important;
 }
 html:not(.dark) .cart-item-variant {
-  background-color: #e0f2fe !important;
-  color: #0284c7 !important;
-  border: 1px solid #bae6fd !important;
+  background-color: #f3e8ff !important;
+  color: #7e22ce !important;
+  border: 1px solid #d8b4fe !important;
 }
 html:not(.dark) .cart-item-platform {
   background-color: #f1f5f9 !important;
