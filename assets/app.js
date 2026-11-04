@@ -2218,11 +2218,30 @@ function updateNavAuthUI() {
     const initialChar = firstName.charAt(0).toUpperCase();
     const userPhone = state.currentUser.phone ? state.currentUser.phone.replace(/[\s-]/g, '') : '';
     const userEmail = state.currentUser.email ? state.currentUser.email.toLowerCase() : '';
+    const provider = state.currentUser.authProvider || 'local';
     const myOrdersCount = state.orders ? state.orders.filter(o => {
       const oPhone = o.customerPhone ? o.customerPhone.replace(/[\s-]/g, '') : '';
       const oEmail = o.customerEmail ? o.customerEmail.toLowerCase() : '';
       return (userPhone && oPhone === userPhone) || (userEmail && oEmail === userEmail);
     }).length : 0;
+
+    let providerBadge = `<span class="hidden sm:inline-block px-1.5 py-0.2 rounded text-[9px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">MEMBER</span>`;
+    let providerDropdownTag = 'MEMBER VIP';
+
+    if (provider === 'google') {
+      providerBadge = `<span class="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[9px] font-black bg-sky-500/20 text-sky-400 border border-sky-500/30"><svg class="w-2.5 h-2.5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg> GOOGLE</span>`;
+      providerDropdownTag = 'MEMBER • GOOGLE VERIFIED';
+    } else if (provider === 'microsoft') {
+      providerBadge = `<span class="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[9px] font-black bg-amber-500/20 text-amber-400 border border-amber-500/30"><svg class="w-2.5 h-2.5" viewBox="0 0 23 23"><path fill="#f35325" d="M1 1h10v10H1z"/><path fill="#81bc06" d="M12 1h10v10H12z"/><path fill="#05a6f0" d="M1 12h10v10H1z"/><path fill="#ffba08" d="M12 12h10v10H12z"/></svg> OUTLOOK</span>`;
+      providerDropdownTag = 'MEMBER • OUTLOOK VERIFIED';
+    } else if (provider === 'psn') {
+      providerBadge = `<span class="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[9px] font-black bg-blue-500/20 text-blue-400 border border-blue-500/30"><i data-lucide="gamepad-2" class="w-2.5 h-2.5"></i> PSN</span>`;
+      providerDropdownTag = 'MEMBER • PSN VERIFIED';
+    }
+
+    const avatarHtml = (state.currentUser.avatar && state.currentUser.avatar.startsWith('http'))
+      ? `<img src="${state.currentUser.avatar}" alt="${fullName}" class="w-5 h-5 rounded-full object-cover border border-sky-400/60" />`
+      : `<span class="w-5 h-5 rounded-full bg-gradient-to-tr from-sky-600 to-blue-500 text-white flex items-center justify-center font-black text-[10px]">${initialChar}</span>`;
 
     container.innerHTML = `
       <div class="relative" id="user-menu-wrapper">
@@ -2231,22 +2250,18 @@ function updateNavAuthUI() {
           class="px-3 py-1.5 rounded-full text-xs font-bold bg-slate-900/90 hover:bg-slate-800 text-white border border-slate-700 hover:border-sky-500/50 flex items-center gap-2 transition-all cursor-pointer shadow-sm"
           title="Menu Akun Member"
         >
-          <span class="w-5 h-5 rounded-full bg-gradient-to-tr from-sky-600 to-blue-500 text-white flex items-center justify-center font-black text-[10px]">
-            ${initialChar}
-          </span>
+          ${avatarHtml}
           <span class="font-extrabold max-w-[85px] sm:max-w-[120px] truncate">
             Halo, ${firstName}
           </span>
-          <span class="hidden sm:inline-block px-1.5 py-0.2 rounded text-[9px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-            MEMBER
-          </span>
+          ${providerBadge}
           <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400"></i>
         </button>
         <div id="user-dropdown-menu" class="hidden absolute right-0 mt-2 w-64 rounded-2xl bg-[#091128] border border-slate-700 shadow-2xl py-2 z-50">
           <div class="px-4 py-2.5 border-b border-slate-800">
             <div class="flex items-center gap-1.5 mb-1">
-              <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">MEMBER VIP</span>
-              <span class="text-[10px] text-slate-400 font-mono">${state.currentUser.phone || ''}</span>
+              <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-sky-500/20 text-sky-400 border border-sky-500/30">${providerDropdownTag}</span>
+              ${state.currentUser.psnId ? `<span class="text-[10px] text-sky-300 font-mono font-bold">PSN: ${state.currentUser.psnId}</span>` : `<span class="text-[10px] text-slate-400 font-mono">${state.currentUser.phone || ''}</span>`}
             </div>
             <div class="text-xs font-black text-white truncate">${fullName}</div>
             <div class="text-[10px] text-slate-400 truncate">${state.currentUser.email || 'Pelanggan Setia'}</div>
@@ -2315,6 +2330,10 @@ function switchAuthTab(tab) {
   const formLogin = document.getElementById('form-auth-login');
   const formReg = document.getElementById('form-auth-register');
   const modalTitle = document.getElementById('auth-modal-title');
+  const oauthGoogleLabel = document.getElementById('oauth-google-label');
+  const oauthMsLabel = document.getElementById('oauth-microsoft-label');
+  const oauthPsnLabel = document.getElementById('oauth-psn-label');
+  const oauthDividerLabel = document.getElementById('oauth-divider-label');
 
   if (tab === 'login') {
     if (tabLogin) tabLogin.className = 'flex-1 py-2 text-xs font-bold rounded-lg bg-sky-600 text-white shadow transition-all cursor-pointer flex items-center justify-center gap-1.5';
@@ -2322,12 +2341,20 @@ function switchAuthTab(tab) {
     if (formLogin) formLogin.classList.remove('hidden');
     if (formReg) formReg.classList.add('hidden');
     if (modalTitle) modalTitle.textContent = 'Masuk ke ALIANSI STORE';
+    if (oauthGoogleLabel) oauthGoogleLabel.textContent = 'Lanjutkan dengan Google';
+    if (oauthMsLabel) oauthMsLabel.textContent = 'Outlook / Microsoft';
+    if (oauthPsnLabel) oauthPsnLabel.textContent = 'PlayStation ID';
+    if (oauthDividerLabel) oauthDividerLabel.textContent = 'Atau Masuk dengan No. HP / Akun Toko';
   } else {
     if (tabReg) tabReg.className = 'flex-1 py-2 text-xs font-bold rounded-lg bg-sky-600 text-white shadow transition-all cursor-pointer flex items-center justify-center gap-1.5';
     if (tabLogin) tabLogin.className = 'flex-1 py-2 text-xs font-semibold rounded-lg bg-transparent text-slate-400 hover:text-white transition-all cursor-pointer flex items-center justify-center gap-1.5';
     if (formReg) formReg.classList.remove('hidden');
     if (formLogin) formLogin.classList.add('hidden');
     if (modalTitle) modalTitle.textContent = 'Daftar Member Baru';
+    if (oauthGoogleLabel) oauthGoogleLabel.textContent = 'Daftar Cepat dengan Google';
+    if (oauthMsLabel) oauthMsLabel.textContent = 'Daftar dengan Outlook';
+    if (oauthPsnLabel) oauthPsnLabel.textContent = 'Daftar dengan PSN';
+    if (oauthDividerLabel) oauthDividerLabel.textContent = 'Atau Isi Formulir Manual di Bawah';
   }
   lucide.createIcons();
 }
@@ -2537,6 +2564,316 @@ function handleUnifiedRegister() {
   closeModals();
   updateNavAuthUI();
   showToast(`Pendaftaran sukses! Selamat datang, ${name}! Status: Member VIP`, 'success', 'Akun Berhasil Dibuat');
+}
+
+// ================= THIRD-PARTY SOCIAL OAUTH (GOOGLE, OUTLOOK, PSN) =================
+let currentOAuthProvider = 'google';
+
+function loginWithProvider(provider) {
+  playSfx('click');
+  currentOAuthProvider = provider;
+  renderOAuthModal(provider);
+  const modal = document.getElementById('modal-oauth-picker');
+  if (modal) modal.classList.remove('hidden');
+  lucide.createIcons();
+}
+
+function closeOAuthModal() {
+  playSfx('click');
+  const modal = document.getElementById('modal-oauth-picker');
+  if (modal) modal.classList.add('hidden');
+}
+
+function renderOAuthModal(provider) {
+  const container = document.getElementById('oauth-picker-content');
+  if (!container) return;
+
+  if (provider === 'google') {
+    container.innerHTML = `
+      <div class="text-center mb-5">
+        <svg class="w-10 h-10 mx-auto mb-2" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+        <h3 class="text-base font-black text-white font-display">Masuk dengan Google</h3>
+        <p class="text-xs text-slate-400 mt-0.5">Pilih akun untuk melanjutkan ke <strong class="text-sky-400">ALIANSI STORE</strong></p>
+      </div>
+
+      <div class="space-y-2 mb-4">
+        <!-- Account 1 -->
+        <div 
+          onclick="executeOAuthLogin({ provider: 'google', name: 'Dimas Setiawan', email: 'dimas.gamer@gmail.com', phone: '081298765432', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80' })"
+          class="oauth-account-item flex items-center gap-3 p-3 rounded-2xl bg-slate-900/80 border border-slate-700/80 hover:border-sky-500 cursor-pointer transition-all shadow-sm"
+        >
+          <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80" alt="Dimas" class="w-10 h-10 rounded-full object-cover border border-slate-600 shrink-0" />
+          <div class="flex-1 min-w-0">
+            <div class="oauth-account-name text-xs font-bold text-white truncate">Dimas Setiawan</div>
+            <div class="oauth-account-email text-[11px] text-slate-400 truncate">dimas.gamer@gmail.com</div>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+        </div>
+
+        <!-- Account 2 -->
+        <div 
+          onclick="executeOAuthLogin({ provider: 'google', name: 'Reza PlayStation', email: 'reza.aliansistore@gmail.com', phone: '085712349988', avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=120&q=80' })"
+          class="oauth-account-item flex items-center gap-3 p-3 rounded-2xl bg-slate-900/80 border border-slate-700/80 hover:border-sky-500 cursor-pointer transition-all shadow-sm"
+        >
+          <img src="https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=120&q=80" alt="Reza" class="w-10 h-10 rounded-full object-cover border border-slate-600 shrink-0" />
+          <div class="flex-1 min-w-0">
+            <div class="oauth-account-name text-xs font-bold text-white truncate">Reza PlayStation</div>
+            <div class="oauth-account-email text-[11px] text-slate-400 truncate">reza.aliansistore@gmail.com</div>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+        </div>
+      </div>
+
+      <!-- Option: Custom Google Account -->
+      <div id="oauth-custom-section" class="border-t border-slate-800 pt-3">
+        <button 
+          type="button" 
+          onclick="toggleOAuthCustomInput()" 
+          class="w-full py-2 text-xs text-sky-400 hover:text-sky-300 font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+        >
+          <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+          <span>Gunakan Akun Google Lain</span>
+        </button>
+
+        <form id="oauth-custom-form" onsubmit="event.preventDefault(); submitCustomOAuth('google');" class="space-y-2.5 mt-3 hidden">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-300 mb-1">Nama Lengkap Anda:</label>
+            <input type="text" id="oauth-custom-name" placeholder="Contoh: Rian Maulana" class="w-full px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" required />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-300 mb-1">Email Google / Gmail:</label>
+            <input type="email" id="oauth-custom-email" placeholder="namaanda@gmail.com" class="w-full px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" required />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-300 mb-1">No. WhatsApp (Opsional):</label>
+            <input type="tel" id="oauth-custom-phone" placeholder="081234..." class="w-full px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" />
+          </div>
+          <button type="submit" class="w-full py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs shadow-md transition-all cursor-pointer">
+            Lanjutkan dengan Akun Ini
+          </button>
+        </form>
+      </div>
+
+      <p class="oauth-footer-text text-[10px] text-slate-500 text-center mt-4">
+        Untuk melanjutkan, Google akan memverifikasi nama & alamat email Anda dengan ALIANSI STORE.
+      </p>
+    `;
+  } else if (provider === 'microsoft') {
+    container.innerHTML = `
+      <div class="text-center mb-5">
+        <svg class="w-9 h-9 mx-auto mb-2" viewBox="0 0 23 23">
+          <path fill="#f35325" d="M1 1h10v10H1z"/>
+          <path fill="#81bc06" d="M12 1h10v10H12z"/>
+          <path fill="#05a6f0" d="M1 12h10v10H1z"/>
+          <path fill="#ffba08" d="M12 12h10v10H12z"/>
+        </svg>
+        <h3 class="text-base font-black text-white font-display">Masuk dengan Microsoft</h3>
+        <p class="text-xs text-slate-400 mt-0.5">Gunakan akun <strong class="text-sky-400">Outlook / Hotmail</strong> Anda</p>
+      </div>
+
+      <div class="space-y-2 mb-4">
+        <div 
+          onclick="executeOAuthLogin({ provider: 'microsoft', name: 'Dimas Pratama', email: 'dimas.gamer@outlook.com', phone: '081234567890' })"
+          class="oauth-account-item flex items-center gap-3 p-3 rounded-2xl bg-slate-900/80 border border-slate-700/80 hover:border-sky-500 cursor-pointer transition-all shadow-sm"
+        >
+          <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-sky-600 to-indigo-600 text-white flex items-center justify-center font-black text-sm shrink-0">
+            DP
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="oauth-account-name text-xs font-bold text-white truncate">Dimas Pratama</div>
+            <div class="oauth-account-email text-[11px] text-slate-400 truncate">dimas.gamer@outlook.com</div>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+        </div>
+      </div>
+
+      <!-- Option: Custom Microsoft Account -->
+      <div id="oauth-custom-section" class="border-t border-slate-800 pt-3">
+        <button 
+          type="button" 
+          onclick="toggleOAuthCustomInput()" 
+          class="w-full py-2 text-xs text-sky-400 hover:text-sky-300 font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+        >
+          <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+          <span>Gunakan Akun Outlook Lain</span>
+        </button>
+
+        <form id="oauth-custom-form" onsubmit="event.preventDefault(); submitCustomOAuth('microsoft');" class="space-y-2.5 mt-3 hidden">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-300 mb-1">Nama Lengkap:</label>
+            <input type="text" id="oauth-custom-name" placeholder="Contoh: Reza Kurniawan" class="w-full px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" required />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-300 mb-1">Email Outlook / Hotmail:</label>
+            <input type="email" id="oauth-custom-email" placeholder="nama@outlook.com" class="w-full px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" required />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-300 mb-1">No. WhatsApp (Opsional):</label>
+            <input type="tel" id="oauth-custom-phone" placeholder="081234..." class="w-full px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" />
+          </div>
+          <button type="submit" class="w-full py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs shadow-md transition-all cursor-pointer">
+            Masuk dengan Microsoft
+          </button>
+        </form>
+      </div>
+
+      <p class="oauth-footer-text text-[10px] text-slate-500 text-center mt-4">
+        Aman & terlindungi dengan enkripsi Microsoft Authentication Library.
+      </p>
+    `;
+  } else if (provider === 'psn') {
+    container.innerHTML = `
+      <div class="text-center mb-5">
+        <div class="w-12 h-12 rounded-2xl bg-sky-500/15 border border-sky-500/30 text-sky-400 flex items-center justify-center mx-auto mb-2.5 shadow-lg">
+          <i data-lucide="gamepad-2" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-base font-black text-white font-display">PlayStation™Network ID</h3>
+        <p class="text-xs text-slate-400 mt-0.5">Hubungkan akun PSN untuk sinkronisasi pesanan game</p>
+      </div>
+
+      <form onsubmit="event.preventDefault(); submitCustomOAuth('psn');" class="space-y-3">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-300 mb-1">PlayStation™Network Online ID <span class="text-rose-400">*</span>:</label>
+          <input type="text" id="oauth-psn-id" placeholder="Contoh: GamerSultan_ID atau Reza_PS5" class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500 font-mono" required />
+          <span class="text-[10px] text-slate-500">ID profil akun PlayStation Anda</span>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-300 mb-1">Nama Panggilan / Lengkap:</label>
+          <input type="text" id="oauth-custom-name" placeholder="Contoh: Reza Aliansi" class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" required />
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-300 mb-1">No. WhatsApp / Email:</label>
+          <input type="text" id="oauth-custom-phone" placeholder="Contoh: 081234567890" class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" required />
+        </div>
+
+        <button type="submit" class="w-full py-2.5 rounded-xl cyber-button font-black text-xs shadow-lg shadow-sky-500/20 flex items-center justify-center gap-2 mt-2 cursor-pointer">
+          <i data-lucide="check-circle" class="w-4 h-4"></i>
+          <span>Hubungkan & Masuk ke Toko</span>
+        </button>
+      </form>
+
+      <p class="oauth-footer-text text-[10px] text-slate-500 text-center mt-4">
+        🔒 100% Aman. Kami <strong>tidak pernah meminta password</strong> akun PlayStation Anda.
+      </p>
+    `;
+  }
+
+  lucide.createIcons();
+}
+
+function toggleOAuthCustomInput() {
+  const form = document.getElementById('oauth-custom-form');
+  if (form) form.classList.toggle('hidden');
+}
+
+function submitCustomOAuth(provider) {
+  const nameInput = document.getElementById('oauth-custom-name');
+  const emailInput = document.getElementById('oauth-custom-email');
+  const phoneInput = document.getElementById('oauth-custom-phone');
+  const psnIdInput = document.getElementById('oauth-psn-id');
+
+  const name = nameInput ? nameInput.value.trim() : '';
+  const email = emailInput ? emailInput.value.trim() : '';
+  const phone = phoneInput ? phoneInput.value.trim() : '';
+  const psnId = psnIdInput ? psnIdInput.value.trim() : '';
+
+  if (!name) {
+    showToast('Mohon masukkan nama Anda!', 'warning');
+    return;
+  }
+  if (provider === 'psn' && !psnId) {
+    showToast('Mohon masukkan PSN Online ID Anda!', 'warning');
+    return;
+  }
+  if ((provider === 'google' || provider === 'microsoft') && !email) {
+    showToast('Mohon masukkan alamat email Anda!', 'warning');
+    return;
+  }
+
+  executeOAuthLogin({
+    provider: provider,
+    name: name,
+    email: email,
+    phone: phone,
+    psnId: psnId
+  });
+}
+
+function executeOAuthLogin(accountData) {
+  playSfx('success');
+  const { provider, name, email, phone, avatar, psnId } = accountData;
+
+  const users = state.users || [];
+  const cleanPhone = phone ? phone.replace(/[\s-]/g, '') : '';
+  const emailLower = email ? email.toLowerCase() : '';
+
+  let user = users.find(u => 
+    (emailLower && u.email && u.email.toLowerCase() === emailLower) ||
+    (cleanPhone && u.phone && u.phone.replace(/[\s-]/g, '') === cleanPhone) ||
+    (psnId && u.psnId && u.psnId.toLowerCase() === psnId.toLowerCase())
+  );
+
+  const providerNames = {
+    google: 'Google',
+    microsoft: 'Outlook / Microsoft',
+    psn: 'PlayStation Network'
+  };
+  const providerLabel = providerNames[provider] || 'Pihak Ketiga';
+
+  if (!user) {
+    user = {
+      id: 'usr-' + provider + '-' + Date.now(),
+      identifier: email || cleanPhone || psnId || ('user-' + Date.now()),
+      name: name || 'Member ' + providerLabel,
+      email: email || '',
+      phone: cleanPhone || '',
+      psnId: psnId || '',
+      authProvider: provider,
+      avatar: avatar || null,
+      role: 'customer',
+      roleLabel: `Member VIP (${providerLabel})`,
+      memberSince: new Date().getFullYear().toString(),
+      createdAt: new Date().toISOString()
+    };
+    state.users.push(user);
+    saveUsers();
+  } else {
+    user.authProvider = provider;
+    if (avatar && !user.avatar) user.avatar = avatar;
+    if (name && (!user.name || user.name.startsWith('Member '))) user.name = name;
+    if (email && !user.email) user.email = email;
+    if (psnId && !user.psnId) user.psnId = psnId;
+    saveUsers();
+  }
+
+  state.currentUser = user;
+  state.isAdmin = (user.role === 'admin');
+  localStorage.setItem(APP_STORAGE_KEYS.USER, JSON.stringify(state.currentUser));
+  localStorage.setItem(APP_STORAGE_KEYS.ADMIN_AUTH, state.isAdmin ? 'true' : 'false');
+
+  closeOAuthModal();
+  closeModals();
+  updateNavAuthUI();
+  triggerConfetti();
+
+  showToast(
+    `Berhasil masuk dengan ${providerLabel} sebagai ${user.name}! Akun Member VIP aktif.`,
+    'success',
+    'Login Berhasil'
+  );
+
+  // Auto-fill checkout fields if user decides to checkout
+  const checkoutName = document.getElementById('checkout-name');
+  const checkoutPhone = document.getElementById('checkout-phone');
+  const checkoutEmail = document.getElementById('checkout-email');
+  if (checkoutName && user.name) checkoutName.value = user.name;
+  if (checkoutPhone && user.phone) checkoutPhone.value = user.phone;
+  if (checkoutEmail && user.email) checkoutEmail.value = user.email;
 }
 
 function logoutAuthUser() {

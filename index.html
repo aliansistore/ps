@@ -46,7 +46,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <!-- Custom Next-Gen Stylesheet (with cache buster query) -->
-  <link rel="stylesheet" href="assets/style.css?v=20261104_14games_v6" />
+  <link rel="stylesheet" href="assets/style.css?v=20261104_oauth_v1" />
 
   <!-- Critical Inline Styles to Guarantee Immediate High-Contrast Rendering (Dark & Light Mode) -->
   <style>
@@ -730,6 +730,45 @@
       background-color: #f8fafc !important;
       border-color: #cbd5e1 !important;
       color: #334155 !important;
+    }
+
+    /* ================= OAUTH & SOCIAL LOGIN IN LIGHT MODE ================= */
+    html:not(.dark) .oauth-btn {
+      background-color: #ffffff !important;
+      border-color: #cbd5e1 !important;
+      color: #0f172a !important;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05) !important;
+    }
+    html:not(.dark) .oauth-btn:hover {
+      background-color: #f8fafc !important;
+      border-color: #0070d1 !important;
+      color: #0070d1 !important;
+      box-shadow: 0 4px 12px rgba(0, 112, 209, 0.15) !important;
+    }
+    html:not(.dark) .oauth-divider-line {
+      border-color: #e2e8f0 !important;
+    }
+    html:not(.dark) .oauth-divider-label {
+      background-color: #ffffff !important;
+      color: #64748b !important;
+    }
+    html:not(.dark) #modal-oauth-picker .oauth-account-item {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      color: #0f172a !important;
+    }
+    html:not(.dark) #modal-oauth-picker .oauth-account-item:hover {
+      background-color: #f0f7ff !important;
+      border-color: #0070d1 !important;
+    }
+    html:not(.dark) #modal-oauth-picker .oauth-account-name {
+      color: #0f172a !important;
+    }
+    html:not(.dark) #modal-oauth-picker .oauth-account-email {
+      color: #64748b !important;
+    }
+    html:not(.dark) #modal-oauth-picker .oauth-footer-text {
+      color: #64748b !important;
     }
 
     /* Universal Text Color Overrides in Light Mode */
@@ -1867,6 +1906,62 @@
         </button>
       </div>
 
+      <!-- Third-Party Social OAuth 1-Click Buttons (Google, Outlook, PSN) -->
+      <div class="space-y-2 mb-4">
+        <!-- Google Button -->
+        <button 
+          type="button" 
+          onclick="loginWithProvider('google')" 
+          class="oauth-btn w-full py-2.5 px-4 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-sky-500/50 text-white text-xs font-bold flex items-center justify-center gap-2.5 transition-all shadow-sm cursor-pointer group"
+          title="Login instan dengan akun Google"
+        >
+          <svg class="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          <span id="oauth-google-label">Lanjutkan dengan Google</span>
+        </button>
+
+        <div class="grid grid-cols-2 gap-2">
+          <!-- Microsoft / Outlook Button -->
+          <button 
+            type="button" 
+            onclick="loginWithProvider('microsoft')" 
+            class="oauth-btn py-2 px-3 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-sky-500/50 text-white text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer group"
+            title="Login instan dengan akun Microsoft / Outlook / Hotmail"
+          >
+            <svg class="w-3.5 h-3.5 shrink-0 transition-transform group-hover:scale-110" viewBox="0 0 23 23">
+              <path fill="#f35325" d="M1 1h10v10H1z"/>
+              <path fill="#81bc06" d="M12 1h10v10H12z"/>
+              <path fill="#05a6f0" d="M1 12h10v10H1z"/>
+              <path fill="#ffba08" d="M12 12h10v10H12z"/>
+            </svg>
+            <span id="oauth-microsoft-label" class="truncate">Outlook / Microsoft</span>
+          </button>
+
+          <!-- PlayStation Network (PSN) Button -->
+          <button 
+            type="button" 
+            onclick="loginWithProvider('psn')" 
+            class="oauth-btn py-2 px-3 rounded-xl bg-sky-950/70 hover:bg-sky-900/90 border border-sky-600/40 hover:border-sky-400 text-sky-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm cursor-pointer group"
+            title="Hubungkan akun PlayStation™Network (PSN ID)"
+          >
+            <i data-lucide="gamepad-2" class="w-3.5 h-3.5 text-sky-400 shrink-0 transition-transform group-hover:scale-110"></i>
+            <span id="oauth-psn-label" class="truncate">PlayStation ID</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="relative my-4">
+        <div class="absolute inset-0 flex items-center"><div class="w-full oauth-divider-line border-t border-slate-800"></div></div>
+        <div class="relative flex justify-center text-xs uppercase">
+          <span id="oauth-divider-label" class="oauth-divider-label bg-[#080f24] px-3 text-[10px] font-bold text-slate-400 tracking-wider">Atau Masuk dengan No. HP / Akun Toko</span>
+        </div>
+      </div>
+
       <!-- Form: Login -->
       <form id="form-auth-login" onsubmit="event.preventDefault(); handleUnifiedLogin();" class="space-y-4">
         <div>
@@ -2021,6 +2116,18 @@
           Dengan mendaftar, Anda otomatis mendapatkan status <strong>Member VIP</strong> dan benefit potongan harga game.
         </p>
       </form>
+    </div>
+  </div>
+
+  <!-- MODAL: OAuth Provider Account Picker (Google, Outlook, PSN) -->
+  <div id="modal-oauth-picker" class="app-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop-blur">
+    <div class="bg-[#080f24] border border-slate-700 rounded-3xl max-w-sm w-full shadow-2xl relative p-6 overflow-hidden" onclick="event.stopPropagation()">
+      <button onclick="closeOAuthModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+      <div id="oauth-picker-content">
+        <!-- Rendered dynamically by renderOAuthModal() -->
+      </div>
     </div>
   </div>
 
@@ -2265,7 +2372,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261104_14games_v6"></script>
-  <script src="assets/app.js?v=20261104_14games_v6"></script>
+  <script src="assets/products-data.js?v=20261104_oauth_v1"></script>
+  <script src="assets/app.js?v=20261104_oauth_v1"></script>
 </body>
 </html>

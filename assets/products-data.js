@@ -661,8 +661,35 @@ const INITIAL_USERS = [
     pin: "1234",
     role: "customer",
     roleLabel: "Member VIP",
+    authProvider: "local",
     avatar: "RP",
     memberSince: "2024"
+  },
+  {
+    id: "usr-cust-google-01",
+    identifier: "dimas.gamer@gmail.com",
+    name: "Dimas Setiawan",
+    phone: "081298765432",
+    email: "dimas.gamer@gmail.com",
+    pin: "1234",
+    role: "customer",
+    roleLabel: "Member VIP (Google Verified)",
+    authProvider: "google",
+    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80",
+    memberSince: "2025"
+  },
+  {
+    id: "usr-cust-ms-01",
+    identifier: "dimas.gamer@outlook.com",
+    name: "Dimas Pratama",
+    phone: "081234567890",
+    email: "dimas.gamer@outlook.com",
+    pin: "1234",
+    role: "customer",
+    roleLabel: "Member VIP (Outlook Verified)",
+    authProvider: "microsoft",
+    avatar: null,
+    memberSince: "2025"
   },
   {
     id: "usr-cust-02",
@@ -673,6 +700,7 @@ const INITIAL_USERS = [
     pin: "1234",
     role: "customer",
     roleLabel: "Member",
+    authProvider: "local",
     avatar: "BS",
     memberSince: "2025"
   }

@@ -653,6 +653,45 @@ html:not(.dark) #inv-fulfillment-box .bg-\[\#080d19\] {
   border: 1px solid #bae6fd !important;
 }
 
+/* ================= OAUTH & SOCIAL LOGIN IN LIGHT MODE ================= */
+html:not(.dark) .oauth-btn {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05) !important;
+}
+html:not(.dark) .oauth-btn:hover {
+  background-color: #f8fafc !important;
+  border-color: #0070d1 !important;
+  color: #0070d1 !important;
+  box-shadow: 0 4px 12px rgba(0, 112, 209, 0.15) !important;
+}
+html:not(.dark) .oauth-divider-line {
+  border-color: #e2e8f0 !important;
+}
+html:not(.dark) .oauth-divider-label {
+  background-color: #ffffff !important;
+  color: #64748b !important;
+}
+html:not(.dark) #modal-oauth-picker .oauth-account-item {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+html:not(.dark) #modal-oauth-picker .oauth-account-item:hover {
+  background-color: #f0f7ff !important;
+  border-color: #0070d1 !important;
+}
+html:not(.dark) #modal-oauth-picker .oauth-account-name {
+  color: #0f172a !important;
+}
+html:not(.dark) #modal-oauth-picker .oauth-account-email {
+  color: #64748b !important;
+}
+html:not(.dark) #modal-oauth-picker .oauth-footer-text {
+  color: #64748b !important;
+}
+
 /* Universal Text Color Overrides in Light Mode */
 html:not(.dark) .text-white { color: #0f172a !important; }
 html:not(.dark) .text-slate-100 { color: #0f172a !important; }
