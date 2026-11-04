@@ -2444,7 +2444,7 @@ function handleUnifiedLogin() {
       return;
     } else {
       playSfx('click');
-      showToast('Password / PIN akun Anda salah!', 'error');
+      showToast('Password akun Anda salah!', 'error');
       return;
     }
   }
