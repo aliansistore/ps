@@ -664,15 +664,40 @@ function renderSpotlightThumbnails(games) {
     <button 
       onclick="setSpotlightIndex(${idx})"
       onmouseenter="playSfx('hover')"
-      class="spotlight-thumb relative w-16 sm:w-20 aspect-[3/4] rounded-xl overflow-hidden border-2 transition-all duration-300 ${idx === 0 ? 'border-sky-400 scale-105 shadow-lg shadow-sky-500/40 ring-2 ring-sky-400/30' : 'border-slate-800 opacity-60 hover:opacity-100 hover:border-slate-600'}"
+      class="spotlight-thumb group w-full p-2 sm:p-2.5 rounded-2xl flex items-center gap-3 transition-all duration-300 text-left cursor-pointer border ${idx === 0 ? 'active bg-sky-950/80 border-sky-400 ring-2 ring-sky-400/30 shadow-lg shadow-sky-500/20' : 'bg-slate-950/50 border-slate-800/80 hover:bg-slate-800/60 hover:border-slate-700'}"
       data-index="${idx}"
-      title="${game.title}"
+      title="Lihat ${game.title}"
     >
-      <img src="${getProductPoster(game)}" alt="${game.title}" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='assets/covers/service-1tb.jpg'" />
-      <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-      <span class="absolute bottom-1 left-1 right-1 text-[9px] font-bold text-white truncate text-center">${game.title.split(':')[0]}</span>
+      <div class="relative w-11 h-14 sm:w-12 sm:h-16 rounded-xl overflow-hidden shrink-0 border border-slate-700/60 shadow-md bg-slate-900">
+        <img src="${getProductPoster(game)}" alt="${game.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.onerror=null; this.src='assets/covers/service-1tb.jpg'" />
+      </div>
+
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between gap-1 mb-0.5">
+          <span class="spotlight-badge text-[9px] px-1.5 py-0.5 rounded-full font-bold ${idx === 0 ? 'bg-sky-500 text-white' : 'bg-slate-800 text-slate-400'}">
+            ${idx === 0 ? '★ SEDANG TAMPIL' : `#${idx + 1} PILIHAN`}
+          </span>
+          <div class="flex items-center gap-1 text-amber-400 text-[10px] font-bold">
+            <i data-lucide="star" class="w-3 h-3 fill-amber-400"></i> ${game.rating || '5.0'}
+          </div>
+        </div>
+
+        <h4 class="text-xs sm:text-sm font-bold text-white truncate group-hover:text-sky-300 transition-colors">
+          ${game.title}
+        </h4>
+
+        <div class="flex items-center gap-1.5 mt-0.5">
+          <span class="text-xs font-black text-sky-400 font-display">${formatRupiah(game.prices.primary)}</span>
+          ${game.prices.original ? `<span class="text-[10px] text-slate-500 line-through font-mono">${formatRupiah(game.prices.original)}</span>` : ''}
+        </div>
+      </div>
+
+      <div class="shrink-0 text-slate-500 group-hover:text-sky-400 transition-colors pr-1">
+        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+      </div>
     </button>
   `).join('');
+  lucide.createIcons();
 }
 
 function setSpotlightIndex(index) {
@@ -752,10 +777,19 @@ function updateSpotlightDisplay(index) {
   // Update thumbnail active states
   const thumbs = document.querySelectorAll('.spotlight-thumb');
   thumbs.forEach((thumb, idx) => {
+    const badge = thumb.querySelector('.spotlight-badge');
     if (idx === index) {
-      thumb.className = 'spotlight-thumb relative w-16 sm:w-20 aspect-[3/4] rounded-xl overflow-hidden border-2 border-sky-400 scale-105 shadow-lg shadow-sky-500/40 ring-2 ring-sky-400/30 transition-all duration-300';
+      thumb.className = 'spotlight-thumb active group w-full p-2 sm:p-2.5 rounded-2xl flex items-center gap-3 transition-all duration-300 text-left cursor-pointer border bg-sky-950/80 border-sky-400 ring-2 ring-sky-400/30 shadow-lg shadow-sky-500/20';
+      if (badge) {
+        badge.className = 'spotlight-badge text-[9px] px-1.5 py-0.5 rounded-full font-bold bg-sky-500 text-white';
+        badge.textContent = '★ SEDANG TAMPIL';
+      }
     } else {
-      thumb.className = 'spotlight-thumb relative w-16 sm:w-20 aspect-[3/4] rounded-xl overflow-hidden border-2 border-slate-800 opacity-60 hover:opacity-100 hover:border-slate-600 transition-all duration-300';
+      thumb.className = 'spotlight-thumb group w-full p-2 sm:p-2.5 rounded-2xl flex items-center gap-3 transition-all duration-300 text-left cursor-pointer border bg-slate-950/50 border-slate-800/80 hover:bg-slate-800/60 hover:border-slate-700';
+      if (badge) {
+        badge.className = 'spotlight-badge text-[9px] px-1.5 py-0.5 rounded-full font-bold bg-slate-800 text-slate-400';
+        badge.textContent = `#${idx + 1} PILIHAN`;
+      }
     }
   });
 

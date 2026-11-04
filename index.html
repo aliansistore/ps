@@ -46,7 +46,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <!-- Custom Next-Gen Stylesheet (with cache buster query) -->
-  <link rel="stylesheet" href="assets/style.css?v=20261105_hen_v1" />
+  <link rel="stylesheet" href="assets/style.css?v=20261105_spotlight_v2" />
 
   <!-- Critical Inline Styles to Guarantee Immediate High-Contrast Rendering (Dark & Light Mode) -->
   <style>
@@ -176,13 +176,30 @@
       border-color: #0070d1 !important;
       color: #0070d1 !important;
     }
-    html:not(.dark) .spotlight-thumb {
+    html:not(.dark) #hero-spotlight-panel {
+      background: rgba(255, 255, 255, 0.95) !important;
       border-color: #cbd5e1 !important;
-      background: #ffffff !important;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.06) !important;
     }
-    html:not(.dark) .spotlight-thumb.border-sky-400 {
+    html:not(.dark) #hero-spotlight-panel span.text-slate-400 {
+      color: #64748b !important;
+    }
+    html:not(.dark) .spotlight-thumb.active {
+      background-color: #f0f7ff !important;
       border-color: #0070d1 !important;
-      box-shadow: 0 8px 25px rgba(0, 112, 209, 0.35) !important;
+      box-shadow: 0 4px 15px rgba(0, 112, 209, 0.15) !important;
+    }
+    html:not(.dark) .spotlight-thumb:not(.active) {
+      background-color: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+    }
+    html:not(.dark) .spotlight-thumb:not(.active):hover {
+      background-color: #ffffff !important;
+      border-color: #cbd5e1 !important;
+    }
+    html:not(.dark) .spotlight-thumb h4 {
+      color: #0f172a !important;
+    }
     }
 
     /* Live Ticker in Light Mode */
@@ -997,7 +1014,7 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10 w-full">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           
-          <div class="lg:col-span-8 text-left">
+          <div class="lg:col-span-7 text-left">
             <div class="flex items-center gap-2.5 mb-3 flex-wrap">
               <span id="hero-game-badge" class="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-sky-600 to-blue-700 text-white shadow-lg shadow-sky-600/40 border border-sky-400/40">
                 HOT SPOTLIGHT
@@ -1009,7 +1026,7 @@
               </div>
             </div>
 
-            <h1 id="hero-game-title" class="text-2xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight mb-2 sm:mb-3 font-display">
+            <h1 id="hero-game-title" class="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight mb-2 sm:mb-3 font-display">
               Resident Evil 4 Remake (Full Sub Indo)
             </h1>
 
@@ -1053,12 +1070,18 @@
             </div>
           </div>
 
-          <div class="lg:col-span-4 flex flex-col items-start lg:items-end">
-            <div class="text-xs font-black uppercase tracking-widest text-sky-400 mb-2.5 sm:mb-3 flex items-center gap-2">
-              <i data-lucide="flame" class="w-4 h-4"></i> GAME PILIHAN TERPOPULER
-            </div>
+          <div class="lg:col-span-5 w-full">
+            <div id="hero-spotlight-panel" class="p-3.5 sm:p-4 rounded-3xl bg-slate-900/85 backdrop-blur-xl border border-slate-700/60 shadow-2xl">
+              <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-800/80">
+                <div class="text-xs font-black uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
+                  <i data-lucide="flame" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+                  <span>GAME PILIHAN TERPOPULER</span>
+                </div>
+                <span class="text-[10px] text-slate-400 font-mono hidden sm:inline">Pilih untuk ganti</span>
+              </div>
 
-            <div id="hero-spotlight-thumbs" class="flex lg:flex-col gap-2.5 overflow-x-auto pb-2 lg:pb-0 w-full justify-start lg:justify-end no-scrollbar"></div>
+              <div id="hero-spotlight-thumbs" class="flex flex-col gap-2 w-full"></div>
+            </div>
           </div>
 
         </div>
@@ -2357,7 +2380,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261105_hen_v1"></script>
-  <script src="assets/app.js?v=20261105_hen_v1"></script>
+  <script src="assets/products-data.js?v=20261105_spotlight_v2"></script>
+  <script src="assets/app.js?v=20261105_spotlight_v2"></script>
 </body>
 </html>

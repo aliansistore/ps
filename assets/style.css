@@ -196,13 +196,30 @@ html:not(.dark) #hero-btn-detail:hover {
   border-color: #0070d1 !important;
   color: #0070d1 !important;
 }
-html:not(.dark) .spotlight-thumb {
+html:not(.dark) #hero-spotlight-panel {
+  background: rgba(255, 255, 255, 0.95) !important;
   border-color: #cbd5e1 !important;
-  background: #ffffff !important;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.06) !important;
 }
-html:not(.dark) .spotlight-thumb.border-sky-400 {
+html:not(.dark) #hero-spotlight-panel span.text-slate-400 {
+  color: #64748b !important;
+}
+html:not(.dark) .spotlight-thumb.active {
+  background-color: #f0f7ff !important;
   border-color: #0070d1 !important;
-  box-shadow: 0 8px 25px rgba(0, 112, 209, 0.35) !important;
+  box-shadow: 0 4px 15px rgba(0, 112, 209, 0.15) !important;
+}
+html:not(.dark) .spotlight-thumb:not(.active) {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+html:not(.dark) .spotlight-thumb:not(.active):hover {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+html:not(.dark) .spotlight-thumb h4 {
+  color: #0f172a !important;
+}
 }
 
 /* Live Ticker in Light Mode */
