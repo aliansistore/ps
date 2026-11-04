@@ -703,6 +703,10 @@ html:not(.dark) .force-white {
   transform: scale(1.04);
   filter: drop-shadow(0 0 14px rgba(0, 150, 255, 0.4));
 }
+.brand-logo-pill img {
+  height: 60px;
+  max-height: 72px;
+}
 
 /* Dynamic Logo Theme Switching */
 html.dark .logo-dark-theme { display: inline-block !important; }
@@ -873,8 +877,8 @@ html:not(.dark) #mobile-bottom-nav button:active {
 
   /* Compact Navbar Capsule for Phone Screens */
   .nav-capsule {
-    height: 60px !important;
-    min-height: 60px !important;
+    height: 66px !important;
+    min-height: 66px !important;
     padding-left: 12px !important;
     padding-right: 12px !important;
     border-radius: 9999px !important;
@@ -887,8 +891,8 @@ html:not(.dark) #mobile-bottom-nav button:active {
     box-shadow: none !important;
   }
   .brand-logo-pill img {
-    height: 34px !important;
-    max-height: 34px !important;
+    height: 48px !important;
+    max-height: 52px !important;
   }
 
   /* Compact Hero Spotlight */
