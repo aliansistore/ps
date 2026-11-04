@@ -2,7 +2,7 @@
 // Features: Web Audio SFX Synth, PS5 Console Spotlight, Card Dual-Pricing, Realtime Fulfillment
 
 const APP_STORAGE_KEYS = {
-  PRODUCTS: 'aliansi_store_products_v3',
+  PRODUCTS: 'aliansi_store_products_v4',
   ORDERS: 'aliansi_store_orders_v3',
   CONFIG: 'aliansi_store_config_v3',
   CART: 'aliansi_store_cart_v2',
@@ -12,6 +12,33 @@ const APP_STORAGE_KEYS = {
   THEME: 'aliansi_theme',
   USERS_DB: 'aliansi_store_users_v3'
 };
+
+// Permanent High-Resolution Local & Fallback Poster Map
+const COVER_FALLBACK_MAP = {
+  'game-re4-subindo': 'assets/covers/re4-remake.jpg',
+  'game-gta5-subindo': 'assets/covers/gta-v.jpg',
+  'game-gow-ragnarok-subindo': 'assets/covers/gow-ragnarok.jpg',
+  'game-pes2025-hen': 'assets/covers/pes-2025.jpg',
+  'service-hen-1tb': 'assets/covers/service-1tb.jpg',
+  'service-hen-500gb': 'assets/covers/service-500gb.jpg',
+  'tool-flashdisk-hen': 'assets/covers/flashdisk-hen.jpg',
+  'game-tlou-subindo': 'assets/covers/tlou-part1.jpg',
+  'game-rdr2-subindo': 'assets/covers/rdr2.jpg',
+  'game-ghostoftsushima-subindo': 'assets/covers/ghost-tsushima.jpg',
+  'game-fc25': 'assets/covers/fc-25.jpg',
+  'game-wukong': 'assets/covers/wukong.jpg'
+};
+
+function getProductPoster(product) {
+  if (!product) return 'assets/covers/service-1tb.jpg';
+  const pid = product.id || product.productId;
+  if (pid && COVER_FALLBACK_MAP[pid]) return COVER_FALLBACK_MAP[pid];
+  const img = (product.images && (product.images.poster || product.images.cover)) || product.poster;
+  if (img && typeof img === 'string' && !img.includes('playstation.com') && !img.includes('photo-1508098682722')) {
+    return img;
+  }
+  return COVER_FALLBACK_MAP[pid] || 'assets/covers/service-1tb.jpg';
+}
 
 // Global State
 const state = {
@@ -225,11 +252,39 @@ function loadStoredData() {
   if (storedProducts) {
     try {
       state.products = JSON.parse(storedProducts);
+      // Auto-heal broken covers from previous cache
+      if (Array.isArray(state.products)) {
+        state.products.forEach(p => {
+          if (COVER_FALLBACK_MAP[p.id]) {
+            if (!p.images) p.images = {};
+            p.images.poster = COVER_FALLBACK_MAP[p.id];
+            p.images.cover = COVER_FALLBACK_MAP[p.id];
+          }
+        });
+      }
     } catch (e) {
       state.products = [...INITIAL_PRODUCTS];
     }
   } else {
     state.products = [...INITIAL_PRODUCTS];
+    saveProducts();
+  }
+
+  // Ensure any newly added products from INITIAL_PRODUCTS are included
+  if (typeof INITIAL_PRODUCTS !== 'undefined' && Array.isArray(INITIAL_PRODUCTS)) {
+    INITIAL_PRODUCTS.forEach(ip => {
+      const existing = state.products.find(p => p.id === ip.id);
+      if (!existing) {
+        state.products.push(ip);
+      } else {
+        // Enforce working image paths
+        if (COVER_FALLBACK_MAP[ip.id]) {
+          if (!existing.images) existing.images = {};
+          existing.images.poster = COVER_FALLBACK_MAP[ip.id];
+          existing.images.cover = COVER_FALLBACK_MAP[ip.id];
+        }
+      }
+    });
     saveProducts();
   }
 
@@ -338,12 +393,29 @@ async function syncFromSupabase() {
         size: p.size,
         publisher: p.publisher,
         tagline: p.tagline,
-        images: typeof p.images === 'object' && p.images !== null ? p.images : {},
+        images: (() => {
+          const imgs = typeof p.images === 'object' && p.images !== null ? { ...p.images } : {};
+          if (COVER_FALLBACK_MAP[p.id]) {
+            imgs.poster = COVER_FALLBACK_MAP[p.id];
+            imgs.cover = COVER_FALLBACK_MAP[p.id];
+          }
+          return imgs;
+        })(),
         prices: typeof p.prices === 'object' && p.prices !== null ? p.prices : {},
         description: p.description,
         features: Array.isArray(p.features) ? p.features : [],
         inStock: p.in_stock !== false
       }));
+
+      // Ensure any newly added products from INITIAL_PRODUCTS are retained
+      if (typeof INITIAL_PRODUCTS !== 'undefined' && Array.isArray(INITIAL_PRODUCTS)) {
+        INITIAL_PRODUCTS.forEach(ip => {
+          if (!state.products.find(item => item.id === ip.id)) {
+            state.products.push(ip);
+          }
+        });
+      }
+
       localStorage.setItem(APP_STORAGE_KEYS.PRODUCTS, JSON.stringify(state.products));
       renderProducts();
       initSpotlightHero();
@@ -590,7 +662,7 @@ function renderSpotlightThumbnails(games) {
       data-index="${idx}"
       title="${game.title}"
     >
-      <img src="${game.images.poster || game.images.cover}" alt="${game.title}" class="w-full h-full object-cover" />
+      <img src="${getProductPoster(game)}" alt="${game.title}" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='assets/covers/service-1tb.jpg'" />
       <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
       <span class="absolute bottom-1 left-1 right-1 text-[9px] font-bold text-white truncate text-center">${game.title.split(':')[0]}</span>
     </button>
@@ -807,11 +879,11 @@ function renderProducts() {
           <!-- Poster Container with Next-Gen Aspect Ratio -->
           <div class="relative w-full aspect-[3/4] rounded-lg sm:rounded-xl overflow-hidden mb-2.5 sm:mb-3.5 bg-slate-950 cursor-pointer shadow-md sm:shadow-lg" onclick="openProductDetail('${product.id}')">
             <img 
-              src="${product.images.poster || product.images.cover}" 
+              src="${getProductPoster(product)}" 
               alt="${product.title}"
               class="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500"
               loading="lazy"
-              onerror="this.src='https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=600&q=80'"
+              onerror="this.onerror=null; this.src='assets/covers/service-1tb.jpg'"
             />
             
             <!-- Badge Top Left -->
@@ -952,7 +1024,11 @@ function openProductDetail(productId) {
   document.getElementById('modal-product-size').textContent = product.size || 'Digital Download';
   document.getElementById('modal-product-rating').textContent = `${product.rating || '4.9'} (${product.soldCount || 100}+ terjual)`;
   document.getElementById('modal-product-desc').textContent = product.description;
-  document.getElementById('modal-product-img').src = product.images.poster || product.images.cover;
+  const modalImg = document.getElementById('modal-product-img');
+  if (modalImg) {
+    modalImg.src = getProductPoster(product);
+    modalImg.onerror = function() { this.src = 'assets/covers/service-1tb.jpg'; };
+  }
 
   // Screenshots Gallery
   const screenGallery = document.getElementById('modal-screenshots-gallery');
@@ -1105,7 +1181,7 @@ function addToCart(productId, variant = 'primary', platform = null, qty = 1, sho
     state.cart.push({
       productId: product.id,
       title: product.title,
-      poster: product.images.poster || product.images.cover,
+      poster: getProductPoster(product),
       variant: variant,
       platform: targetPlatform,
       unitPrice: unitPrice,
@@ -1202,10 +1278,10 @@ function renderCartDrawer() {
     return `
       <div class="cart-item-card flex items-center gap-3 p-3 rounded-2xl bg-[#080e22] border border-slate-800 transition-all">
         <img 
-          src="${item.poster}" 
+          src="${getProductPoster(item)}" 
           alt="${item.title}" 
           class="w-14 h-18 object-cover rounded-xl shrink-0 bg-slate-900 border border-slate-800"
-          onerror="this.src='https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=200&q=80'"
+          onerror="this.onerror=null; this.src='assets/covers/service-1tb.jpg'"
         />
         <div class="flex-1 min-w-0">
           <h4 class="text-xs font-bold text-white truncate">${item.title}</h4>
@@ -2625,7 +2701,7 @@ function renderAdminProductsTable() {
     <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 text-xs text-slate-300">
       <td class="py-2.5 px-3">
         <div class="flex items-center gap-2.5">
-          <img src="${p.images.poster || p.images.cover}" class="w-8 h-10 object-cover rounded-lg bg-slate-800" alt="" />
+          <img src="${getProductPoster(p)}" class="w-8 h-10 object-cover rounded-lg bg-slate-800" onerror="this.onerror=null; this.src='assets/covers/service-1tb.jpg'" alt="" />
           <div>
             <div class="font-bold text-white">${p.title}</div>
             <div class="text-[10px] text-slate-400 font-mono">${p.platform.join(', ')} • ${p.category}</div>

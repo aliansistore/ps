@@ -20,9 +20,9 @@ const INITIAL_PRODUCTS = [
     publisher: "CAPCOM / ALIANSI STORE Sub Indo Team",
     tagline: "Misi Penyelamatan Leon di Eropa dengan Terjemahan Bahasa Indonesia Rapi",
     images: {
-      poster: "https://image.api.playstation.com/vulcan/ap/rnd/202210/0706/EVWyZD6qXZMOHVq38P4Ffq1B.png",
+      poster: "assets/covers/re4-remake.jpg",
       backdrop: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85",
-      cover: "https://image.api.playstation.com/vulcan/ap/rnd/202210/0706/EVWyZD6qXZMOHVq38P4Ffq1B.png",
+      cover: "assets/covers/re4-remake.jpg",
       screenshots: [
         "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80",
         "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80"
@@ -61,9 +61,9 @@ const INITIAL_PRODUCTS = [
     publisher: "Rockstar Games / ALIANSI Mod",
     tagline: "Jelajahi Los Santos dengan Subtitle Indonesia, Cheat Menu & Mod Lokal",
     images: {
-      poster: "https://image.api.playstation.com/vulcan/ap/rnd/202202/2816/mYn2ETBTXD280cqk3mU02eaf.png",
+      poster: "assets/covers/gta-v.jpg",
       backdrop: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1920&q=85",
-      cover: "https://image.api.playstation.com/vulcan/ap/rnd/202202/2816/mYn2ETBTXD280cqk3mU02eaf.png",
+      cover: "assets/covers/gta-v.jpg",
       screenshots: [
         "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80"
       ]
@@ -101,9 +101,9 @@ const INITIAL_PRODUCTS = [
     publisher: "Sony Interactive Entertainment",
     tagline: "Perjalanan Epik Kratos & Atreus Melintasi 9 Alam dengan Bahasa Indonesia",
     images: {
-      poster: "https://image.api.playstation.com/vulcan/ap/rnd/202207/1210/4xJ8XB3bi888QTLZYdl7Oi0s.png",
+      poster: "assets/covers/gow-ragnarok.jpg",
       backdrop: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1920&q=85",
-      cover: "https://image.api.playstation.com/vulcan/ap/rnd/202207/1210/4xJ8XB3bi888QTLZYdl7Oi0s.png",
+      cover: "assets/covers/gow-ragnarok.jpg",
       screenshots: [
         "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=800&q=80"
       ]
@@ -140,11 +140,11 @@ const INITIAL_PRODUCTS = [
     publisher: "KONAMI / Patch Komunitas Indonesia",
     tagline: "Mainkan Klub BRI Liga 1 & Skuad Timnas Indonesia Wajah Realistis!",
     images: {
-      poster: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80",
-      backdrop: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1920&q=85",
-      cover: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80",
+      poster: "assets/covers/pes-2025.jpg",
+      backdrop: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1920&q=85",
+      cover: "assets/covers/pes-2025.jpg",
       screenshots: [
-        "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80"
+        "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=800&q=80"
       ]
     },
     prices: {
@@ -179,11 +179,11 @@ const INITIAL_PRODUCTS = [
     publisher: "ALIANSI STORE Workshop",
     tagline: "Koleksi 2.000+ Judul Game PS4 Update Patch & Mod Menu Siap Pakai",
     images: {
-      poster: "https://images.unsplash.com/photo-1486401899868-0e435ed85128?auto=format&fit=crop&w=600&q=80",
+      poster: "assets/covers/service-1tb.jpg",
       backdrop: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1920&q=85",
-      cover: "https://images.unsplash.com/photo-1486401899868-0e435ed85128?auto=format&fit=crop&w=600&q=80",
+      cover: "assets/covers/service-1tb.jpg",
       screenshots: [
-        "https://images.unsplash.com/photo-1486401899868-0e435ed85128?auto=format&fit=crop&w=800&q=80"
+        "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=800&q=80"
       ]
     },
     prices: {
@@ -219,11 +219,11 @@ const INITIAL_PRODUCTS = [
     publisher: "ALIANSI STORE Workshop",
     tagline: "Paket Hemat Pengisian Game PS4 HEN Internal / Eksternal 500GB",
     images: {
-      poster: "https://images.unsplash.com/photo-1544652478-6653e09f18a2?auto=format&fit=crop&w=600&q=80",
+      poster: "assets/covers/service-500gb.jpg",
       backdrop: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1920&q=85",
-      cover: "https://images.unsplash.com/photo-1544652478-6653e09f18a2?auto=format&fit=crop&w=600&q=80",
+      cover: "assets/covers/service-500gb.jpg",
       screenshots: [
-        "https://images.unsplash.com/photo-1544652478-6653e09f18a2?auto=format&fit=crop&w=800&q=80"
+        "https://images.unsplash.com/photo-1507457379470-08b800bebc67?auto=format&fit=crop&w=800&q=80"
       ]
     },
     prices: {
@@ -257,9 +257,9 @@ const INITIAL_PRODUCTS = [
     publisher: "ALIANSI STORE Hardware",
     tagline: "Aktivasi HEN 1 Klik Tanpa Ribet Buka Browser Berulang Kali",
     images: {
-      poster: "https://images.unsplash.com/photo-1628155930542-3c7a64e2c833?auto=format&fit=crop&w=600&q=80",
+      poster: "assets/covers/flashdisk-hen.jpg",
       backdrop: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1920&q=85",
-      cover: "https://images.unsplash.com/photo-1628155930542-3c7a64e2c833?auto=format&fit=crop&w=600&q=80",
+      cover: "assets/covers/flashdisk-hen.jpg",
       screenshots: [
         "https://images.unsplash.com/photo-1628155930542-3c7a64e2c833?auto=format&fit=crop&w=800&q=80"
       ]
@@ -296,9 +296,9 @@ const INITIAL_PRODUCTS = [
     publisher: "Sony Interactive Entertainment",
     tagline: "Kisah Emosional Joel & Ellie dengan Terjemahan Bahasa Indonesia Menyentuh",
     images: {
-      poster: "https://image.api.playstation.com/vulcan/ap/rnd/202206/0720/eMMvkwvWb9r7294B1B7q8fG0.png",
+      poster: "assets/covers/tlou-part1.jpg",
       backdrop: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1920&q=85",
-      cover: "https://image.api.playstation.com/vulcan/ap/rnd/202206/0720/eMMvkwvWb9r7294B1B7q8fG0.png",
+      cover: "assets/covers/tlou-part1.jpg",
       screenshots: [
         "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80"
       ]
@@ -335,9 +335,9 @@ const INITIAL_PRODUCTS = [
     publisher: "Rockstar Games",
     tagline: "Dunia Koboi Terbesar Rockstar Games dengan Subtitle Indonesia Lengkap",
     images: {
-      poster: "https://image.api.playstation.com/cdn/UP1004/CUSA03041_00/Hpl5MtwQgOVCSNmSpP44QfZGYSwRhAEz.png",
+      poster: "assets/covers/rdr2.jpg",
       backdrop: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1920&q=85",
-      cover: "https://image.api.playstation.com/cdn/UP1004/CUSA03041_00/Hpl5MtwQgOVCSNmSpP44QfZGYSwRhAEz.png",
+      cover: "assets/covers/rdr2.jpg",
       screenshots: [
         "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80"
       ]
@@ -374,9 +374,9 @@ const INITIAL_PRODUCTS = [
     publisher: "Sony Interactive Entertainment",
     tagline: "Pertahankan Tanah Tsushima dengan Teks Bahasa Indonesia & Dubbing Jepang",
     images: {
-      poster: "https://image.api.playstation.com/vulcan/ap/rnd/202106/2321/44vQhFGBXJqRk2z013Nqm72D.png",
+      poster: "assets/covers/ghost-tsushima.jpg",
       backdrop: "https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?auto=format&fit=crop&w=1920&q=85",
-      cover: "https://image.api.playstation.com/vulcan/ap/rnd/202106/2321/44vQhFGBXJqRk2z013Nqm72D.png",
+      cover: "assets/covers/ghost-tsushima.jpg",
       screenshots: [
         "https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?auto=format&fit=crop&w=800&q=80"
       ]
@@ -412,9 +412,9 @@ const INITIAL_PRODUCTS = [
     publisher: "Electronic Arts",
     tagline: "Klub Pilihanmu, Taktik Modern FC IQ, dan Timnas Indonesia!",
     images: {
-      poster: "https://image.api.playstation.com/vulcan/ap/rnd/202406/2518/c5be188df04a01a357eb4bb7a87ea74c2d6f8510a2bb124b.png",
-      backdrop: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1920&q=85",
-      cover: "https://image.api.playstation.com/vulcan/ap/rnd/202406/2518/c5be188df04a01a357eb4bb7a87ea74c2d6f8510a2bb124b.png",
+      poster: "assets/covers/fc-25.jpg",
+      backdrop: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1920&q=85",
+      cover: "assets/covers/fc-25.jpg",
       screenshots: [
         "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80"
       ]
@@ -449,9 +449,9 @@ const INITIAL_PRODUCTS = [
     publisher: "Game Science",
     tagline: "Taklukkan Mitologi Barat dengan Kekuatan Monyet Sakti",
     images: {
-      poster: "https://image.api.playstation.com/vulcan/ap/rnd/202405/2908/782d480862a939f75e2faea0e219fb09623e1dc04d49d9c2.png",
+      poster: "assets/covers/wukong.jpg",
       backdrop: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1920&q=85",
-      cover: "https://image.api.playstation.com/vulcan/ap/rnd/202405/2908/782d480862a939f75e2faea0e219fb09623e1dc04d49d9c2.png",
+      cover: "assets/covers/wukong.jpg",
       screenshots: [
         "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80"
       ]
