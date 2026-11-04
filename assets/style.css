@@ -1,0 +1,813 @@
+/* ==========================================================================
+   ALIANSI STORE - Next-Gen PlayStation 5 Marketplace UI (v4.0)
+   Dual-Theme Engine: Dark OLED Cyberpunk & Light Glacier White
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,400;0,500;0,600;0,700;1,700&family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root {
+  --ps-blue: #0070d1;
+  --ps-blue-neon: #0099ff;
+  --ps-cyan: #00f5ff;
+  --ps-purple: #8b5cf6;
+  --font-main: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  --font-display: 'Chakra Petch', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.font-display { font-family: var(--font-display); }
+.font-mono { font-family: var(--font-mono); }
+
+/* Smooth Theme Transitions */
+html, body, .nav-capsule, .game-card-nextgen, .matrix-card, .matrix-card-featured, .glass-panel, .glass-panel-glow {
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* ==========================================================================
+   DARK / NIGHT MODE (OLED CYBERPUNK PS5)
+   ========================================================================== */
+html.dark body {
+  background-color: #030712;
+  color: #f8fafc;
+  overflow-x: hidden;
+}
+
+html.dark .bg-oled-grid {
+  background-color: #030712;
+  background-image: 
+    radial-gradient(ellipse 90% 60% at 50% -10%, rgba(0, 112, 209, 0.35), transparent 70%),
+    radial-gradient(ellipse 70% 50% at 90% 70%, rgba(139, 92, 246, 0.18), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 10% 50%, rgba(0, 245, 255, 0.15), transparent 60%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+}
+
+html.dark .nav-capsule {
+  background: rgba(6, 12, 26, 0.88);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 112, 209, 0.2);
+}
+
+html.dark .game-card-nextgen {
+  background: linear-gradient(160deg, #091228 0%, #050b18 100%);
+  border: 1px solid rgba(56, 189, 248, 0.18);
+}
+html.dark .game-card-nextgen:hover {
+  transform: translateY(-8px) scale(1.015);
+  border-color: rgba(0, 245, 255, 0.6) !important;
+  box-shadow: 0 20px 50px -10px rgba(0, 112, 209, 0.45), 0 0 30px rgba(0, 245, 255, 0.25);
+}
+
+html.dark .price-toggle-capsule {
+  background: rgba(3, 7, 18, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+html.dark .price-toggle-item.active {
+  background: linear-gradient(135deg, #0070d1 0%, #00f5ff 100%);
+  color: #030712;
+}
+
+html.dark .matrix-card {
+  background: linear-gradient(145deg, #091226 0%, #050a18 100%);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+}
+html.dark .matrix-card-featured {
+  background: linear-gradient(145deg, #0b1a3d 0%, #07122a 100%);
+  border: 2px solid #00f5ff;
+  box-shadow: 0 0 30px rgba(0, 245, 255, 0.25);
+}
+
+html.dark .gamepad-hud {
+  background: rgba(5, 10, 24, 0.9);
+  border: 1px solid rgba(0, 245, 255, 0.3);
+}
+
+/* ==========================================================================
+   LIGHT / DAY MODE (GLACIER WHITE & ARCTIC PS BLUE - HARMONIOUS & COHESIVE)
+   ========================================================================== */
+html:not(.dark) body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+/* Backgrounds in Light Mode */
+html:not(.dark) .bg-oled-grid {
+  background-color: #f8fafc !important;
+  background-image: 
+    radial-gradient(ellipse 90% 60% at 50% -10%, rgba(0, 112, 209, 0.08), transparent 70%),
+    linear-gradient(to right, rgba(15, 23, 42, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.035) 1px, transparent 1px) !important;
+}
+
+/* Top HUD in Light Mode */
+html:not(.dark) .top-hud-bar,
+html:not(.dark) #top-hud-bar {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #334155 !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03) !important;
+}
+html:not(.dark) .top-hud-bar span.text-slate-300 { color: #475569 !important; }
+html:not(.dark) .top-hud-bar span.text-emerald-400 { color: #059669 !important; }
+html:not(.dark) .top-hud-bar button {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+}
+html:not(.dark) .top-hud-bar button:hover {
+  background-color: #e2e8f0 !important;
+  color: #0070d1 !important;
+}
+
+/* Navigation Capsule in Light Mode */
+html:not(.dark) .nav-capsule {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 10px 30px -10px rgba(0, 112, 209, 0.12), 0 4px 12px rgba(0,0,0,0.04) !important;
+}
+html:not(.dark) .nav-capsule a,
+html:not(.dark) .nav-capsule button:not(.cyber-button) {
+  color: #0f172a !important;
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+html:not(.dark) .nav-capsule a:hover,
+html:not(.dark) .nav-capsule button:not(.cyber-button):hover {
+  background-color: #e2e8f0 !important;
+  color: #0070d1 !important;
+}
+html:not(.dark) .nav-capsule input#main-search-input {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+html:not(.dark) .nav-capsule input#main-search-input::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Hero Section in Light Mode */
+html:not(.dark) .spotlight-container {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+html:not(.dark) .spotlight-backdrop {
+  opacity: 0.8 !important;
+  filter: blur(1px) brightness(0.95) contrast(1.05) !important;
+}
+html:not(.dark) .spotlight-overlay {
+  background: radial-gradient(circle at 75% 35%, rgba(248, 250, 252, 0.15) 0%, rgba(248, 250, 252, 0.65) 50%, #f8fafc 85%),
+              linear-gradient(to top, #f8fafc 15%, rgba(248, 250, 252, 0.82) 55%, rgba(248, 250, 252, 0.95) 100%) !important;
+}
+html:not(.dark) #hero-game-title {
+  color: #0f172a !important;
+}
+html:not(.dark) #hero-game-tagline {
+  color: #334155 !important;
+}
+html:not(.dark) .spotlight-container .bg-slate-900\/85 {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 12px 35px rgba(0, 112, 209, 0.12) !important;
+}
+html:not(.dark) .spotlight-container .bg-black\/60 {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-color: #fde68a !important;
+  color: #d97706 !important;
+}
+html:not(.dark) #hero-price-primary {
+  color: #0062ff !important;
+}
+html:not(.dark) #hero-price-secondary {
+  color: #0284c7 !important;
+}
+html:not(.dark) #hero-btn-detail {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+html:not(.dark) #hero-btn-detail:hover {
+  background-color: #f1f5f9 !important;
+  border-color: #0070d1 !important;
+  color: #0070d1 !important;
+}
+html:not(.dark) .spotlight-thumb {
+  border-color: #cbd5e1 !important;
+  background: #ffffff !important;
+}
+html:not(.dark) .spotlight-thumb.border-sky-400 {
+  border-color: #0070d1 !important;
+  box-shadow: 0 8px 25px rgba(0, 112, 209, 0.35) !important;
+}
+
+/* Live Ticker in Light Mode */
+html:not(.dark) .ticker-wrapper {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+html:not(.dark) .ticker-wrapper #live-social-ticker > div,
+html:not(.dark) .ticker-item {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03) !important;
+  color: #334155 !important;
+}
+html:not(.dark) .ticker-wrapper #live-social-ticker strong {
+  color: #0f172a !important;
+}
+html:not(.dark) .ticker-wrapper #live-social-ticker span.text-sky-300 {
+  color: #0062ff !important;
+}
+
+/* Primary vs Secondary Matrix Cards in Light Mode */
+html:not(.dark) .matrix-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+  color: #0f172a !important;
+}
+html:not(.dark) .matrix-card-featured {
+  background: #ffffff !important;
+  border: 2px solid #0070d1 !important;
+  box-shadow: 0 12px 35px rgba(0, 112, 209, 0.14) !important;
+  color: #0f172a !important;
+}
+html:not(.dark) .matrix-card h3,
+html:not(.dark) .matrix-card-featured h3 {
+  color: #0f172a !important;
+}
+html:not(.dark) .matrix-card ul li span,
+html:not(.dark) .matrix-card-featured ul li span {
+  color: #334155 !important;
+}
+html:not(.dark) .matrix-card button.bg-slate-800 {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+html:not(.dark) .matrix-card button.bg-purple-900\/60 {
+  background-color: #f5f3ff !important;
+  border-color: #ddd6fe !important;
+  color: #6d28d9 !important;
+}
+
+/* Product Catalog Cards in Light Mode */
+html:not(.dark) #products-grid > div,
+html:not(.dark) .game-card-nextgen {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 4px 18px -2px rgba(0, 0, 0, 0.05) !important;
+}
+html:not(.dark) #products-grid > div:hover,
+html:not(.dark) .game-card-nextgen:hover {
+  border-color: #0070d1 !important;
+  box-shadow: 0 16px 36px -8px rgba(0, 112, 209, 0.22) !important;
+  transform: translateY(-4px);
+}
+html:not(.dark) #products-grid h3,
+html:not(.dark) .game-card-nextgen h3 {
+  color: #0f172a !important;
+}
+html:not(.dark) #products-grid h3:hover,
+html:not(.dark) .game-card-nextgen h3:hover {
+  color: #0070d1 !important;
+}
+html:not(.dark) #products-grid [id^="card-price-"] {
+  color: #0062ff !important;
+  font-weight: 900;
+}
+html:not(.dark) .price-toggle-pill,
+html:not(.dark) .price-toggle-capsule {
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+html:not(.dark) .price-toggle-btn,
+html:not(.dark) .price-toggle-item {
+  color: #64748b !important;
+}
+html:not(.dark) .price-toggle-btn.active,
+html:not(.dark) .price-toggle-item.active {
+  background: #0070d1 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(0, 112, 209, 0.35) !important;
+}
+html:not(.dark) .btn-card-detail,
+html:not(.dark) #products-grid .bg-slate-800\/90 {
+  background-color: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+}
+html:not(.dark) .btn-card-detail:hover,
+html:not(.dark) #products-grid .bg-slate-800\/90:hover {
+  background-color: #e2e8f0 !important;
+  color: #0070d1 !important;
+}
+
+/* Category Filter Tabs in Light Mode */
+html:not(.dark) #katalog h2 { color: #0f172a !important; }
+html:not(.dark) #catalog-sort-select {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+html:not(.dark) .filter-tab-btn:not(.bg-sky-600) {
+  background-color: #ffffff !important;
+  color: #334155 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+html:not(.dark) .filter-tab-btn:not(.bg-sky-600):hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #0070d1 !important;
+}
+html:not(.dark) .filter-tab-btn.bg-sky-600 {
+  background-color: #0070d1 !important;
+  color: #ffffff !important;
+}
+
+/* ================= CART DRAWER IN LIGHT MODE (SEAMLESS GLACIER WHITE) ================= */
+html:not(.dark) #drawer-cart .bg-black\/75 {
+  background-color: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: blur(6px) !important;
+}
+html:not(.dark) #cart-drawer-panel {
+  background: #ffffff !important;
+  border-left: 1px solid #e2e8f0 !important;
+  color: #0f172a !important;
+  box-shadow: -15px 0 45px rgba(0, 0, 0, 0.12) !important;
+}
+html:not(.dark) #cart-drawer-panel h3,
+html:not(.dark) #cart-drawer-panel h4 {
+  color: #0f172a !important;
+}
+html:not(.dark) #cart-drawer-panel .border-b,
+html:not(.dark) #cart-drawer-panel .border-t {
+  border-color: #e2e8f0 !important;
+}
+html:not(.dark) #cart-drawer-panel button.text-slate-400 {
+  color: #64748b !important;
+}
+html:not(.dark) #cart-drawer-panel button.text-slate-400:hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+html:not(.dark) .cart-item-card {
+  background-color: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #0f172a !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03) !important;
+}
+html:not(.dark) .cart-item-card h4 {
+  color: #0f172a !important;
+}
+html:not(.dark) .cart-item-card img {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+html:not(.dark) .cart-item-variant {
+  background-color: #e0f2fe !important;
+  color: #0284c7 !important;
+  border: 1px solid #bae6fd !important;
+}
+html:not(.dark) .cart-item-platform {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+html:not(.dark) .cart-item-price {
+  color: #0062ff !important;
+  font-weight: 800 !important;
+}
+html:not(.dark) .cart-qty-stepper {
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+}
+html:not(.dark) .cart-qty-btn {
+  color: #475569 !important;
+  background-color: transparent !important;
+}
+html:not(.dark) .cart-qty-btn:hover {
+  background-color: #f1f5f9 !important;
+  color: #0062ff !important;
+}
+html:not(.dark) .cart-qty-val {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+}
+html:not(.dark) .cart-remove-btn {
+  color: #94a3b8 !important;
+}
+html:not(.dark) .cart-remove-btn:hover {
+  color: #e11d48 !important;
+}
+html:not(.dark) #cart-footer-actions {
+  border-color: #e2e8f0 !important;
+  background-color: #ffffff !important;
+}
+html:not(.dark) #cart-footer-actions span.text-slate-400 {
+  color: #64748b !important;
+}
+html:not(.dark) #cart-subtotal {
+  color: #0062ff !important;
+  font-weight: 900 !important;
+}
+html:not(.dark) #cart-empty-state i {
+  color: #cbd5e1 !important;
+}
+html:not(.dark) #cart-empty-state h4 {
+  color: #0f172a !important;
+}
+html:not(.dark) #cart-empty-state p {
+  color: #64748b !important;
+}
+
+/* Modals & Dialogs in Light Mode */
+html:not(.dark) .modal-backdrop-blur {
+  background-color: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: blur(8px) !important;
+}
+html:not(.dark) .app-modal > div {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.2) !important;
+}
+html:not(.dark) .app-modal h2,
+html:not(.dark) .app-modal h3,
+html:not(.dark) .app-modal h4 {
+  color: #0f172a !important;
+}
+html:not(.dark) .app-modal p,
+html:not(.dark) .app-modal li span {
+  color: #334155 !important;
+}
+html:not(.dark) .app-modal label {
+  color: #1e293b !important;
+}
+html:not(.dark) .app-modal input,
+html:not(.dark) .app-modal select,
+html:not(.dark) .app-modal textarea {
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+}
+html:not(.dark) .app-modal input:focus,
+html:not(.dark) .app-modal select:focus,
+html:not(.dark) .app-modal textarea:focus {
+  border-color: #0062ff !important;
+  box-shadow: 0 0 0 3px rgba(0, 98, 255, 0.12) !important;
+}
+html:not(.dark) .app-modal input::placeholder,
+html:not(.dark) .app-modal textarea::placeholder {
+  color: #94a3b8 !important;
+}
+html:not(.dark) .app-modal .bg-slate-900,
+html:not(.dark) .app-modal .bg-slate-900\/60,
+html:not(.dark) .app-modal .bg-slate-900\/80,
+html:not(.dark) .app-modal .bg-slate-900\/90,
+html:not(.dark) .app-modal .bg-slate-950,
+html:not(.dark) .app-modal .bg-\[\#060a16\],
+html:not(.dark) .app-modal .bg-\[\#080f24\],
+html:not(.dark) .app-modal .bg-\[\#091128\] {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+html:not(.dark) .app-modal .border-slate-800,
+html:not(.dark) .app-modal .border-slate-700 {
+  border-color: #e2e8f0 !important;
+}
+html:not(.dark) .app-modal button.bg-slate-800,
+html:not(.dark) .app-modal button.bg-slate-800\/80 {
+  background-color: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #475569 !important;
+}
+html:not(.dark) .app-modal button.bg-slate-800:hover,
+html:not(.dark) .app-modal button.bg-slate-800\/80:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+html:not(.dark) .payment-card {
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+}
+html:not(.dark) .payment-card.border-sky-500 {
+  background-color: #f0f7ff !important;
+  border-color: #0070d1 !important;
+}
+html:not(.dark) .payment-card span.text-white {
+  color: #0f172a !important;
+}
+html:not(.dark) .payment-card span.text-slate-400 {
+  color: #64748b !important;
+}
+
+/* Floating Gamepad HUD in Light Mode */
+html:not(.dark) .gamepad-hud {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12) !important;
+}
+html:not(.dark) .gamepad-hud button,
+html:not(.dark) .gamepad-hud a {
+  color: #0f172a !important;
+}
+html:not(.dark) .gamepad-hud .bg-slate-700 {
+  background-color: #cbd5e1 !important;
+}
+
+/* Admin Dashboard in Light Mode */
+html:not(.dark) #admin-dashboard-view {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+html:not(.dark) #admin-dashboard-view header {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid #cbd5e1 !important;
+}
+html:not(.dark) #admin-dashboard-view header span.text-white {
+  color: #0f172a !important;
+}
+html:not(.dark) #admin-dashboard-view .stat-card,
+html:not(.dark) #admin-dashboard-view .grid > div {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
+}
+html:not(.dark) #admin-dashboard-view section {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04) !important;
+}
+html:not(.dark) #admin-dashboard-view th {
+  background-color: #f8fafc !important;
+  color: #475569 !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+}
+html:not(.dark) #admin-dashboard-view td {
+  color: #1e293b !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+}
+
+/* User Dropdown in Light Mode */
+html:not(.dark) #user-dropdown-menu {
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.15) !important;
+}
+html:not(.dark) #user-dropdown-menu .border-b {
+  border-color: #e2e8f0 !important;
+}
+html:not(.dark) #user-dropdown-menu button {
+  color: #1e293b !important;
+}
+html:not(.dark) #user-dropdown-menu button:hover {
+  background-color: #f1f5f9 !important;
+  color: #0062ff !important;
+}
+html:not(.dark) #user-dropdown-menu button.text-rose-400:hover {
+  background-color: #fef2f2 !important;
+  color: #e11d48 !important;
+}
+html:not(.dark) #user-menu-wrapper > button {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+/* ================= FOOTER IN LIGHT MODE (SEAMLESS CLEAN LIGHT) ================= */
+html:not(.dark) footer {
+  background-color: #ffffff !important;
+  border-top: 1px solid #e2e8f0 !important;
+  color: #475569 !important;
+}
+html:not(.dark) footer .brand-logo-pill {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}
+html:not(.dark) footer h5 {
+  color: #0f172a !important;
+}
+html:not(.dark) footer strong {
+  color: #0f172a !important;
+}
+html:not(.dark) footer p {
+  color: #475569 !important;
+}
+html:not(.dark) footer a,
+html:not(.dark) footer span {
+  color: #475569 !important;
+}
+html:not(.dark) footer a:hover,
+html:not(.dark) footer span:hover {
+  color: #0062ff !important;
+}
+html:not(.dark) footer .border-slate-800 {
+  border-color: #e2e8f0 !important;
+}
+html:not(.dark) footer button.bg-slate-900 {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+}
+html:not(.dark) footer button.bg-slate-900:hover {
+  background-color: #f1f5f9 !important;
+  color: #0062ff !important;
+  border-color: #0070d1 !important;
+}
+html:not(.dark) footer a.bg-emerald-950 {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+  color: #059669 !important;
+}
+html:not(.dark) footer a.bg-emerald-950:hover {
+  background-color: #d1fae5 !important;
+}
+html:not(.dark) footer span.bg-slate-900 {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+/* Invoice Fulfillment Credentials in Light Mode */
+html:not(.dark) #inv-fulfillment-box {
+  background: linear-gradient(135deg, #f0fdf4 0%, #f0f9ff 100%) !important;
+  border: 2px solid #0284c7 !important;
+  box-shadow: 0 10px 30px rgba(2, 132, 199, 0.1) !important;
+}
+html:not(.dark) #inv-fulfillment-box .bg-\[\#060a16\],
+html:not(.dark) #inv-fulfillment-box .bg-\[\#080d19\] {
+  background: #ffffff !important;
+  border: 1px solid #bae6fd !important;
+}
+
+/* Universal Text Color Overrides in Light Mode */
+html:not(.dark) .text-white { color: #0f172a !important; }
+html:not(.dark) .text-slate-100 { color: #0f172a !important; }
+html:not(.dark) .text-slate-200 { color: #1e293b !important; }
+html:not(.dark) .text-slate-300 { color: #334155 !important; }
+html:not(.dark) .text-slate-400 { color: #475569 !important; }
+html:not(.dark) .text-slate-500 { color: #64748b !important; }
+html:not(.dark) .text-sky-300,
+html:not(.dark) .text-sky-400,
+html:not(.dark) .text-cyan-400 { color: #0062ff !important; }
+html:not(.dark) .text-amber-400 { color: #d97706 !important; }
+html:not(.dark) .text-emerald-400 { color: #059669 !important; }
+
+/* Elements that MUST retain white text */
+html:not(.dark) .cyber-button,
+html:not(.dark) .cyber-button *,
+html:not(.dark) .cyber-btn-primary,
+html:not(.dark) .cyber-btn-primary *,
+html:not(.dark) .bg-sky-600,
+html:not(.dark) .bg-sky-600 *,
+html:not(.dark) .bg-blue-600,
+html:not(.dark) .bg-blue-600 *,
+html:not(.dark) .bg-emerald-600,
+html:not(.dark) .bg-emerald-600 *,
+html:not(.dark) .bg-rose-600,
+html:not(.dark) .bg-rose-600 *,
+html:not(.dark) .bg-purple-600,
+html:not(.dark) .bg-purple-600 *,
+html:not(.dark) .cart-badge,
+html:not(.dark) .force-white {
+  color: #ffffff !important;
+}
+
+/* ==========================================================================
+   SHARED UI ELEMENTS
+   ========================================================================== */
+.brand-logo-pill {
+  background: #ffffff;
+  padding: 6px 18px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  box-shadow: 0 4px 20px rgba(0, 112, 209, 0.25), 0 0 15px rgba(0, 150, 255, 0.2);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.brand-logo-pill:hover {
+  transform: scale(1.04);
+  box-shadow: 0 6px 28px rgba(0, 112, 209, 0.45), 0 0 25px rgba(0, 245, 255, 0.4);
+}
+
+.ps-triangle { color: #00f5ff; }
+.ps-circle { color: #ef4444; }
+.ps-cross { color: #3b82f6; }
+.ps-square { color: #ec4899; }
+
+.text-gradient-cyan {
+  background: linear-gradient(135deg, #0070d1 0%, #00b4d8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.cyber-button, .cyber-btn-primary {
+  background: linear-gradient(135deg, #0070d1 0%, #0099ff 60%, #00f5ff 100%);
+  color: #ffffff !important;
+  font-weight: 900;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 112, 209, 0.35);
+}
+.cyber-button:hover, .cyber-btn-primary:hover {
+  box-shadow: 0 6px 25px rgba(0, 112, 209, 0.55);
+  transform: translateY(-2px);
+}
+
+.sound-bars span {
+  display: inline-block;
+  width: 2px;
+  background-color: #0070d1;
+  border-radius: 1px;
+  animation: soundBar 1.2s infinite ease-in-out;
+}
+.sound-bars span:nth-child(1) { height: 6px; animation-delay: 0.1s; }
+.sound-bars span:nth-child(2) { height: 12px; animation-delay: 0.3s; }
+.sound-bars span:nth-child(3) { height: 8px; animation-delay: 0.2s; }
+
+@keyframes soundBar {
+  0%, 100% { transform: scaleY(0.4); }
+  50% { transform: scaleY(1); }
+}
+
+.sound-muted .sound-bars span {
+  animation: none !important;
+  height: 3px !important;
+  background-color: #94a3b8 !important;
+}
+
+.spotlight-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.spotlight-backdrop {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center top;
+  filter: blur(1px) brightness(0.65);
+  transition: background-image 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease;
+  z-index: 1;
+}
+
+.spotlight-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 70% 30%, transparent 20%, #030712 85%),
+              linear-gradient(to top, #030712 10%, rgba(3, 6, 17, 0.7) 50%, rgba(3, 6, 17, 0.85) 100%);
+  z-index: 2;
+}
+
+@keyframes neonPulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 245, 255, 0.8); }
+  70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 245, 255, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 245, 255, 0); }
+}
+.pulse-neon {
+  animation: neonPulse 2.2s infinite;
+}
+
+.ticker-wrapper {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.ticker-inner {
+  display: inline-flex;
+  animation: tickerSlide 35s linear infinite;
+}
+.ticker-wrapper:hover .ticker-inner {
+  animation-play-state: paused;
+}
+
+@keyframes tickerSlide {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
+}
+
+.gamepad-hud {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 45;
+  border-radius: 9999px;
+  padding: 8px 16px;
+}
+
+@media print {
+  body { background: #ffffff !important; color: #000000 !important; }
+  .no-print { display: none !important; }
+}
