@@ -39,6 +39,24 @@ const state = {
   orderToFulfill: null
 };
 
+// ================= SUPABASE CLOUD DATABASE ADAPTER =================
+const SUPABASE_CONFIG = {
+  url: "https://fgotjbcabnragtpijuvk.supabase.co",
+  anonKey: "sb_publishable_wXLOEof96Y8l22xcABvPZQ_unQgSmws"
+};
+
+let supabaseClient = null;
+function initSupabaseClient() {
+  try {
+    if (typeof window !== 'undefined' && window.supabase && SUPABASE_CONFIG.url && SUPABASE_CONFIG.anonKey) {
+      supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+      console.log('⚡ Supabase Cloud Database Initialized Successfully!');
+    }
+  } catch (err) {
+    console.warn('Supabase initialization warning:', err);
+  }
+}
+
 // ================= WEB AUDIO API SYNTHESIZER =================
 let audioCtx = null;
 
@@ -184,6 +202,7 @@ function toggleTheme() {
 
 // ================= INITIALIZATION =================
 function initApp() {
+  initSupabaseClient();
   initTheme();
   loadStoredData();
   setupEventListeners();
@@ -193,6 +212,7 @@ function initApp() {
   initSocialProofStream();
   updateNavAuthUI();
   lucide.createIcons();
+  syncFromSupabase();
 }
 
 function loadStoredData() {
@@ -292,6 +312,152 @@ function saveConfig() {
 function saveCart() {
   localStorage.setItem(APP_STORAGE_KEYS.CART, JSON.stringify(state.cart));
   updateCartBadge();
+}
+
+// ================= SUPABASE CLOUD SYNC OPERATIONS =================
+async function syncFromSupabase() {
+  if (!supabaseClient) return;
+  try {
+    // 1. Fetch Products from Cloud
+    const { data: prods, error: pErr } = await supabaseClient.from('products').select('*');
+    if (!pErr && prods && prods.length > 0) {
+      state.products = prods.map(p => ({
+        id: p.id,
+        title: p.title,
+        slug: p.slug,
+        platform: Array.isArray(p.platform) ? p.platform : (typeof p.platform === 'string' ? JSON.parse(p.platform) : []),
+        category: p.category,
+        type: p.type || 'digital',
+        badge: p.badge,
+        isSubIndo: !!p.is_sub_indo,
+        isHen: !!p.is_hen,
+        isSpotlight: !!p.is_spotlight,
+        rating: Number(p.rating) || 5.0,
+        soldCount: Number(p.sold_count) || 0,
+        releaseYear: p.release_year,
+        size: p.size,
+        publisher: p.publisher,
+        tagline: p.tagline,
+        images: typeof p.images === 'object' && p.images !== null ? p.images : {},
+        prices: typeof p.prices === 'object' && p.prices !== null ? p.prices : {},
+        description: p.description,
+        features: Array.isArray(p.features) ? p.features : [],
+        inStock: p.in_stock !== false
+      }));
+      localStorage.setItem(APP_STORAGE_KEYS.PRODUCTS, JSON.stringify(state.products));
+      renderProducts();
+      initSpotlightHero();
+    }
+
+    // 2. Fetch Orders from Cloud
+    const { data: ords, error: oErr } = await supabaseClient.from('orders').select('*').order('created_at', { ascending: false });
+    if (!oErr && ords && ords.length > 0) {
+      state.orders = ords.map(o => ({
+        id: o.id,
+        createdAt: o.created_at,
+        customerType: o.customer_type,
+        customerName: o.customer_name,
+        customerPhone: o.customer_phone,
+        customerEmail: o.customer_email,
+        notes: o.notes,
+        items: Array.isArray(o.items) ? o.items : [],
+        subtotal: Number(o.subtotal) || 0,
+        discount: Number(o.discount) || 0,
+        total: Number(o.total) || 0,
+        voucherCode: o.voucher_code,
+        paymentMethod: o.payment_method,
+        paymentStatus: o.payment_status,
+        status: o.status,
+        fulfillment: o.fulfillment
+      }));
+      localStorage.setItem(APP_STORAGE_KEYS.ORDERS, JSON.stringify(state.orders));
+      renderAdminStats();
+      renderAdminOrdersTable();
+    }
+
+    // 3. Fetch Store Config from Cloud
+    const { data: cfg, error: cErr } = await supabaseClient.from('store_config').select('*').eq('id', 'main').single();
+    if (!cErr && cfg) {
+      state.config = {
+        storeName: cfg.store_name || state.config.storeName,
+        tagline: cfg.tagline || state.config.tagline,
+        whatsappNumber: cfg.whatsapp_number || state.config.whatsappNumber,
+        whatsappFormatted: cfg.whatsapp_formatted || state.config.whatsappFormatted,
+        adminPin: cfg.admin_pin || state.config.adminPin || '1234',
+        bankAccounts: cfg.bank_accounts || state.config.bankAccounts,
+        vouchers: cfg.vouchers || state.config.vouchers
+      };
+      localStorage.setItem(APP_STORAGE_KEYS.CONFIG, JSON.stringify(state.config));
+    }
+  } catch (err) {
+    console.warn('Supabase cloud sync notice:', err);
+  }
+}
+
+async function syncOrderToSupabase(order) {
+  if (!supabaseClient || !order) return;
+  try {
+    await supabaseClient.from('orders').upsert({
+      id: order.id,
+      created_at: order.createdAt || new Date().toISOString(),
+      customer_type: order.customerType,
+      customer_name: order.customerName,
+      customer_phone: order.customerPhone,
+      customer_email: order.customerEmail,
+      notes: order.notes,
+      items: order.items,
+      subtotal: order.subtotal,
+      discount: order.discount,
+      total: order.total,
+      voucher_code: order.voucherCode,
+      payment_method: order.paymentMethod,
+      payment_status: order.paymentStatus,
+      status: order.status,
+      fulfillment: order.fulfillment
+    });
+  } catch (err) {
+    console.warn('Failed to sync order to Supabase:', err);
+  }
+}
+
+async function syncProductToSupabase(p) {
+  if (!supabaseClient || !p) return;
+  try {
+    await supabaseClient.from('products').upsert({
+      id: p.id,
+      title: p.title,
+      slug: p.slug,
+      platform: p.platform,
+      category: p.category,
+      type: p.type || 'digital',
+      badge: p.badge,
+      is_sub_indo: !!p.isSubIndo,
+      is_hen: !!p.isHen,
+      is_spotlight: !!p.isSpotlight,
+      rating: p.rating,
+      sold_count: p.soldCount,
+      release_year: p.releaseYear,
+      size: p.size,
+      publisher: p.publisher,
+      tagline: p.tagline,
+      images: p.images,
+      prices: p.prices,
+      description: p.description,
+      features: p.features,
+      in_stock: p.inStock !== false
+    });
+  } catch (err) {
+    console.warn('Failed to sync product to Supabase:', err);
+  }
+}
+
+async function deleteProductFromSupabase(productId) {
+  if (!supabaseClient || !productId) return;
+  try {
+    await supabaseClient.from('products').delete().eq('id', productId);
+  } catch (err) {
+    console.warn('Failed to delete product from Supabase:', err);
+  }
 }
 
 // Helpers
@@ -1271,6 +1437,7 @@ function submitOrder() {
 
   state.orders.unshift(newOrder);
   saveOrders();
+  syncOrderToSupabase(newOrder);
 
   // Clear cart
   state.cart = [];
@@ -1296,9 +1463,39 @@ function triggerConfetti() {
 }
 
 // ================= INVOICE & TRACKING MODAL =================
-function openInvoiceModal(orderId) {
+async function openInvoiceModal(orderId) {
   playSfx('click');
-  const order = state.orders.find(o => o.id === orderId);
+  let order = state.orders.find(o => o.id === orderId);
+  if (!order && supabaseClient) {
+    try {
+      const { data, error } = await supabaseClient.from('orders').select('*').eq('id', orderId).single();
+      if (data && !error) {
+        order = {
+          id: data.id,
+          createdAt: data.created_at,
+          customerType: data.customer_type,
+          customerName: data.customer_name,
+          customerPhone: data.customer_phone,
+          customerEmail: data.customer_email,
+          notes: data.notes,
+          items: Array.isArray(data.items) ? data.items : [],
+          subtotal: Number(data.subtotal) || 0,
+          discount: Number(data.discount) || 0,
+          total: Number(data.total) || 0,
+          voucherCode: data.voucher_code,
+          paymentMethod: data.payment_method,
+          paymentStatus: data.payment_status,
+          status: data.status,
+          fulfillment: data.fulfillment
+        };
+        state.orders.unshift(order);
+        saveOrders();
+      }
+    } catch (e) {
+      console.warn('Invoice lookup error:', e);
+    }
+  }
+
   if (!order) {
     showToast(`Pesanan ID ${orderId} tidak ditemukan!`, 'error');
     return;
@@ -1524,12 +1721,13 @@ function simulateCustomerPaid(orderId) {
   order.paymentStatus = 'PAID';
   order.status = 'PROCESSING';
   saveOrders();
+  syncOrderToSupabase(order);
 
   renderInvoiceDetails(order);
   showToast('Pembayaran Anda terverifikasi! Admin sedang menyiapkan akun game.', 'success', 'Pembayaran Diterima');
 }
 
-function searchInvoice() {
+async function searchInvoice() {
   playSfx('click');
   const input = document.getElementById('order-search-input');
   if (!input) return;
@@ -1540,7 +1738,43 @@ function searchInvoice() {
     return;
   }
 
-  const found = state.orders.find(o => o.id.toUpperCase() === query || o.customerPhone.includes(query));
+  let found = state.orders.find(o => o.id.toUpperCase() === query || (o.customerPhone && o.customerPhone.includes(query)));
+  if (!found && supabaseClient) {
+    try {
+      const { data, error } = await supabaseClient
+        .from('orders')
+        .select('*')
+        .or(`id.ilike.%${query}%,customer_phone.ilike.%${query}%`)
+        .limit(1);
+
+      if (data && data.length > 0) {
+        const row = data[0];
+        found = {
+          id: row.id,
+          createdAt: row.created_at,
+          customerType: row.customer_type,
+          customerName: row.customer_name,
+          customerPhone: row.customer_phone,
+          customerEmail: row.customer_email,
+          notes: row.notes,
+          items: Array.isArray(row.items) ? row.items : [],
+          subtotal: Number(row.subtotal) || 0,
+          discount: Number(row.discount) || 0,
+          total: Number(row.total) || 0,
+          voucherCode: row.voucher_code,
+          paymentMethod: row.payment_method,
+          paymentStatus: row.payment_status,
+          status: row.status,
+          fulfillment: row.fulfillment
+        };
+        state.orders.unshift(found);
+        saveOrders();
+      }
+    } catch (e) {
+      console.warn('Invoice db search err:', e);
+    }
+  }
+
   if (found) {
     openInvoiceModal(found.id);
   } else {
@@ -2297,6 +2531,7 @@ function adminVerifyPayment(orderId) {
   order.paymentStatus = 'PAID';
   order.status = 'PROCESSING';
   saveOrders();
+  syncOrderToSupabase(order);
   renderAdminStats();
   renderAdminOrdersTable();
   showToast(`Pesanan ${orderId} diverifikasi lunas!`, 'success');
@@ -2352,6 +2587,7 @@ function submitOrderFulfillment() {
   state.orderToFulfill.paymentStatus = 'PAID';
 
   saveOrders();
+  syncOrderToSupabase(state.orderToFulfill);
   closeModals();
   playSfx('success');
   renderAdminStats();
@@ -2430,6 +2666,7 @@ function toggleProductStock(productId) {
   if (!p) return;
   p.inStock = p.inStock === false ? true : false;
   saveProducts();
+  syncProductToSupabase(p);
   renderAdminProductsTable();
   renderProducts();
   showToast(`Stok "${p.title}" diperbarui`, 'info');
@@ -2442,6 +2679,7 @@ function deleteProduct(productId) {
   if (confirm(`Yakin ingin menghapus game "${p.title}" dari katalog?`)) {
     state.products = state.products.filter(item => item.id !== productId);
     saveProducts();
+    deleteProductFromSupabase(productId);
     renderAdminProductsTable();
     renderProducts();
     renderAdminStats();
@@ -2507,6 +2745,7 @@ function submitNewProduct() {
 
   state.products.unshift(newGame);
   saveProducts();
+  syncProductToSupabase(newGame);
   closeModals();
   playSfx('success');
   renderProducts();
@@ -2551,6 +2790,7 @@ function submitEditProduct() {
   p.description = document.getElementById('edit-game-desc').value.trim();
 
   saveProducts();
+  syncProductToSupabase(p);
   closeModals();
   playSfx('success');
   renderProducts();
