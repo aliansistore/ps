@@ -72,13 +72,13 @@ const INITIAL_PRODUCTS = [
       secondary: 140000,
       original: 879000
     },
-    description: "Babak penutup epik saga Nordik Kratos dan Atreus kini hadir dengan terjemahan Bahasa Indonesia terlengkap. Nikmati setiap kutipan puitis Kratos, pertarungan brutal dewa Nordik Thor & Odin, dan eksplorasi 9 Realm tanpa hambatan bahasa.",
+    description: "Mahakarya aksi petualangan mitologi Nordik paling fenomenal. Kratos dan Atreus bertualang ke setiap sembilan alam untuk mencari jawaban saat pasukan Asgard bersiap menghadapi pertempuran besar Ragnarok. Full Subtitle Indonesia teks dialog dan narasi rapi.",
     features: [
-      "Full Subtitle Bahasa Indonesia Lengkap Misi & Lore Kodex",
-      "Mendukung DLC Valhalla Terintegrasi",
-      "Tampilan 60 FPS Sangat Halus di PS4 Pro & PS5",
-      "Kompatibel PS4 HEN Firmware 5.05 hingga 11.00",
-      "Full Part Google Drive Super Cepat"
+      "Full Subtitle Bahasa Indonesia Semua Dialog Utama & Side Quest",
+      "Kompatibel Firmware PS4 HEN & Akun Resmi PSN",
+      "Termasuk DLC Valhalla Roguelike Update Terbaru",
+      "Support Audio Dubbing Inggris Asli dengan Sub Indo Selaras",
+      "File Game PKG Lengkap + Panduan Install Anti Gagal"
     ],
     inStock: true
   },
@@ -164,21 +164,21 @@ const INITIAL_PRODUCTS = [
   },
   {
     id: "game-gta5-subindo",
-    title: "GTA V MOD Subtitle Indonesia",
-    slug: "gta-v-mod-sub-indo-ps4-hen",
-    platform: ["PS4 HEN", "PS4", "PS5"],
+    title: "GTA V MOD (Full Subtitle Indonesia)",
+    slug: "gta-v-mod-subtitle-indonesia-ps4-hen",
+    platform: ["PS4 HEN", "PS4"],
     category: "subindo",
     type: "digital",
     badge: "🚗 MOD INDONESIA",
     isSubIndo: true,
     isHen: true,
     isSpotlight: true,
-    rating: 5.0,
-    soldCount: 3120,
-    releaseYear: 2023,
-    size: "85 GB",
-    publisher: "Rockstar Games / ALIANSI Mod Team",
-    tagline: "Jelajahi Los Santos dengan Subtitle Indonesia, Cheat Menu Trainer & Mod Lokal",
+    rating: 4.9,
+    soldCount: 3820,
+    releaseYear: 2021,
+    size: "68 GB",
+    publisher: "Rockstar Games / Aliansi Mod Team",
+    tagline: "Grand Theft Auto V Edisi Khusus: Subtitle Indonesia + Mod Kendaraan & Sound Lokal",
     images: {
       poster: "assets/covers/gta-v.jpg",
       backdrop: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1920&q=85",
@@ -188,17 +188,17 @@ const INITIAL_PRODUCTS = [
       ]
     },
     prices: {
-      primary: 150000,
-      secondary: 85000,
+      primary: 140000,
+      secondary: 80000,
       original: 429000
     },
-    description: "Kisah tiga serangkai Michael, Franklin, dan Trevor kini dilengkapi Subtitle Indonesia lengkap, Menu Cheat Trainer bawaan (uang tak terbatas, teleportasi, kebal), serta modifikasi kendaraan patroli khas Indonesia.",
+    description: "Jelajahi Los Santos bersama Michael, Franklin, dan Trevor dalam bahasa Indonesia! Dilengkapi dengan Mod kearifan lokal, kendaraan khas Indonesia, dan terjemahan misi cerita lengkap tanpa sensor.",
     features: [
-      "100% Subtitle Indonesia Misi Cerita Utama & Percakapan Telepon",
-      "Dilengkapi Menu Mod Trainer Siap Pakai di PS4 HEN",
-      "Bonus Opsi Kendaraan Lokal Indonesia",
-      "Gameplay Sangat Stabil Bebas Error",
-      "Akses Link Google Drive Selamanya"
+      "100% Subtitle Indonesia Misi Cerita Utama & Percakapan Bebas",
+      "Mod Kendaraan Motor & Mobil Indonesia Pilihan",
+      "Cheat Menu Terintegrasi Praktis di Konsol",
+      "Khusus Konsol PS4 HEN Semua Tipe (Fat/Slim/Pro)",
+      "Tested 100% Anti Hang & Anti Crash"
     ],
     inStock: true
   },
@@ -206,46 +206,46 @@ const INITIAL_PRODUCTS = [
     id: "game-mk11-subindo",
     title: "Mortal Kombat 11 Ultimate (Full Subtitle Indonesia)",
     slug: "mortal-kombat-11-ultimate-sub-indo",
-    platform: ["PS4 HEN", "PS4", "PS5"],
+    platform: ["PS4 HEN", "PS5", "PS4"],
     category: "subindo",
     type: "digital",
     badge: "🥊 ALL DLC UNLOCKED",
     isSubIndo: true,
     isHen: true,
-    isSpotlight: false,
-    rating: 4.9,
-    soldCount: 1420,
+    isSpotlight: true,
+    rating: 4.8,
+    soldCount: 1670,
     releaseYear: 2020,
-    size: "68 GB",
-    publisher: "Warner Bros. Games / NetherRealm",
-    tagline: "Edisi Terlengkap Termasuk Aftermath & Kombat Pack dengan Story Mode Sub Indo",
+    size: "52 GB",
+    publisher: "Warner Bros. / NetherRealm",
+    tagline: "Edisi Terlengkap Mortal Kombat 11: Semua Karakter DLC & Story Aftermath Sub Indo",
     images: {
       poster: "assets/covers/mortal-kombat-11.jpg",
-      backdrop: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1920&q=85",
+      backdrop: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85",
       cover: "assets/covers/mortal-kombat-11.jpg",
       screenshots: [
-        "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80"
+        "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80"
       ]
     },
     prices: {
-      primary: 140000,
-      secondary: 80000,
+      primary: 135000,
+      secondary: 75000,
       original: 499000
     },
-    description: "Versi puncak dari game fighting terpopuler dengan grafik sinematik spektakuler. Mencakup Story Mode utama dan ekspansi Aftermath dalam Subtitle Bahasa Indonesia, serta 37 karakter petarung lengkap.",
+    description: "Rasakan pertarungan brutal Fatality dan sinematik spektakuler Mortal Kombat 11 Ultimate dengan alur cerita ber-Subtitle Indonesia. Termasuk ekspansi cerita Aftermath dan semua karakter tamu seperti Joker, Terminator, Rambo, dan Spawn.",
     features: [
-      "Subtitle Indonesia untuk Story Mode Sinematik & Aftermath",
-      "Karakter Lengkap: Rambo, Terminator, Robocop, Spawn, Joker",
-      "Fatality & Brutality Unlocked",
-      "Mode 2 Pemain Versus Seru Bersama Teman",
-      "Support PS4 HEN Semua Versi"
+      "Full Subtitle Indonesia Cerita Utama + Aftermath",
+      "Membuka 37 Karakter Petarung Lengkap Termasuk Karakter Tamu",
+      "Grafis Sinematik Super Tajam 60 FPS",
+      "Mendukung 2 Pemain Versus Lokal Offline",
+      "File Game PKG Siap Instal untuk PS4 HEN"
     ],
     inStock: true
   },
   {
     id: "game-hogwarts-legacy-subindo",
     title: "Hogwarts Legacy (Full Subtitle Indonesia)",
-    slug: "hogwarts-legacy-sub-indo",
+    slug: "hogwarts-legacy-sub-indo-ps4-hen",
     platform: ["PS4 HEN", "PS5", "PS4"],
     category: "subindo",
     type: "digital",
@@ -254,51 +254,51 @@ const INITIAL_PRODUCTS = [
     isHen: true,
     isSpotlight: true,
     rating: 4.9,
-    soldCount: 1890,
+    soldCount: 2420,
     releaseYear: 2023,
-    size: "75 GB",
-    publisher: "Warner Bros. Games / Avalanche",
-    tagline: "Jadilah Penyihir di Dunia Harry Potter Abad ke-19 dengan Subtitle Indonesia Rapi",
+    size: "65 GB",
+    publisher: "Warner Bros. / Avalanche",
+    tagline: "Jadilah Murid Sekolah Sihir Hogwarts Abad ke-19 dengan Subtitle Bahasa Indonesia",
     images: {
       poster: "assets/covers/hogwarts-legacy.jpg",
-      backdrop: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85",
+      backdrop: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1920&q=85",
       cover: "assets/covers/hogwarts-legacy.jpg",
       screenshots: [
-        "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80"
+        "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80"
       ]
     },
     prices: {
-      primary: 230000,
-      secondary: 130000,
+      primary: 210000,
+      secondary: 120000,
       original: 799000
     },
-    description: "Petualangan RPG aksi dunia terbuka di dunia sihir Hogwarts tahun 1800-an. Eksplorasi kastil Hogwarts, Hogsmeade, dan Hutan Terlarang sambil mempelajari mantra sihir kuno dengan terjemahan Bahasa Indonesia yang mudah dipahami.",
+    description: "Rasakan hidup di dunia sihir Harry Potter! Jelajahi Hogwarts, Hogsmeade, Hutan Terlarang, dan kuasai mantra sihir kuno dalam alur cerita RPG mendalam yang kini sepenuhnya berbahasa Indonesia.",
     features: [
-      "100% Subtitle Indonesia Misi Cerita, Dialog Guru & Mantra",
-      "Bebas Buat Karakter Penyihir & Masuk Asrama Impian",
-      "Eksplorasi Dunia Sihir Terbuka yang Sangat Luas",
-      "Format PKG PS4 HEN Siap Pasang",
-      "Kecepatan Download Maksimal Google Drive"
+      "Full Subtitle Indonesia Dialog, Mantra, & Buku Catatan Misteri",
+      "Dunia Sihir Luas Open-World Tanpa Batas",
+      "Kustomisasi Karakter, Asrama, & Sapu Terbang Bebas",
+      "Support PS4 HEN Semua Firmware (5.05 - 11.00)",
+      "File Bersih & Bergaransi Anti Macet"
     ],
     inStock: true
   },
   {
     id: "game-uncharted-4-subindo",
     title: "Uncharted 4: A Thief's End (Full Subtitle Indonesia)",
-    slug: "uncharted-4-a-thiefs-end-sub-indo",
+    slug: "uncharted-4-sub-indo",
     platform: ["PS4 HEN", "PS5", "PS4"],
     category: "subindo",
     type: "digital",
     badge: "🧭 ACTION ADVENTURE",
     isSubIndo: true,
     isHen: true,
-    isSpotlight: false,
-    rating: 5.0,
-    soldCount: 2210,
-    releaseYear: 2021,
-    size: "55 GB",
+    isSpotlight: true,
+    rating: 4.9,
+    soldCount: 2890,
+    releaseYear: 2020,
+    size: "50 GB",
     publisher: "PlayStation Studios / Naughty Dog",
-    tagline: "Petualangan Terakhir Nathan Drake Mencari Harta Karun Bajak Laut Henry Avery",
+    tagline: "Petualangan Terakhir Nathan Drake Berburu Harta Karun Bajak Laut dalam Sub Indo",
     images: {
       poster: "assets/covers/uncharted-4.jpg",
       backdrop: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85",
@@ -308,17 +308,17 @@ const INITIAL_PRODUCTS = [
       ]
     },
     prices: {
-      primary: 130000,
-      secondary: 75000,
-      original: 379000
+      primary: 110000,
+      secondary: 65000,
+      original: 329000
     },
-    description: "Ikuti aksi petualangan mendebarkan Nathan Drake dan sang kakak Sam mencari kota koloni bajak laut Libertalia di Madagaskar. Grafis spektakuler kelas Hollywood kini tersaji dalam Full Subtitle Bahasa Indonesia.",
+    description: "Petualangan sinematik kelas dunia Nathan Drake melintasi pulau Madagaskar mencari koloni bajak laut Libertalia. Penuh canda, aksi menegangkan, dan emosi keluarga yang disajikan dengan Subtitle Indonesia sempurna.",
     features: [
-      "Full Subtitle Indonesia untuk Semua Dialog & Buku Catatan Drake",
-      "Aksi Tembak-Menembak & Parkour Sinematik Memukau",
-      "Teka-teki Misteri Bajak Laut Menantang",
-      "Mendukung Konsol PS4 HEN Semua Firmware",
-      "File Game Lengkap Bersih dari Corrupt"
+      "100% Subtitle Indonesia Semua Dialog Nate, Sam, & Sully",
+      "Aksi Parkour dan Tembak-Menembak Sinematik Terbaik Naughty Dog",
+      "Grafis Sangat Memukau untuk Konsol PS4",
+      "Kompatibel PS4 HEN dan Akun Resmi PSN",
+      "Pengiriman Link Google Drive Berkecepatan Tinggi"
     ],
     inStock: true
   },
@@ -326,19 +326,19 @@ const INITIAL_PRODUCTS = [
     id: "game-stray-subindo",
     title: "Stray (Full Subtitle Indonesia)",
     slug: "stray-sub-indo-ps4-hen",
-    platform: ["PS4 HEN", "PS4", "PS5"],
+    platform: ["PS4 HEN", "PS5", "PS4"],
     category: "subindo",
     type: "digital",
     badge: "🐱 KUCING CYBERPUNK",
     isSubIndo: true,
     isHen: true,
-    isSpotlight: false,
-    rating: 4.9,
-    soldCount: 1650,
+    isSpotlight: true,
+    rating: 4.8,
+    soldCount: 2040,
     releaseYear: 2022,
     size: "15 GB",
     publisher: "Annapurna Interactive / BlueTwelve",
-    tagline: "Eksplorasi Kota Cyberpunk Penuh Robot sebagai Kucing Oren Pintar dengan Teks Indonesia",
+    tagline: "Petualangan Kucing Oranye Menguak Rahasia Kota Cyberpunk dengan Subtitle Indonesia",
     images: {
       poster: "assets/covers/stray.jpg",
       backdrop: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1920&q=85",
@@ -348,17 +348,17 @@ const INITIAL_PRODUCTS = [
       ]
     },
     prices: {
-      primary: 110000,
-      secondary: 65000,
+      primary: 90000,
+      secondary: 50000,
       original: 349000
     },
-    description: "Game unik peraih penghargaan di mana Anda mengendalikan kucing oren tersesat di dalam kota futuristik bawah tanah yang dihuni robot. Berteman dengan drone B-12 dan pecahkan misteri kota dengan Subtitle Indonesia lengkap.",
+    description: "Kendalikan seekor kucing oranye tersesat di dalam kota futuristik misterius yang hanya dihuni oleh robot. Ditemani drone kecil B-12, pecahkan teka-teki lingkungan dan temukan jalan pulang dalam Subtitle Indonesia.",
     features: [
-      "Full Teks & Subtitle Bahasa Indonesia Dialog Robot & Drone B-12",
-      "Ukuran Ringan (Hanya 15 GB), Cepat Didownload",
-      "Visual Cyberpunk Bernuansa Neon Sangat Cantik",
-      "Support PS4 HEN 5.05 hingga 11.00",
-      "Link Google Drive Praktis & Cepat"
+      "Full Subtitle Indonesia Dialog Drone B-12 & Warga Robot",
+      "Ukuran Ringan 15 GB Cepat Diunduh & Dipasang",
+      "Suasana Cyberpunk Memukau & Cerita Hangat Menyentuh Hati",
+      "Kompatibel PS4 HEN Semua Versi Firmware",
+      "Garansi Game Berjalan Sempurna"
     ],
     inStock: true
   },
@@ -366,7 +366,7 @@ const INITIAL_PRODUCTS = [
     id: "game-ac-odyssey-subindo",
     title: "Assassin's Creed Odyssey (Full Subtitle Indonesia)",
     slug: "assassins-creed-odyssey-sub-indo",
-    platform: ["PS4 HEN", "PS4", "PS5"],
+    platform: ["PS4 HEN", "PS5", "PS4"],
     category: "subindo",
     type: "digital",
     badge: "🏛️ YUNANI KUNO RPG",
@@ -374,31 +374,31 @@ const INITIAL_PRODUCTS = [
     isHen: true,
     isSpotlight: false,
     rating: 4.8,
-    soldCount: 1720,
+    soldCount: 1840,
     releaseYear: 2020,
-    size: "80 GB",
+    size: "72 GB",
     publisher: "Ubisoft",
-    tagline: "Pilih Alexios atau Kassandra dan Taklukkan Yunani Kuno dalam Bahasa Indonesia",
+    tagline: "Pilih Takdirmu sebagai Alexios atau Kassandra di Yunani Kuno dengan Teks Sub Indo",
     images: {
       poster: "assets/covers/ac-odyssey.jpg",
-      backdrop: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1920&q=85",
+      backdrop: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85",
       cover: "assets/covers/ac-odyssey.jpg",
       screenshots: [
-        "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80"
+        "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80"
       ]
     },
     prices: {
-      primary: 145000,
+      primary: 150000,
       secondary: 85000,
-      original: 589000
+      original: 679000
     },
-    description: "Jadilah pahlawan Sparta legendaris di era Perang Peloponnesos. Jelajahi laut Aegea yang biru, lawan monster mitologi Yunani seperti Medusa dan Minotaur, dengan seluruh pilihan dialog cerita bersubtitle Bahasa Indonesia.",
+    description: "Dari prajurit bayaran buangan menjadi pahlawan legendaris Yunani. Hadapi Perang Peloponnesos, monster mitologi Medusa & Minotaur, serta konspirasi Cult of Kosmos dengan Full Subtitle Bahasa Indonesia.",
     features: [
-      "Subtitle Bahasa Indonesia untuk Seluruh Quest Utama & Percabangan Cerita",
-      "Pilihan Karakter Alexios atau Kassandra",
-      "Pertempuran Kolosal Perang 300 Prajurit & Perang Kapal Laut",
-      "Kompatibel PS4 HEN Semua Versi",
-      "Garansi File PKG Bebas Rusak"
+      "Subtitle Indonesia Menyeluruh Seluruh Cerita & Dialog Pilihan",
+      "Peta Open-World Laut & Darat Yunani Kuno yang Luas",
+      "Pertarungan Kapal Perang Laut Epik",
+      "Support PS4 HEN Firmware 5.05 - 11.00",
+      "Termasuk DLC Paket Tambahan Cerita Atlantis"
     ],
     inStock: true
   },
@@ -406,19 +406,19 @@ const INITIAL_PRODUCTS = [
     id: "game-one-piece-odyssey-subindo",
     title: "One Piece Odyssey (Full Subtitle Indonesia)",
     slug: "one-piece-odyssey-sub-indo",
-    platform: ["PS4 HEN", "PS4", "PS5"],
+    platform: ["PS4 HEN", "PS5", "PS4"],
     category: "subindo",
     type: "digital",
     badge: "🏴‍☠️ ANIME RPG",
     isSubIndo: true,
     isHen: true,
     isSpotlight: false,
-    rating: 4.8,
-    soldCount: 1390,
+    rating: 4.7,
+    soldCount: 1410,
     releaseYear: 2023,
     size: "35 GB",
-    publisher: "Bandai Namco / ILCA",
-    tagline: "Petualangan Kru Bajak Laut Topi Jerami di Pulau Misterius Waford dengan Subtitle Indonesia",
+    publisher: "Bandai Namco",
+    tagline: "Petualangan Epik Kru Bajak Laut Topi Jerami di Pulau Misterius dalam Subtitle Indonesia",
     images: {
       poster: "assets/covers/one-piece-odyssey.jpg",
       backdrop: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85",
@@ -568,5 +568,143 @@ const INITIAL_PRODUCTS = [
 const INITIAL_CATEGORIES = [
   { id: "all", name: "Semua Game", icon: "layout-grid" },
   { id: "subindo", name: "Subtitle Indonesia", icon: "languages" },
-  { id: "sports", name: "Olahraga & Bola", icon: "trophy" }
+  { id: "hen", name: "PS4 HEN PKG", icon: "disc" },
+  { id: "sports", name: "Olahraga & Bola", icon: "trophy" },
+  { id: "digital", name: "Game Digital", icon: "gamepad-2" }
+];
+
+// Initial Demo Orders
+const INITIAL_ORDERS = [
+  {
+    id: "ALN-20261104-7842",
+    createdAt: "2026-11-04T18:15:00Z",
+    customerType: "member",
+    customerName: "Rian Pratama",
+    customerPhone: "081234567890",
+    customerEmail: "rian.pratama@gmail.com",
+    notes: "Tolong kirim panduan install PKG untuk PS4 HEN ya min",
+    items: [
+      {
+        productId: "game-gow-ragnarok-subindo",
+        title: "God of War Ragnarök (Full Subtitle Indonesia)",
+        variant: "primary",
+        price: 250000,
+        qty: 1,
+        platform: "PS4 HEN"
+      }
+    ],
+    subtotal: 250000,
+    discount: 0,
+    total: 250000,
+    paymentMethod: "qris",
+    paymentStatus: "PAID",
+    status: "COMPLETED",
+    fulfillment: {
+      account: "Link PKG Google Drive Private Server Aliansi",
+      password: "Token Akses: ALN-GOW-IND-9912",
+      guideLink: "https://aliansistore.com/panduan-install-hen-pkg",
+      notes: "File Base Game + Update Sub Indo sudah siap diunduh via Google Drive dan diinstal via Package Installer PS4 HEN."
+    }
+  },
+  {
+    id: "ALN-20261104-9120",
+    createdAt: "2026-11-04T19:30:00Z",
+    customerType: "member",
+    customerName: "Budi Santoso",
+    customerPhone: "085712349988",
+    customerEmail: "budi.santoso@yahoo.com",
+    notes: "Pastikan transfer musim panas 2026/2027 dan BRI Liga 1 sudah ada ya min",
+    items: [
+      {
+        productId: "game-pes-2027-bitbox",
+        title: "PES 2027 Bitbox Summer Update",
+        variant: "primary",
+        price: 135000,
+        qty: 1,
+        platform: "PS4 HEN"
+      }
+    ],
+    subtotal: 135000,
+    discount: 15000,
+    total: 120000,
+    paymentMethod: "qris",
+    paymentStatus: "PAID",
+    status: "COMPLETED",
+    fulfillment: {
+      account: "Google Drive High-Speed Link",
+      password: "Token Akses: ALN-PES-BBX-27",
+      guideLink: "https://aliansistore.com/panduan-install-hen-pkg",
+      notes: "Patch Bitbox Summer 2027 sudah teruji 100% lancar di semua firmware PS4 HEN."
+    }
+  }
+];
+
+// Initial Users Database (Unified Auth for Admin & Customers)
+const INITIAL_USERS = [
+  {
+    id: "usr-admin-01",
+    identifier: "admin",
+    name: "Admin Aliansi Store",
+    phone: "081234567890",
+    email: "admin@aliansistore.com",
+    pin: "1234",
+    role: "admin",
+    roleLabel: "Super Admin Toko",
+    avatar: "👑"
+  },
+  {
+    id: "usr-cust-01",
+    identifier: "081234567890",
+    name: "Rian Pratama",
+    phone: "081234567890",
+    email: "rian.pratama@gmail.com",
+    pin: "1234",
+    role: "customer",
+    roleLabel: "Member VIP",
+    avatar: "RP",
+    memberSince: "2024"
+  },
+  {
+    id: "usr-cust-02",
+    identifier: "085712349988",
+    name: "Budi Santoso",
+    phone: "085712349988",
+    email: "budi.santoso@yahoo.com",
+    pin: "1234",
+    role: "customer",
+    roleLabel: "Member",
+    avatar: "BS",
+    memberSince: "2025"
+  }
+];
+
+// Initial Store Config
+const INITIAL_CONFIG = {
+  storeName: "ALIANSI STORE",
+  tagline: "Spesialis Game PS4 HEN, Game Subtitle Indonesia & Akun Digital Terpercaya",
+  whatsappNumber: "6281234567890",
+  whatsappFormatted: "+62 812-3456-7890",
+  adminPin: "1234",
+  bankAccounts: [
+    { bank: "BCA", number: "8830192831", name: "ALIANSI STORE INDONESIA" },
+    { bank: "MANDIRI", number: "1370019283741", name: "ALIANSI STORE INDONESIA" },
+    { bank: "BRI", number: "018201002938530", name: "ALIANSI STORE INDONESIA" },
+    { bank: "DANA / OVO / GOPAY", number: "0812-3456-7890", name: "ALIANSI STORE" }
+  ],
+  vouchers: [
+    { code: "ALIANSIBARU", discountPercent: 10, minPurchase: 100000, maxDiscount: 30000 },
+    { code: "HENHEMAT", discountPercent: 15, minPurchase: 200000, maxDiscount: 50000 }
+  ]
+};
+
+// Live Recent Activity Data for Social Proof Ticker
+const RECENT_PURCHASES = [
+  { name: "Rian P.", game: "God of War Ragnarök (Sub Indo)", city: "Jakarta", time: "2 mnt lalu" },
+  { name: "Budi S.", game: "PES 2027 Bitbox Summer Update", city: "Surabaya", time: "5 mnt lalu" },
+  { name: "Fajar K.", game: "GTA V MOD Subtitle Indonesia", city: "Bandung", time: "10 mnt lalu" },
+  { name: "Hendra W.", game: "Ghost of Tsushima (Sub Indo)", city: "Medan", time: "16 mnt lalu" },
+  { name: "Aldi T.", game: "The Last of Us Part II (Sub Indo)", city: "Yogyakarta", time: "22 mnt lalu" },
+  { name: "Reza M.", game: "Marvel's Spider-Man (Sub Indo)", city: "Makassar", time: "28 mnt lalu" },
+  { name: "Dimas A.", game: "Hogwarts Legacy (Sub Indo)", city: "Semarang", time: "34 mnt lalu" },
+  { name: "Satria N.", game: "Stray (Sub Indo)", city: "Denpasar", time: "41 mnt lalu" }
 ];

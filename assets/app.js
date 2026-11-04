@@ -250,7 +250,7 @@ function loadStoredData() {
   updateAudioIndicator();
 
   // Products (Enforce 14 Official Titles)
-  const CATALOG_VERSION = '20261104_14titles_v2';
+  const CATALOG_VERSION = '20261104_14titles_v5';
   if (localStorage.getItem('aliansi_catalog_version') !== CATALOG_VERSION) {
     localStorage.removeItem(APP_STORAGE_KEYS.PRODUCTS);
     localStorage.setItem('aliansi_catalog_version', CATALOG_VERSION);
@@ -260,16 +260,16 @@ function loadStoredData() {
   if (storedProducts) {
     try {
       state.products = JSON.parse(storedProducts);
-      const validIds = new Set(INITIAL_PRODUCTS.map(ip => ip.id));
+      const validIds = new Set((typeof INITIAL_PRODUCTS !== 'undefined' ? INITIAL_PRODUCTS : []).map(ip => ip.id));
       state.products = state.products.filter(p => validIds.has(p.id));
-      if (state.products.length !== INITIAL_PRODUCTS.length) {
+      if (typeof INITIAL_PRODUCTS !== 'undefined' && state.products.length !== INITIAL_PRODUCTS.length) {
         state.products = [...INITIAL_PRODUCTS];
       }
     } catch (e) {
-      state.products = [...INITIAL_PRODUCTS];
+      state.products = typeof INITIAL_PRODUCTS !== 'undefined' ? [...INITIAL_PRODUCTS] : [];
     }
   } else {
-    state.products = [...INITIAL_PRODUCTS];
+    state.products = typeof INITIAL_PRODUCTS !== 'undefined' ? [...INITIAL_PRODUCTS] : [];
     saveProducts();
   }
 
@@ -289,10 +289,10 @@ function loadStoredData() {
     try {
       state.orders = JSON.parse(storedOrders);
     } catch (e) {
-      state.orders = [...INITIAL_ORDERS];
+      state.orders = typeof INITIAL_ORDERS !== 'undefined' ? [...INITIAL_ORDERS] : [];
     }
   } else {
-    state.orders = [...INITIAL_ORDERS];
+    state.orders = typeof INITIAL_ORDERS !== 'undefined' ? [...INITIAL_ORDERS] : [];
     saveOrders();
   }
 
@@ -300,12 +300,12 @@ function loadStoredData() {
   const storedConfig = localStorage.getItem(APP_STORAGE_KEYS.CONFIG);
   if (storedConfig) {
     try {
-      state.config = { ...INITIAL_CONFIG, ...JSON.parse(storedConfig) };
+      state.config = { ...(typeof INITIAL_CONFIG !== 'undefined' ? INITIAL_CONFIG : {}), ...JSON.parse(storedConfig) };
     } catch (e) {
-      state.config = { ...INITIAL_CONFIG };
+      state.config = typeof INITIAL_CONFIG !== 'undefined' ? { ...INITIAL_CONFIG } : {};
     }
   } else {
-    state.config = { ...INITIAL_CONFIG };
+    state.config = typeof INITIAL_CONFIG !== 'undefined' ? { ...INITIAL_CONFIG } : {};
     saveConfig();
   }
 
@@ -765,17 +765,15 @@ function getFilteredProducts() {
   if (state.activeFilter === 'subindo') {
     list = list.filter(p => p.isSubIndo || (p.badge && p.badge.toLowerCase().includes('sub indo')) || p.title.toLowerCase().includes('sub indo') || p.category === 'subindo');
   } else if (state.activeFilter === 'hen') {
-    list = list.filter(p => p.isHen || (p.platform && p.platform.some(pl => pl.includes('HEN'))) || p.category === 'hen' || p.category === 'service-hen' || p.category === 'tool');
-  } else if (state.activeFilter === 'service-hen') {
-    list = list.filter(p => p.category === 'service-hen');
-  } else if (state.activeFilter === 'tool') {
-    list = list.filter(p => p.category === 'tool');
+    list = list.filter(p => p.isHen || (p.platform && p.platform.some(pl => pl.includes('HEN'))) || p.category === 'hen');
+  } else if (state.activeFilter === 'sports') {
+    list = list.filter(p => p.category === 'sports' || p.title.toLowerCase().includes('pes') || (p.badge && p.badge.includes('⚽')));
   } else if (state.activeFilter === 'digital') {
-    list = list.filter(p => p.category !== 'service-hen' && p.category !== 'tool' && (p.platform.includes('PS5') || p.platform.includes('PS4')));
+    list = list.filter(p => p.platform.includes('PS5') || p.platform.includes('PS4'));
   } else if (state.activeFilter === 'ps5') {
-    list = list.filter(p => p.platform.includes('PS5') && p.category !== 'service-hen' && p.category !== 'tool');
+    list = list.filter(p => p.platform.includes('PS5'));
   } else if (state.activeFilter === 'ps4') {
-    list = list.filter(p => p.platform.includes('PS4') && p.category !== 'service-hen' && p.category !== 'tool');
+    list = list.filter(p => p.platform.includes('PS4'));
   }
 
   // Search Query
@@ -3185,9 +3183,9 @@ function resetDemoData() {
   playSfx('click');
   if (confirm('PERINGATAN: Reset seluruh data kembali ke demo awal ALIANSI STORE?')) {
     localStorage.clear();
-    state.products = [...INITIAL_PRODUCTS];
-    state.orders = [...INITIAL_ORDERS];
-    state.config = { ...INITIAL_CONFIG };
+    state.products = typeof INITIAL_PRODUCTS !== 'undefined' ? [...INITIAL_PRODUCTS] : [];
+    state.orders = typeof INITIAL_ORDERS !== 'undefined' ? [...INITIAL_ORDERS] : [];
+    state.config = typeof INITIAL_CONFIG !== 'undefined' ? { ...INITIAL_CONFIG } : {};
     state.cart = [];
     state.currentUser = null;
     state.isAdmin = false;

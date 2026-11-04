@@ -46,7 +46,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <!-- Custom Next-Gen Stylesheet (with cache buster query) -->
-  <link rel="stylesheet" href="assets/style.css?v=20261104_logo2" />
+  <link rel="stylesheet" href="assets/style.css?v=20261104_14games_v5" />
 
   <!-- Critical Inline Styles to Guarantee Immediate High-Contrast Rendering (Dark & Light Mode) -->
   <style>
@@ -1102,8 +1102,8 @@
               </li>
             </ul>
           </div>
-          <button onclick="openProductDetail('service-hen-1tb')" class="w-full py-2.5 rounded-xl bg-purple-900/60 hover:bg-purple-800 text-purple-200 text-xs font-bold border border-purple-700/50">
-            Pesan Jasa Isi HDD 1TB
+          <button onclick="state.activeFilter='hen'; renderProducts(); window.location.href='#katalog';" class="w-full py-2.5 rounded-xl bg-purple-900/60 hover:bg-purple-800 text-purple-200 text-xs font-bold border border-purple-700/50">
+            Lihat Koleksi Game HEN
           </button>
         </div>
 
@@ -1150,10 +1150,10 @@
           <div class="flex items-center gap-2.5 mb-1">
             <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight font-display">Semua Koleksi Game</h2>
             <span id="products-count" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-950 text-sky-300 border border-sky-500/30">
-              12 Game Tersedia
+              14 Game Tersedia
             </span>
           </div>
-          <p class="text-xs text-slate-400">Pilih tab kategori di bawah untuk memfilter Game Sub Indo, Game PS4 HEN, Jasa Isi HDD, atau Game Digital.</p>
+          <p class="text-xs text-slate-400">Pilih tab kategori di bawah untuk memfilter Game Sub Indo, Game PS4 HEN, Olahraga / Bola, atau Game Digital.</p>
         </div>
 
         <div class="flex items-center gap-2 self-start md:self-auto">
@@ -1181,14 +1181,11 @@
         <button data-filter="hen" class="filter-tab-btn px-4 py-2 rounded-full text-xs font-bold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white shrink-0 transition-all flex items-center gap-1.5">
           <span class="w-2 h-2 rounded-full bg-purple-500"></span> 🎮 Game PS4 HEN
         </button>
-        <button data-filter="service-hen" class="filter-tab-btn px-4 py-2 rounded-full text-xs font-bold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white shrink-0 transition-all flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-emerald-400"></span> 💾 Jasa Isi HDD HEN
+        <button data-filter="sports" class="filter-tab-btn px-4 py-2 rounded-full text-xs font-bold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white shrink-0 transition-all flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span> ⚽ Olahraga & Bola
         </button>
         <button data-filter="digital" class="filter-tab-btn px-4 py-2 rounded-full text-xs font-bold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white shrink-0 transition-all flex items-center gap-1.5">
           <span class="w-2 h-2 rounded-full bg-blue-500"></span> ⚡ Game Digital PS4/PS5
-        </button>
-        <button data-filter="tool" class="filter-tab-btn px-4 py-2 rounded-full text-xs font-bold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white shrink-0 transition-all flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-amber-400"></span> 🔌 Flashdisk & Tool HEN
         </button>
       </div>
 
@@ -2244,7 +2241,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261104_logo1"></script>
-  <script src="assets/app.js?v=20261104_logo1"></script>
+  <script src="assets/products-data.js?v=20261104_14games_v5"></script>
+  <script src="assets/app.js?v=20261104_14games_v5"></script>
 </body>
 </html>
