@@ -2506,7 +2506,7 @@ function handleUnifiedLogin() {
   }
 
   playSfx('click');
-  showToast('Akun tidak ditemukan atau password salah! Coba login dengan Demo: admin / 1234 atau 081234567890 / 1234', 'error');
+  showToast('Akun tidak ditemukan atau password salah! Silakan periksa kembali data Anda.', 'error');
 }
 
 function handleUnifiedRegister() {

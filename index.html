@@ -46,7 +46,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <!-- Custom Next-Gen Stylesheet (with cache buster query) -->
-  <link rel="stylesheet" href="assets/style.css?v=20261105_pw_v1" />
+  <link rel="stylesheet" href="assets/style.css?v=20261105_pw_v2" />
 
   <!-- Critical Inline Styles to Guarantee Immediate High-Contrast Rendering (Dark & Light Mode) -->
   <style>
@@ -1881,7 +1881,7 @@
           <i data-lucide="shield-check" class="w-6 h-6"></i>
         </div>
         <h3 class="text-xl font-black text-white font-display tracking-tight" id="auth-modal-title">Masuk ke ALIANSI STORE</h3>
-        <p class="text-xs text-slate-400 mt-0.5">Satu pintu untuk Pelanggan (Member) & Administrator Toko</p>
+        <p class="text-xs text-slate-400 mt-0.5">Satu pintu untuk Pelanggan (Member)</p>
       </div>
 
       <!-- Auth Tabs: Masuk / Daftar -->
@@ -1965,7 +1965,7 @@
       <!-- Form: Login -->
       <form id="form-auth-login" onsubmit="event.preventDefault(); handleUnifiedLogin();" class="space-y-4">
         <div>
-          <label class="block text-xs font-bold text-slate-300 mb-1.5">No. WhatsApp / Email / Username Admin:</label>
+          <label class="block text-xs font-bold text-slate-300 mb-1.5">No. WhatsApp / Email:</label>
           <div class="relative">
             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
               <i data-lucide="user" class="w-4 h-4"></i>
@@ -1973,7 +1973,7 @@
             <input 
               type="text" 
               id="auth-login-identifier" 
-              placeholder="Contoh: 081234567890 atau admin"
+              placeholder="Contoh: 081234567890 atau nama@email.com"
               class="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-white text-xs outline-none focus:border-sky-500 transition-colors"
               required
             />
@@ -2008,14 +2008,6 @@
           </div>
         </div>
 
-        <!-- Smart Role Detection Note -->
-        <div class="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 text-[11px] text-slate-400 flex items-start gap-2">
-          <i data-lucide="cpu" class="w-4 h-4 text-sky-400 shrink-0 mt-0.5"></i>
-          <div>
-            <strong class="text-slate-200">Deteksi Role Otomatis:</strong> Sistem akan otomatis mengenali apakah Anda <strong>Admin Toko</strong> (membuka dashboard) atau <strong>Pelanggan/Member</strong> (membuka pesanan).
-          </div>
-        </div>
-
         <button 
           type="submit" 
           id="btn-submit-unified-login"
@@ -2027,25 +2019,15 @@
 
         <!-- Quick Demo Pill Autofills -->
         <div class="pt-3 border-t border-slate-800/80">
-          <span class="text-[10px] text-slate-400 block mb-1.5 font-bold uppercase tracking-wider text-center">Akun Demo (Klik untuk Isi Cepat):</span>
-          <div class="grid grid-cols-2 gap-2">
-            <button 
-              type="button" 
-              onclick="fillDemoAuth('admin', '1234')"
-              class="px-2.5 py-1.5 rounded-lg bg-sky-950/60 hover:bg-sky-900/80 border border-sky-500/30 text-sky-300 text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-            >
-              <i data-lucide="shield" class="w-3 h-3 text-sky-400"></i>
-              <span>Admin (1234)</span>
-            </button>
-            <button 
-              type="button" 
-              onclick="fillDemoAuth('081234567890', '1234')"
-              class="px-2.5 py-1.5 rounded-lg bg-emerald-950/60 hover:bg-emerald-900/80 border border-emerald-500/30 text-emerald-300 text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-            >
-              <i data-lucide="user" class="w-3 h-3 text-emerald-400"></i>
-              <span>Member (Rian)</span>
-            </button>
-          </div>
+          <span class="text-[10px] text-slate-400 block mb-1.5 font-bold uppercase tracking-wider text-center">Akun Demo Pelanggan (Klik untuk Isi Cepat):</span>
+          <button 
+            type="button" 
+            onclick="fillDemoAuth('081234567890', '1234')"
+            class="w-full py-1.5 px-3 rounded-lg bg-emerald-950/60 hover:bg-emerald-900/80 border border-emerald-500/30 text-emerald-300 text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+          >
+            <i data-lucide="user" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>Akun Demo Member (Rian Pratama - 081234567890)</span>
+          </button>
         </div>
       </form>
 
@@ -2372,7 +2354,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261105_pw_v1"></script>
-  <script src="assets/app.js?v=20261105_pw_v1"></script>
+  <script src="assets/products-data.js?v=20261105_pw_v2"></script>
+  <script src="assets/app.js?v=20261105_pw_v2"></script>
 </body>
 </html>
