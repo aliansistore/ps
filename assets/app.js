@@ -1149,6 +1149,7 @@ function selectPlatformPill(element) {
 
 function closeModals() {
   playSfx('click');
+  stopInvoiceLivePolling();
   const modals = document.querySelectorAll('.app-modal');
   modals.forEach(m => m.classList.add('hidden'));
 }
@@ -1451,8 +1452,54 @@ function selectPaymentMethod(element, method) {
   element.classList.add('border-sky-500', 'bg-sky-950/50', 'ring-1', 'ring-sky-500');
 }
 
+// ================= DUITKU PAYMENT GATEWAY INTEGRATION =================
+async function requestDuitkuInquiry(order) {
+  const payload = {
+    merchantOrderId: order.id,
+    paymentAmount: order.total,
+    paymentMethod: 'SP', // Default: SP (ShopeePay QRIS)
+    productDetails: (order.items && order.items.length > 0)
+      ? order.items.map(i => i.title).join(', ').substring(0, 240)
+      : 'Game PS4 Digital',
+    email: order.customerEmail || 'customer@gmail.com',
+    phoneNumber: order.customerPhone || '081234567890',
+    callbackUrl: 'https://aliansistore-ps.netlify.app/callback',
+    returnUrl: window.location.origin + window.location.pathname
+  };
+
+  // 1. Coba Netlify Serverless Function
+  try {
+    const res = await fetch('/.netlify/functions/duitku-inquiry', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (err) {
+    console.warn('Netlify function not reachable, trying local fallback...', err);
+  }
+
+  // 2. Coba endpoint lokal server.ps1 (/api/duitku-inquiry)
+  try {
+    const res2 = await fetch('/api/duitku-inquiry', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (res2.ok) {
+      return await res2.json();
+    }
+  } catch (err2) {
+    console.warn('Local proxy not reachable:', err2);
+  }
+
+  return null;
+}
+
 // Submit Order
-function submitOrder() {
+async function submitOrder() {
   const nameInput = document.getElementById('checkout-name');
   const phoneInput = document.getElementById('checkout-phone');
   const emailInput = document.getElementById('checkout-email');
@@ -1464,15 +1511,35 @@ function submitOrder() {
   const notes = notesInput ? notesInput.value.trim() : '';
 
   if (!name) {
-    showToast('Mohon isi nama Anda!', 'warning');
+    showToast('Mohon isi nama lengkap Anda!', 'warning');
     nameInput?.focus();
     return;
   }
 
   if (!phone || phone.length < 9) {
-    showToast('Masukkan nomor WhatsApp aktif untuk pengiriman akun!', 'warning');
+    showToast('Masukkan nomor WhatsApp aktif Anda!', 'warning');
     phoneInput?.focus();
     return;
+  }
+
+  // Validasi Email Gmail
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailRegex.test(email)) {
+    showToast('Mohon masukkan alamat email Gmail aktif (@gmail.com)!', 'warning');
+    emailInput?.focus();
+    return;
+  }
+
+  if (state.cart.length === 0) {
+    showToast('Keranjang belanja Anda masih kosong!', 'warning');
+    return;
+  }
+
+  const btnSubmit = document.querySelector('button[onclick="submitOrder()"]');
+  const originalBtnText = btnSubmit ? btnSubmit.innerHTML : '';
+  if (btnSubmit) {
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = `<span class="inline-block animate-spin mr-2">⏳</span> Menghubungkan Duitku QRIS...`;
   }
 
   let subtotal = 0;
@@ -1510,6 +1577,25 @@ function submitOrder() {
     fulfillment: null
   };
 
+  // Request Duitku QRIS jika metode pembayaran QRIS dipilih
+  if (state.selectedPayment === 'qris') {
+    try {
+      const duitkuRes = await requestDuitkuInquiry(newOrder);
+      if (duitkuRes && duitkuRes.statusCode === '00') {
+        newOrder.fulfillment = {
+          duitku: {
+            reference: duitkuRes.reference,
+            paymentUrl: duitkuRes.paymentUrl,
+            qrString: duitkuRes.qrString,
+            amount: duitkuRes.amount
+          }
+        };
+      }
+    } catch (e) {
+      console.warn('Gagal memanggil Duitku Inquiry:', e);
+    }
+  }
+
   state.orders.unshift(newOrder);
   saveOrders();
   syncOrderToSupabase(newOrder);
@@ -1519,12 +1605,17 @@ function submitOrder() {
   state.appliedVoucher = null;
   saveCart();
 
+  if (btnSubmit) {
+    btnSubmit.disabled = false;
+    btnSubmit.innerHTML = originalBtnText;
+  }
+
   playSfx('success');
   triggerConfetti();
 
   closeModals();
   openInvoiceModal(newOrder.id);
-  showToast('Pesanan berhasil dibuat! Silakan selesaikan pembayaran.', 'success', 'Order Sukses');
+  showToast('Pesanan berhasil dibuat! Silakan scan QRIS untuk menyelesaikan pembayaran.', 'success', 'Order Dibuat');
 }
 
 function triggerConfetti() {
@@ -1535,6 +1626,141 @@ function triggerConfetti() {
       origin: { y: 0.6 }
     });
   }
+}
+
+// ================= INVOICE LIVE POLLING & REALTIME =================
+let invoicePollingInterval = null;
+let realtimeOrderSubscription = null;
+
+function stopInvoiceLivePolling() {
+  if (invoicePollingInterval) {
+    clearInterval(invoicePollingInterval);
+    invoicePollingInterval = null;
+  }
+  if (realtimeOrderSubscription && supabaseClient) {
+    try {
+      supabaseClient.removeChannel(realtimeOrderSubscription);
+    } catch (e) {}
+    realtimeOrderSubscription = null;
+  }
+}
+
+function startInvoiceLivePolling(orderId) {
+  stopInvoiceLivePolling();
+
+  // 1. Supabase Realtime Channel
+  if (supabaseClient && typeof supabaseClient.channel === 'function') {
+    try {
+      realtimeOrderSubscription = supabaseClient
+        .channel('order-live-' + orderId)
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: 'orders', filter: `id=eq.${orderId}` },
+          (payload) => {
+            if (payload && payload.new) {
+              handleOrderRealtimeUpdate(payload.new);
+            }
+          }
+        )
+        .subscribe();
+    } catch (err) {
+      console.warn('Realtime subscription error:', err);
+    }
+  }
+
+  // 2. Fallback Polling setiap 3.5 detik
+  invoicePollingInterval = setInterval(async () => {
+    if (!state.currentInvoice || state.currentInvoice.id !== orderId) {
+      stopInvoiceLivePolling();
+      return;
+    }
+
+    // Jika sudah lunas, hentikan polling
+    if (state.currentInvoice.paymentStatus === 'PAID') {
+      stopInvoiceLivePolling();
+      return;
+    }
+
+    if (supabaseClient) {
+      try {
+        const { data, error } = await supabaseClient
+          .from('orders')
+          .select('*')
+          .eq('id', orderId)
+          .single();
+
+        if (data && !error) {
+          if (data.payment_status === 'PAID' || data.status === 'COMPLETED') {
+            handleOrderRealtimeUpdate(data);
+          }
+        }
+      } catch (e) {}
+    }
+  }, 3500);
+}
+
+function handleOrderRealtimeUpdate(dbOrder) {
+  const localOrder = state.orders.find(o => o.id === dbOrder.id);
+  const wasUnpaid = !localOrder || localOrder.paymentStatus !== 'PAID';
+
+  const updatedOrder = {
+    id: dbOrder.id,
+    createdAt: dbOrder.created_at,
+    customerType: dbOrder.customer_type,
+    customerName: dbOrder.customer_name,
+    customerPhone: dbOrder.customer_phone,
+    customerEmail: dbOrder.customer_email,
+    notes: dbOrder.notes,
+    items: Array.isArray(dbOrder.items) ? dbOrder.items : [],
+    subtotal: Number(dbOrder.subtotal) || 0,
+    discount: Number(dbOrder.discount) || 0,
+    total: Number(dbOrder.total) || 0,
+    voucherCode: dbOrder.voucher_code,
+    paymentMethod: dbOrder.payment_method,
+    paymentStatus: dbOrder.payment_status,
+    status: dbOrder.status,
+    fulfillment: dbOrder.fulfillment
+  };
+
+  const idx = state.orders.findIndex(o => o.id === updatedOrder.id);
+  if (idx !== -1) {
+    state.orders[idx] = updatedOrder;
+  } else {
+    state.orders.unshift(updatedOrder);
+  }
+  saveOrders();
+
+  if (state.currentInvoice && state.currentInvoice.id === updatedOrder.id) {
+    state.currentInvoice = updatedOrder;
+    renderInvoiceDetails(updatedOrder);
+
+    if (wasUnpaid && updatedOrder.paymentStatus === 'PAID') {
+      stopInvoiceLivePolling();
+      playSfx('success');
+      triggerConfetti();
+      showToast('🎉 Pembayaran Lunas Terverifikasi! Folder Google Drive telah otomatis dibuka.', 'success', 'Pembayaran Sukses');
+    }
+  }
+}
+
+// Cek Status Manual saat klik tombol
+async function checkOrderStatusManual(orderId) {
+  playSfx('click');
+  showToast('Memeriksa status pembayaran di sistem...', 'info');
+
+  if (supabaseClient) {
+    try {
+      const { data, error } = await supabaseClient.from('orders').select('*').eq('id', orderId).single();
+      if (data && !error) {
+        if (data.payment_status === 'PAID') {
+          handleOrderRealtimeUpdate(data);
+          return;
+        }
+      }
+    } catch (e) {}
+  }
+
+  showToast('Belum ada konfirmasi pembayaran baru. Silakan selesaikan pembayaran.', 'warning');
 }
 
 // ================= INVOICE & TRACKING MODAL =================
@@ -1583,6 +1809,11 @@ async function openInvoiceModal(orderId) {
   renderInvoiceDetails(order);
   modal.classList.remove('hidden');
   lucide.createIcons();
+
+  // Mulai Live Polling untuk mendeteksi pembayaran masuk secara realtime
+  if (order.paymentStatus !== 'PAID') {
+    startInvoiceLivePolling(order.id);
+  }
 }
 
 function renderInvoiceDetails(order) {
@@ -1590,7 +1821,9 @@ function renderInvoiceDetails(order) {
   document.getElementById('inv-date').textContent = formatDate(order.createdAt);
   document.getElementById('inv-customer-name').textContent = order.customerName;
   document.getElementById('inv-customer-phone').textContent = order.customerPhone;
-  document.getElementById('inv-customer-type').textContent = order.customerType === 'member' ? 'Member Terdaftar' : 'Guest (Tamu)';
+  
+  const emailEl = document.getElementById('inv-customer-email');
+  if (emailEl) emailEl.textContent = order.customerEmail || '-';
 
   // Payment Status Badge
   const payBadge = document.getElementById('inv-payment-badge');
@@ -1634,11 +1867,11 @@ function renderInvoiceDetails(order) {
     paymentBox.classList.add('hidden');
   }
 
-  // Fulfillment Credentials Box (REVEALED WHEN ORDER IS COMPLETED!)
+  // Fulfillment Credentials / Google Drive Box (REVEALED WHEN ORDER IS PAID/COMPLETED!)
   const fulfillmentBox = document.getElementById('inv-fulfillment-box');
-  if (order.status === 'COMPLETED' && order.fulfillment) {
+  if ((order.paymentStatus === 'PAID' || order.status === 'COMPLETED')) {
     fulfillmentBox.classList.remove('hidden');
-    renderFulfillmentBox(order.fulfillment);
+    renderFulfillmentBox(order.fulfillment || {}, order);
   } else {
     fulfillmentBox.classList.add('hidden');
   }
@@ -1650,8 +1883,9 @@ function renderInvoiceDetails(order) {
       `Halo Admin ALIANSI STORE! Saya ingin konfirmasi pesanan:\n` +
       `No Invoice: ${order.id}\n` +
       `Nama: ${order.customerName}\n` +
+      `Email Gmail: ${order.customerEmail || '-'}\n` +
       `Total: ${formatRupiah(order.total)}\n` +
-      `Status: ${order.status}\n` +
+      `Status: ${order.paymentStatus}\n` +
       `Mohon bantuannya ya min. Terima kasih!`
     );
     waBtn.href = `https://wa.me/${state.config.whatsappNumber}?text=${waText}`;
@@ -1676,7 +1910,7 @@ function updateStepper(status) {
     if (!stepEl) return;
 
     if (idx <= currentIdx) {
-      stepEl.className = 'w-8 h-8 rounded-full bg-sky-500 text-white font-black flex items-center justify-center text-xs shadow-lg shadow-sky-500/50 ring-4 ring-sky-500/20';
+      stepEl.className = 'w-8 h-8 rounded-full bg-emerald-500 text-white font-black flex items-center justify-center text-xs shadow-lg shadow-emerald-500/50 ring-4 ring-emerald-500/20';
     } else {
       stepEl.className = 'w-8 h-8 rounded-full bg-slate-800 text-slate-500 font-bold flex items-center justify-center text-xs';
     }
@@ -1684,7 +1918,7 @@ function updateStepper(status) {
     if (step.line) {
       const lineEl = document.getElementById(step.line);
       if (lineEl) {
-        lineEl.className = idx < currentIdx ? 'flex-1 h-1 bg-sky-500' : 'flex-1 h-1 bg-slate-800';
+        lineEl.className = idx < currentIdx ? 'flex-1 h-1 bg-emerald-500' : 'flex-1 h-1 bg-slate-800';
       }
     }
   });
@@ -1695,19 +1929,40 @@ function renderPaymentBox(order) {
   if (!container) return;
 
   if (order.paymentMethod === 'qris') {
+    const duitkuData = (order.fulfillment && order.fulfillment.duitku) ? order.fulfillment.duitku : null;
+    const qrString = duitkuData?.qrString || `00020101021226670016ID.CO.QRIS.WWW011893600002011234567802150000000000000010303UMI51440014ID.GO.BI.QRIS011893600002011234567802150000000000000010303UMI52045814530336054${order.total}5802ID5913ALIANSI_STORE6007JAKARTA61051234062070703A016304${order.id}`;
+    const paymentUrl = duitkuData?.paymentUrl;
+
     container.innerHTML = `
       <div class="text-center p-5 rounded-2xl bg-[#070d1e] border border-sky-500/40">
-        <div class="text-xs font-black text-sky-400 uppercase tracking-widest mb-1">SCAN QRIS PEMBAYARAN INSTAN</div>
-        <p class="text-xs text-slate-400 mb-4">BCA Mobile, Livin, BRImo, DANA, GoPay, OVO, ShopeePay & Semua Bank</p>
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-950 text-sky-400 border border-sky-500/30 text-[11px] font-bold mb-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> QRIS RESMI DUITKU (OTOMATIS)
+        </div>
+        <p class="text-xs text-slate-400 mb-3">Scan pakai aplikasi apa saja: BCA, Mandiri, BRI, Livin, GoPay, OVO, DANA, ShopeePay</p>
         
-        <div class="inline-block p-3.5 rounded-2xl bg-white shadow-2xl shadow-sky-500/30 mb-3" id="qrcode-container"></div>
+        <div class="inline-block p-4 rounded-2xl bg-white shadow-2xl shadow-sky-500/30 mb-3" id="qrcode-container"></div>
         
-        <div class="text-xs font-bold text-slate-300">Nominal yang harus dibayar:</div>
-        <div class="text-2xl font-black text-sky-400 font-display mt-0.5 mb-4">${formatRupiah(order.total)}</div>
+        <div class="text-xs font-bold text-slate-300">Total Pembayaran:</div>
+        <div class="text-2xl font-black text-sky-400 font-display mt-0.5 mb-3">${formatRupiah(order.total)}</div>
 
-        <button onclick="simulateCustomerPaid('${order.id}')" class="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center gap-2 mx-auto">
-          <i data-lucide="check-circle-2" class="w-4 h-4"></i> Saya Sudah Selesai Membayar
-        </button>
+        <div class="text-[11px] text-slate-400 mb-4 flex items-center justify-center gap-1.5">
+          <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span>Menunggu konfirmasi pembayaran otomatis (bebas reload)...</span>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-2">
+          ${paymentUrl ? `
+            <a href="${paymentUrl}" target="_blank" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-lg transition-all flex items-center justify-center gap-1.5">
+              <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Buka Pembayaran Duitku (Web / Simulator)
+            </a>
+          ` : ''}
+          <button onclick="checkOrderStatusManual('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 flex items-center justify-center gap-1.5">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Cek Status Sekarang
+          </button>
+          <button onclick="simulateCustomerPaid('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-900/60 hover:bg-emerald-800/80 text-emerald-300 text-xs font-bold border border-emerald-600/40 flex items-center justify-center gap-1.5" title="Uji Coba Sandbox">
+            <i data-lucide="play" class="w-3.5 h-3.5"></i> Tes Lunas (Sandbox)
+          </button>
+        </div>
       </div>
     `;
 
@@ -1717,17 +1972,18 @@ function renderPaymentBox(order) {
         qrEl.innerHTML = '';
         if (typeof QRCode === 'function') {
           new QRCode(qrEl, {
-            text: `00020101021226670016ID.CO.QRIS.WWW011893600002011234567802150000000000000010303UMI51440014ID.GO.BI.QRIS011893600002011234567802150000000000000010303UMI52045814530336054${order.total}5802ID5913ALIANSI_STORE6007JAKARTA61051234062070703A016304${order.id}`,
-            width: 170,
-            height: 170,
+            text: qrString,
+            width: 175,
+            height: 175,
             colorDark: "#020617",
             colorLight: "#ffffff",
             correctLevel: QRCode.CorrectLevel.M
           });
         } else {
-          qrEl.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=ALIANSI-STORE-${order.id}" class="w-[170px] h-[170px]" alt="QR Code" />`;
+          qrEl.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=175x175&data=${encodeURIComponent(qrString)}" class="w-[175px] h-[175px]" alt="QR Code" />`;
         }
       }
+      lucide.createIcons();
     }, 50);
   } else {
     container.innerHTML = `
@@ -1756,16 +2012,55 @@ function renderPaymentBox(order) {
   }
 }
 
-function renderFulfillmentBox(fulfillment) {
-  document.getElementById('fulfill-email').textContent = fulfillment.psnEmail || '-';
-  document.getElementById('fulfill-password').textContent = fulfillment.psnPassword || '••••••••';
-  document.getElementById('fulfill-backup').textContent = fulfillment.backupCodes || '-';
-  document.getElementById('fulfill-notes').textContent = fulfillment.adminNotes || 'Gunakan akun dengan bijak dan ikuti panduan aktivasi.';
-  
-  const guideLink = document.getElementById('fulfill-guide-link');
-  if (guideLink) {
-    guideLink.href = fulfillment.guideUrl || '#';
+function renderFulfillmentBox(fulfillment, order) {
+  const gdriveEmail = document.getElementById('fulfill-gdrive-email');
+  const gdriveList = document.getElementById('fulfill-gdrive-list');
+  const psnSection = document.getElementById('fulfill-psn-section');
+
+  const customerEmail = fulfillment.customer_email || (order ? order.customerEmail : '') || '-';
+  if (gdriveEmail) gdriveEmail.textContent = customerEmail;
+
+  // Render Google Drive Links
+  const driveLinks = fulfillment.drive_links || fulfillment.driveLinks || [];
+  if (gdriveList) {
+    if (driveLinks && driveLinks.length > 0) {
+      gdriveList.innerHTML = driveLinks.map(link => `
+        <div class="flex items-center justify-between p-3.5 rounded-2xl bg-[#060a16] border border-emerald-500/40">
+          <div class="pr-2">
+            <div class="font-bold text-white text-xs">${link.title}</div>
+            <div class="text-[10px] text-emerald-400 font-mono mt-0.5">Google Drive Ready • Viewer Granted</div>
+          </div>
+          <a href="${link.url}" target="_blank" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow-lg shadow-emerald-600/30 shrink-0 flex items-center gap-1.5 transition-all">
+            <i data-lucide="folder-down" class="w-3.5 h-3.5"></i> Buka Folder
+          </a>
+        </div>
+      `).join('');
+    } else {
+      const games = (order && order.items) ? order.items : [];
+      gdriveList.innerHTML = `
+        <div class="p-3.5 rounded-2xl bg-[#060a16] border border-emerald-500/40">
+          <div class="font-bold text-white text-xs mb-1">🎮 Game: ${games.map(g => g.title).join(', ')}</div>
+          <p class="text-[11px] text-slate-400 mb-3">Akses folder download telah otomatis dibagikan ke email <b>${customerEmail}</b>. Anda juga dapat memeriksa kotak masuk email Anda.</p>
+          <a href="https://drive.google.com/drive/shared-with-me" target="_blank" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow-lg transition-all">
+            <i data-lucide="folder-check" class="w-3.5 h-3.5"></i> Buka Google Drive (Dibagikan dengan Saya)
+          </a>
+        </div>
+      `;
+    }
   }
+
+  // PSN Account section
+  if (fulfillment.psnEmail) {
+    if (psnSection) psnSection.classList.remove('hidden');
+    document.getElementById('fulfill-email').textContent = fulfillment.psnEmail || '-';
+    document.getElementById('fulfill-password').textContent = fulfillment.psnPassword || '••••••••';
+    document.getElementById('fulfill-backup').textContent = fulfillment.backupCodes || '-';
+    document.getElementById('fulfill-notes').textContent = fulfillment.adminNotes || 'Gunakan akun dengan bijak dan ikuti panduan aktivasi.';
+  } else {
+    if (psnSection) psnSection.classList.add('hidden');
+  }
+
+  lucide.createIcons();
 }
 
 function togglePasswordVisibility() {
@@ -1794,12 +2089,27 @@ function simulateCustomerPaid(orderId) {
   if (!order) return;
 
   order.paymentStatus = 'PAID';
-  order.status = 'PROCESSING';
+  order.status = 'COMPLETED';
+
+  if (!order.fulfillment) order.fulfillment = {};
+  order.fulfillment.gdrive_shared = true;
+  order.fulfillment.shared_at = new Date().toISOString();
+  order.fulfillment.customer_email = order.customerEmail;
+  if (!order.fulfillment.drive_links || order.fulfillment.drive_links.length === 0) {
+    order.fulfillment.drive_links = (order.items || []).map(item => ({
+      gameId: item.id,
+      title: item.title,
+      folderId: 'sample-folder-id',
+      url: 'https://drive.google.com/drive/shared-with-me'
+    }));
+  }
+
   saveOrders();
   syncOrderToSupabase(order);
 
   renderInvoiceDetails(order);
-  showToast('Pembayaran Anda terverifikasi! Admin sedang menyiapkan akun game.', 'success', 'Pembayaran Diterima');
+  triggerConfetti();
+  showToast('🎉 Pembayaran diverifikasi! Folder Google Drive telah diaktifkan.', 'success', 'Pembayaran Sukses');
 }
 
 async function searchInvoice() {

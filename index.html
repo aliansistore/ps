@@ -1577,24 +1577,27 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-300 mb-1">Nama Lengkap <span class="text-rose-400">*</span></label>
-            <input type="text" id="checkout-name" placeholder="Contoh: Rian Pratama" class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" />
+            <input type="text" id="checkout-name" placeholder="Contoh: Rian Pratama" class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" required />
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-300 mb-1">Nomor WhatsApp Aktif <span class="text-rose-400">*</span></label>
-            <input type="tel" id="checkout-phone" placeholder="Contoh: 081234567890" class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" />
-            <span class="text-[10px] text-slate-500">Kredensial akun dikirim ke nomor ini</span>
+            <input type="tel" id="checkout-phone" placeholder="Contoh: 081234567890" class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" required />
+            <span class="text-[10px] text-slate-500">Notifikasi status order dikirim ke nomor ini</span>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-medium text-slate-300 mb-1">Email (Opsional)</label>
-            <input type="email" id="checkout-email" placeholder="nama@email.com" class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" />
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-300 mb-1">Catatan Tambahan</label>
-            <input type="text" id="checkout-notes" placeholder="Contoh: Kirim tutorial login PS5 ya" class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" />
-          </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1">
+            Email Akun Google / Gmail <span class="text-rose-400">*</span>
+            <span class="text-[11px] font-normal text-sky-400 ml-1.5">(Wajib @gmail.com untuk share Drive)</span>
+          </label>
+          <input type="email" id="checkout-email" placeholder="contoh: namaanda@gmail.com" class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" required />
+          <span class="text-[10px] text-sky-400/90 block mt-1">📁 Folder game di Google Drive akan <b>otomatis dibagikan langsung</b> ke Gmail ini segera setelah pembayaran diverifikasi.</span>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">Catatan Tambahan (Opsional)</label>
+          <input type="text" id="checkout-notes" placeholder="Contoh: Butuh panduan install PS4 HEN firmware 11.00" class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" />
         </div>
       </div>
 
@@ -1665,9 +1668,10 @@
         <div id="inv-payment-badge"></div>
       </div>
 
-      <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 mb-5 text-xs grid grid-cols-2 gap-3">
+      <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 mb-5 text-xs grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div><span class="text-slate-500 block text-[10px] uppercase font-bold">Nama Pembeli:</span><span id="inv-customer-name" class="font-bold text-white text-sm"></span></div>
         <div><span class="text-slate-500 block text-[10px] uppercase font-bold">WhatsApp:</span><span id="inv-customer-phone" class="font-mono text-sky-300 font-bold"></span></div>
+        <div><span class="text-slate-500 block text-[10px] uppercase font-bold">Email Gmail (Google Drive):</span><span id="inv-customer-email" class="font-mono text-emerald-400 font-bold break-all"></span></div>
       </div>
 
       <div class="mb-6 p-4 rounded-2xl bg-slate-900 border border-slate-800">
@@ -1677,43 +1681,69 @@
           <div id="step-line-1" class="flex-1 h-1 bg-slate-800"></div>
           <div class="flex flex-col items-center text-center"><div id="step-2" class="w-8 h-8 rounded-full bg-slate-800 text-slate-500 font-bold flex items-center justify-center text-xs">2</div><span class="text-[10px] text-slate-400 mt-1 font-medium">Terverifikasi</span></div>
           <div id="step-line-2" class="flex-1 h-1 bg-slate-800"></div>
-          <div class="flex flex-col items-center text-center"><div id="step-3" class="w-8 h-8 rounded-full bg-slate-800 text-slate-500 font-bold flex items-center justify-center text-xs">3</div><span class="text-[10px] text-slate-400 mt-1 font-medium">Diproses Admin</span></div>
+          <div class="flex flex-col items-center text-center"><div id="step-3" class="w-8 h-8 rounded-full bg-slate-800 text-slate-500 font-bold flex items-center justify-center text-xs">3</div><span class="text-[10px] text-slate-400 mt-1 font-medium">Drive Dibagikan</span></div>
           <div id="step-line-3" class="flex-1 h-1 bg-slate-800"></div>
-          <div class="flex flex-col items-center text-center"><div id="step-4" class="w-8 h-8 rounded-full bg-slate-800 text-slate-500 font-bold flex items-center justify-center text-xs">4</div><span class="text-[10px] text-slate-400 mt-1 font-medium">Selesai (Akun Aktif)</span></div>
+          <div class="flex flex-col items-center text-center"><div id="step-4" class="w-8 h-8 rounded-full bg-slate-800 text-slate-500 font-bold flex items-center justify-center text-xs">4</div><span class="text-[10px] text-slate-400 mt-1 font-medium">Selesai (Akses Aktif)</span></div>
         </div>
       </div>
 
-      <!-- KREDENSIAL AKUN SAAT SELESAI -->
-      <div id="inv-fulfillment-box" class="hidden mb-6 p-6 rounded-3xl bg-gradient-to-br from-sky-950/80 via-slate-900 to-indigo-950/70 border-2 border-sky-400 shadow-2xl">
-        <div class="flex items-center gap-2.5 mb-3 text-emerald-400">
-          <i data-lucide="check-circle-2" class="w-6 h-6"></i>
-          <span class="text-sm font-black uppercase tracking-wider font-display">DETAIL AKUN PLAYSTATION ANDA TERSEDIA</span>
-        </div>
-        <p class="text-xs text-slate-300 mb-4 leading-relaxed">Admin ALIANSI STORE telah menyiapkan akun pesanan Anda. Salin kredensial berikut:</p>
-        <div class="space-y-3 bg-[#060a16] p-4 sm:p-5 rounded-2xl border border-sky-500/30">
-          <div class="flex items-center justify-between">
-            <div><span class="text-[10px] text-slate-400 uppercase tracking-wide block font-mono">Email Login PSN:</span><span id="fulfill-email" class="text-xs sm:text-sm font-mono font-bold text-sky-300 select-all"></span></div>
-            <button onclick="copyOrderCredential('email')" class="px-3 py-1.5 rounded-lg bg-sky-950 text-sky-400 text-xs font-bold border border-sky-500/30 hover:bg-sky-900/50">Salin</button>
+      <!-- KREDENSIAL / AKSES GAME SAAT SELESAI -->
+      <div id="inv-fulfillment-box" class="hidden mb-6 p-6 rounded-3xl bg-gradient-to-br from-emerald-950/60 via-slate-900 to-sky-950/70 border-2 border-emerald-400 shadow-2xl">
+        
+        <!-- SEKSI 1: AKSES GOOGLE DRIVE (SOFTFILE DIGITAL) -->
+        <div id="fulfill-gdrive-section">
+          <div class="flex items-center gap-2.5 mb-2 text-emerald-400">
+            <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+            <span class="text-sm font-black uppercase tracking-wider font-display">AKSES GOOGLE DRIVE TELAH DIAKTIFKAN</span>
           </div>
-          <div class="flex items-center justify-between pt-2.5 border-t border-slate-800">
-            <div><span class="text-[10px] text-slate-400 uppercase tracking-wide block font-mono">Password PSN:</span><span id="fulfill-password" class="text-xs sm:text-sm font-mono font-bold text-white select-all">••••••••</span></div>
-            <div class="flex items-center gap-2">
-              <button onclick="togglePasswordVisibility()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-slate-300 text-xs font-semibold hover:bg-slate-700">Lihat</button>
-              <button onclick="copyOrderCredential('password')" class="px-3 py-1.5 rounded-lg bg-sky-950 text-sky-400 text-xs font-bold border border-sky-500/30 hover:bg-sky-900/50">Salin</button>
+          <p class="text-xs text-slate-300 mb-4 leading-relaxed">
+            Folder game di Google Drive telah otomatis dibagikan ke email: <strong id="fulfill-gdrive-email" class="text-emerald-400 font-mono"></strong>. Anda bisa langsung membuka dan mengunduh seluruh file game di bawah ini:
+          </p>
+          <div id="fulfill-gdrive-list" class="space-y-3 mb-4"></div>
+          <div class="p-3.5 rounded-2xl bg-[#060a16] border border-sky-500/30 text-xs">
+            <div class="font-bold text-sky-400 mb-1 flex items-center gap-1.5">
+              <i data-lucide="info" class="w-4 h-4"></i> Panduan Download & Instalasi PKG:
+            </div>
+            <ol class="list-decimal list-inside text-slate-300 text-[11px] space-y-1 pl-1">
+              <li>Pastikan browser Anda login dengan Gmail yang terdaftar di atas.</li>
+              <li>Download file game (.PKG) dari Google Drive ke Flashdisk / HDD External (format exFAT).</li>
+              <li>Tancapkan ke PS4 HEN, buka menu <strong>GoldHEN / HEN &gt; Package Installer</strong> &gt; Pasang file game.</li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- SEKSI 2: KREDENSIAL AKUN PSN (JIKA ADA) -->
+        <div id="fulfill-psn-section" class="hidden mt-5 pt-5 border-t border-slate-800">
+          <div class="flex items-center gap-2.5 mb-3 text-sky-400">
+            <i data-lucide="user-check" class="w-5 h-5"></i>
+            <span class="text-xs font-black uppercase tracking-wider font-display">DETAIL AKUN LOGIN PLAYSTATION</span>
+          </div>
+          <div class="space-y-3 bg-[#060a16] p-4 sm:p-5 rounded-2xl border border-sky-500/30">
+            <div class="flex items-center justify-between">
+              <div><span class="text-[10px] text-slate-400 uppercase tracking-wide block font-mono">Email Login PSN:</span><span id="fulfill-email" class="text-xs sm:text-sm font-mono font-bold text-sky-300 select-all"></span></div>
+              <button onclick="copyOrderCredential('email')" class="px-3 py-1.5 rounded-lg bg-sky-950 text-sky-400 text-xs font-bold border border-sky-500/30 hover:bg-sky-900/50">Salin</button>
+            </div>
+            <div class="flex items-center justify-between pt-2.5 border-t border-slate-800">
+              <div><span class="text-[10px] text-slate-400 uppercase tracking-wide block font-mono">Password PSN:</span><span id="fulfill-password" class="text-xs sm:text-sm font-mono font-bold text-white select-all">••••••••</span></div>
+              <div class="flex items-center gap-2">
+                <button onclick="togglePasswordVisibility()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-slate-300 text-xs font-semibold hover:bg-slate-700">Lihat</button>
+                <button onclick="copyOrderCredential('password')" class="px-3 py-1.5 rounded-lg bg-sky-950 text-sky-400 text-xs font-bold border border-sky-500/30 hover:bg-sky-900/50">Salin</button>
+              </div>
+            </div>
+            <div class="flex items-center justify-between pt-2.5 border-t border-slate-800">
+              <div><span class="text-[10px] text-slate-400 uppercase tracking-wide block font-mono">Kode Cadangan 2FA:</span><span id="fulfill-backup" class="text-xs sm:text-sm font-mono font-bold text-emerald-400 select-all"></span></div>
+              <button onclick="copyOrderCredential('backup')" class="px-3 py-1.5 rounded-lg bg-sky-950 text-sky-400 text-xs font-bold border border-sky-500/30 hover:bg-sky-900/50">Salin</button>
+            </div>
+            <div class="pt-2.5 border-t border-slate-800 text-xs">
+              <span class="text-[10px] text-slate-400 uppercase tracking-wide block mb-1 font-mono">Catatan Khusus Admin:</span>
+              <p id="fulfill-notes" class="text-slate-300 text-[11px] bg-slate-900 p-2.5 rounded-xl border border-slate-800 leading-relaxed"></p>
             </div>
           </div>
-          <div class="flex items-center justify-between pt-2.5 border-t border-slate-800">
-            <div><span class="text-[10px] text-slate-400 uppercase tracking-wide block font-mono">Kode Cadangan 2FA:</span><span id="fulfill-backup" class="text-xs sm:text-sm font-mono font-bold text-emerald-400 select-all"></span></div>
-            <button onclick="copyOrderCredential('backup')" class="px-3 py-1.5 rounded-lg bg-sky-950 text-sky-400 text-xs font-bold border border-sky-500/30 hover:bg-sky-900/50">Salin</button>
-          </div>
-          <div class="pt-2.5 border-t border-slate-800 text-xs">
-            <span class="text-[10px] text-slate-400 uppercase tracking-wide block mb-1 font-mono">Catatan Khusus Admin:</span>
-            <p id="fulfill-notes" class="text-slate-300 text-[11px] bg-slate-900 p-2.5 rounded-xl border border-slate-800 leading-relaxed"></p>
-          </div>
         </div>
+
         <div class="mt-4 flex items-center justify-between flex-wrap gap-2">
-          <a id="fulfill-guide-link" href="#" target="_blank" class="text-xs text-sky-400 hover:underline flex items-center gap-1.5 font-bold"><i data-lucide="book-open" class="w-4 h-4"></i> Panduan Login & Setting Primary Console</a>
-          <span class="text-[10px] text-emerald-400 font-bold flex items-center gap-1"><i data-lucide="shield-check" class="w-4 h-4"></i> Garansi Resmi Aktif</span>
+          <a id="fulfill-guide-link" href="#" target="_blank" class="text-xs text-sky-400 hover:underline flex items-center gap-1.5 font-bold"><i data-lucide="book-open" class="w-4 h-4"></i> Panduan Lengkap Instalasi & Setup</a>
+          <span class="text-[10px] text-emerald-400 font-bold flex items-center gap-1"><i data-lucide="shield-check" class="w-4 h-4"></i> Garansi Resmi ALIANSI STORE</span>
         </div>
       </div>
 

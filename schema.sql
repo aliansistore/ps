@@ -445,3 +445,7 @@ VALUES
   '{"account": "order-hen.aliansi@gmail.com", "password": "AlnPass2026!#", "guideLink": "https://aliansistore.com/tutorial-install-pkg-ps4-hen", "notes": "Game pesanan sudah diisi lengkap sesuai list request."}'::jsonb
 )
 ON CONFLICT (id) DO NOTHING;
+
+-- 8. Optional Additions for Google Drive Automation
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS gdrive_folder_id TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS payment_reference TEXT;
