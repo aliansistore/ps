@@ -46,7 +46,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <!-- Custom Next-Gen Stylesheet (with cache buster query) -->
-  <link rel="stylesheet" href="assets/style.css?v=20261104_14games_v5" />
+  <link rel="stylesheet" href="assets/style.css?v=20261104_14games_v6" />
 
   <!-- Critical Inline Styles to Guarantee Immediate High-Contrast Rendering (Dark & Light Mode) -->
   <style>
@@ -1040,21 +1040,22 @@
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         
-        <!-- Card 1: Game PS4 HEN & Sub Indo -->
+        <!-- Card 1: Game PS4 HEN & Sub Indo (ACTIVE / UTAMA) -->
         <div class="matrix-card-featured p-6 rounded-3xl relative overflow-hidden flex flex-col justify-between">
-          <div class="absolute top-3 right-3 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white uppercase tracking-wider">
-            FAVORIT GAMER INDO
+          <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-black bg-rose-600 text-white uppercase tracking-wider flex items-center gap-1 shadow-md shadow-rose-600/40">
+            <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+            UTAMA & READY STOK
           </div>
           <div>
             <div class="w-10 h-10 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center mb-4">
               <i data-lucide="languages" class="w-5 h-5"></i>
             </div>
             <h3 class="text-lg font-black text-white font-display mb-1">GAME HEN & SUB INDO</h3>
-            <p class="text-xs text-rose-300 font-semibold mb-4">Main Nyaman Bahasa Indonesia</p>
+            <p class="text-xs text-rose-300 font-semibold mb-4">Main Nyaman Bahasa Indonesia (14 Game Ready)</p>
             <ul class="space-y-2.5 text-xs text-slate-300 mb-6">
               <li class="flex items-start gap-2">
                 <i data-lucide="check" class="w-4 h-4 text-emerald-400 mt-0.5 shrink-0"></i>
-                <span>100% Teks Subtitle Indonesia (GTA V, RE4, GoW, TLOU, RDR2)</span>
+                <span>100% Subtitle Indonesia (GoW Ragnarok, TLOU 2, Ghost of Tsushima, GTA V)</span>
               </li>
               <li class="flex items-start gap-2">
                 <i data-lucide="check" class="w-4 h-4 text-emerald-400 mt-0.5 shrink-0"></i>
@@ -1062,83 +1063,106 @@
               </li>
               <li class="flex items-start gap-2">
                 <i data-lucide="check" class="w-4 h-4 text-emerald-400 mt-0.5 shrink-0"></i>
-                <span>Patch eFootball PES 2025 BRI Liga 1 & Timnas Indonesia</span>
+                <span>Patch PES 2027 Bitbox Summer Update + BRI Liga 1</span>
               </li>
               <li class="flex items-start gap-2">
                 <i data-lucide="check" class="w-4 h-4 text-emerald-400 mt-0.5 shrink-0"></i>
-                <span>Main Offline sepuasnya tanpa risiko banned konsol</span>
+                <span>Format PKG Siap Pasang via Flashdisk / HDD Eksternal</span>
               </li>
             </ul>
           </div>
           <button onclick="state.activeFilter='subindo'; renderProducts(); window.location.href='#katalog';" class="w-full py-2.5 rounded-xl cyber-button text-xs font-black">
-            Lihat Koleksi Sub Indo
+            Lihat Koleksi Sub Indo & HEN
           </button>
         </div>
 
-        <!-- Card 2: Jasa Isi HDD HEN -->
-        <div class="matrix-card p-6 rounded-3xl flex flex-col justify-between">
+        <!-- Card 2: Jasa Isi HDD HEN (COMING SOON / NONAKTIF) -->
+        <div class="matrix-card p-6 rounded-3xl flex flex-col justify-between relative overflow-hidden opacity-85 hover:opacity-100 transition-all border border-slate-800 hover:border-amber-500/40 group">
+          <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-500/15 text-amber-300 border border-amber-500/30 uppercase tracking-wider flex items-center gap-1.5 backdrop-blur-md">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+            SEGERA HADIR
+          </div>
           <div>
-            <div class="w-10 h-10 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center mb-4">
+            <div class="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center mb-4 border border-amber-500/20">
               <i data-lucide="hard-drive" class="w-5 h-5"></i>
             </div>
-            <h3 class="text-lg font-black text-white font-display mb-1">JASA ISI HDD HEN</h3>
-            <p class="text-xs text-purple-400 font-semibold mb-4">Bebas Request 15-25 Game (500GB / 1TB)</p>
-            <ul class="space-y-2.5 text-xs text-slate-300 mb-6">
+            <h3 class="text-lg font-black text-white font-display mb-1 flex items-center gap-2">
+              <span>JASA ISI HDD HEN</span>
+            </h3>
+            <p class="text-xs text-amber-400/90 font-semibold mb-4 flex items-center gap-1.5">
+              <i data-lucide="wrench" class="w-3.5 h-3.5"></i> Sedang Dalam Persiapan Sistem
+            </p>
+            <ul class="space-y-2.5 text-xs text-slate-400 mb-6">
               <li class="flex items-start gap-2">
-                <i data-lucide="check" class="w-4 h-4 text-emerald-400 mt-0.5 shrink-0"></i>
-                <span>Bebas pilih game dari katalog database 2.000+ judul</span>
+                <i data-lucide="clock" class="w-4 h-4 text-amber-400/70 mt-0.5 shrink-0"></i>
+                <span>Kapasitas 500GB / 1TB / 2TB Bebas Pilih Judul Game</span>
               </li>
               <li class="flex items-start gap-2">
-                <i data-lucide="check" class="w-4 h-4 text-emerald-400 mt-0.5 shrink-0"></i>
-                <span>Bisa kirim HDD Eksternal atau bawa langsung unit PS4</span>
+                <i data-lucide="clock" class="w-4 h-4 text-amber-400/70 mt-0.5 shrink-0"></i>
+                <span>Opsi kirim HDD Eksternal via Ekspedisi Se-Indonesia</span>
               </li>
               <li class="flex items-start gap-2">
-                <i data-lucide="check" class="w-4 h-4 text-emerald-400 mt-0.5 shrink-0"></i>
-                <span>Termasuk game Sub Indo & Mod Trainer Menu aktif</span>
+                <i data-lucide="clock" class="w-4 h-4 text-amber-400/70 mt-0.5 shrink-0"></i>
+                <span>Sudah termasuk Paket Game Sub Indo & Mod Pilihan</span>
               </li>
               <li class="flex items-start gap-2">
-                <i data-lucide="check" class="w-4 h-4 text-emerald-400 mt-0.5 shrink-0"></i>
-                <span>Pengerjaan kilat 1 hari kerja bergaransi</span>
+                <i data-lucide="clock" class="w-4 h-4 text-amber-400/70 mt-0.5 shrink-0"></i>
+                <span>Status: Segera dibuka setelah slot antrean siap</span>
               </li>
             </ul>
           </div>
-          <button onclick="state.activeFilter='hen'; renderProducts(); window.location.href='#katalog';" class="w-full py-2.5 rounded-xl bg-purple-900/60 hover:bg-purple-800 text-purple-200 text-xs font-bold border border-purple-700/50">
-            Lihat Koleksi Game HEN
+          <button 
+            onclick="playSfx('click'); showToast('Layanan Jasa Isi HDD Eksternal sedang dalam persiapan teknis dan segera dibuka kembali. Untuk pemesanan game saat ini silakan pilih dari katalog 14 Game Sub Indo & HEN kami.', 'info', 'Layanan Segera Hadir');" 
+            class="w-full py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-400 hover:text-amber-300 text-xs font-bold border border-slate-700/60 transition-all flex items-center justify-center gap-2 group/btn cursor-pointer shadow-inner"
+          >
+            <i data-lucide="lock" class="w-3.5 h-3.5 text-amber-400 group-hover/btn:scale-110 transition-transform"></i>
+            <span>Segera Hadir (Coming Soon)</span>
           </button>
         </div>
 
-        <!-- Card 3: Akun Digital PS4/PS5 Resmi -->
-        <div class="matrix-card p-6 rounded-3xl flex flex-col justify-between">
+        <!-- Card 3: Akun Digital PS4/PS5 Resmi (COMING SOON / NONAKTIF) -->
+        <div class="matrix-card p-6 rounded-3xl flex flex-col justify-between relative overflow-hidden opacity-85 hover:opacity-100 transition-all border border-slate-800 hover:border-sky-500/40 group">
+          <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-black bg-sky-500/15 text-sky-300 border border-sky-500/30 uppercase tracking-wider flex items-center gap-1.5 backdrop-blur-md">
+            <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse"></span>
+            COMING SOON
+          </div>
           <div>
-            <div class="w-10 h-10 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center mb-4">
+            <div class="w-10 h-10 rounded-2xl bg-sky-500/10 text-sky-400 flex items-center justify-center mb-4 border border-sky-500/20">
               <i data-lucide="shield-check" class="w-5 h-5"></i>
             </div>
-            <h3 class="text-lg font-black text-white font-display mb-1">AKUN DIGITAL RESMI</h3>
-            <p class="text-xs text-sky-300 font-semibold mb-4">Khusus Konsol Non-HEN (PS4 & PS5)</p>
-            <ul class="space-y-2.5 text-xs text-slate-300 mb-6">
+            <h3 class="text-lg font-black text-white font-display mb-1 flex items-center gap-2">
+              <span>AKUN DIGITAL RESMI</span>
+            </h3>
+            <p class="text-xs text-sky-400/90 font-semibold mb-4 flex items-center gap-1.5">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Update Layanan Mendatang
+            </p>
+            <ul class="space-y-2.5 text-xs text-slate-400 mb-6">
               <li class="flex items-start gap-2">
-                <i data-lucide="check" class="w-4 h-4 text-emerald-400 mt-0.5 shrink-0"></i>
-                <span>Pilihan Akun Primary (ID sendiri) & Secondary (Hemat 70%)</span>
+                <i data-lucide="clock" class="w-4 h-4 text-sky-400/70 mt-0.5 shrink-0"></i>
+                <span>Khusus Konsol Non-HEN PS4 & PS5 Resmi PlayStation Store</span>
               </li>
               <li class="flex items-start gap-2">
-                <i data-lucide="check" class="w-4 h-4 text-emerald-400 mt-0.5 shrink-0"></i>
-                <span>Bebas main Online Multiplayer & Trophy tersimpan</span>
+                <i data-lucide="clock" class="w-4 h-4 text-sky-400/70 mt-0.5 shrink-0"></i>
+                <span>Sistem Akun Primary & Secondary Otomatis</span>
               </li>
               <li class="flex items-start gap-2">
-                <i data-lucide="check" class="w-4 h-4 text-emerald-400 mt-0.5 shrink-0"></i>
-                <span>Game AAA Terbaru: FC 25, Wukong, Spider-Man 2</span>
+                <i data-lucide="clock" class="w-4 h-4 text-sky-400/70 mt-0.5 shrink-0"></i>
+                <span>Garansi Anti-Revoke & Akses Trophy Permanen</span>
               </li>
               <li class="flex items-start gap-2">
-                <i data-lucide="check" class="w-4 h-4 text-emerald-400 mt-0.5 shrink-0"></i>
-                <span>Garansi Anti-Revoke Selamanya</span>
+                <i data-lucide="clock" class="w-4 h-4 text-sky-400/70 mt-0.5 shrink-0"></i>
+                <span>Status: Penyiapan automasi kredensial instan</span>
               </li>
             </ul>
           </div>
-          <button onclick="state.activeFilter='digital'; renderProducts(); window.location.href='#katalog';" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold border border-slate-700">
-            Pilih Game Digital
+          <button 
+            onclick="playSfx('click'); showToast('Layanan Akun Digital PS4/PS5 sedang dipersiapkan dan segera dirilis. Saat ini silakan nikmati katalog 14 Game Sub Indo & HEN kami.', 'info', 'Coming Soon');" 
+            class="w-full py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-400 hover:text-sky-300 text-xs font-bold border border-slate-700/60 transition-all flex items-center justify-center gap-2 group/btn cursor-pointer shadow-inner"
+          >
+            <i data-lucide="lock" class="w-3.5 h-3.5 text-sky-400 group-hover/btn:scale-110 transition-transform"></i>
+            <span>Segera Hadir (Coming Soon)</span>
           </button>
         </div>
-
       </div>
     </section>
 
@@ -1250,12 +1274,12 @@
 
           <div>
             <h5 class="text-white font-bold text-sm mb-3">Kategori Produk</h5>
-            <ul class="space-y-2">
-              <li><a href="#katalog" onclick="state.activeFilter='subindo'; renderProducts();" class="hover:text-sky-400 transition-colors">🇮🇩 Game Subtitle Indonesia</a></li>
-              <li><a href="#katalog" onclick="state.activeFilter='hen'; renderProducts();" class="hover:text-sky-400 transition-colors">🎮 Game PS4 HEN (PKG)</a></li>
-              <li><a href="#katalog" onclick="state.activeFilter='service-hen'; renderProducts();" class="hover:text-sky-400 transition-colors">💾 Jasa Isi HDD 500GB / 1TB</a></li>
-              <li><a href="#katalog" onclick="state.activeFilter='tool'; renderProducts();" class="hover:text-sky-400 transition-colors">🔌 Flashdisk Auto-Exploit HEN</a></li>
-              <li><a href="#katalog" onclick="state.activeFilter='digital'; renderProducts();" class="hover:text-sky-400 transition-colors">⚡ Game Digital PS4 & PS5</a></li>
+            <ul class="space-y-2.5">
+              <li><a href="#katalog" onclick="state.activeFilter='subindo'; renderProducts();" class="hover:text-sky-400 transition-colors flex items-center justify-between"><span>🇮🇩 Game Subtitle Indonesia</span> <span class="text-[9px] px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-md font-bold">Ready</span></a></li>
+              <li><a href="#katalog" onclick="state.activeFilter='hen'; renderProducts();" class="hover:text-sky-400 transition-colors flex items-center justify-between"><span>🎮 Game PS4 HEN PKG</span> <span class="text-[9px] px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-md font-bold">Ready</span></a></li>
+              <li><a href="#katalog" onclick="state.activeFilter='sports'; renderProducts();" class="hover:text-sky-400 transition-colors flex items-center justify-between"><span>⚽ PES & Olahraga</span> <span class="text-[9px] px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-md font-bold">Ready</span></a></li>
+              <li><span class="text-slate-500 flex items-center justify-between cursor-not-allowed"><span>💾 Jasa Isi HDD HEN</span> <span class="text-[9px] px-1.5 py-0.5 bg-amber-500/15 text-amber-400 border border-amber-500/30 rounded-md font-bold">Soon</span></span></li>
+              <li><span class="text-slate-500 flex items-center justify-between cursor-not-allowed"><span>⚡ Akun Digital Resmi</span> <span class="text-[9px] px-1.5 py-0.5 bg-sky-500/15 text-sky-400 border border-sky-500/30 rounded-md font-bold">Soon</span></span></li>
             </ul>
           </div>
 
@@ -2241,7 +2265,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261104_14games_v5"></script>
-  <script src="assets/app.js?v=20261104_14games_v5"></script>
+  <script src="assets/products-data.js?v=20261104_14games_v6"></script>
+  <script src="assets/app.js?v=20261104_14games_v6"></script>
 </body>
 </html>
