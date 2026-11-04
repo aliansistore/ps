@@ -31,6 +31,34 @@ const COVER_FALLBACK_MAP = {
   'game-pes-2027-bitbox': 'assets/covers/pes-2027.jpg'
 };
 
+// Official landscape key art for the cinematic hero backdrop (assets/backdrops)
+const BACKDROP_MAP = {
+  'game-it-takes-two-subindo': 'assets/backdrops/it-takes-two.jpg',
+  'game-gow-ragnarok-subindo': 'assets/backdrops/gow-ragnarok.jpg',
+  'game-ghost-tsushima-subindo': 'assets/backdrops/ghost-tsushima.jpg',
+  'game-tlou-part2-subindo': 'assets/backdrops/tlou-part2.jpg',
+  'game-gta5-subindo': 'assets/backdrops/gta-v.jpg',
+  'game-mk11-subindo': 'assets/backdrops/mortal-kombat-11.jpg',
+  'game-hogwarts-legacy-subindo': 'assets/backdrops/hogwarts-legacy.jpg',
+  'game-uncharted-4-subindo': 'assets/backdrops/uncharted-4.jpg',
+  'game-stray-subindo': 'assets/backdrops/stray.jpg',
+  'game-ac-odyssey-subindo': 'assets/backdrops/ac-odyssey.jpg',
+  'game-one-piece-odyssey-subindo': 'assets/backdrops/one-piece-odyssey.jpg',
+  'game-watch-dogs-subindo': 'assets/backdrops/watch-dogs.jpg',
+  'game-spiderman-subindo': 'assets/backdrops/spiderman.jpg',
+  'game-pes-2027-bitbox': 'assets/backdrops/pes-2027.jpg'
+};
+
+function getProductBackdrop(product) {
+  if (!product) return '';
+  if (BACKDROP_MAP[product.id]) return BACKDROP_MAP[product.id];
+  const imgs = product.images || {};
+  const generic = (u) => !u || u.includes('images.unsplash.com');
+  if (!generic(imgs.backdrop)) return imgs.backdrop;
+  if (!generic(imgs.banner)) return imgs.banner;
+  return getProductPoster(product);
+}
+
 function getProductPoster(product) {
   if (!product) return 'assets/covers/service-1tb.jpg';
   const pid = product.id || product.productId;
@@ -712,14 +740,24 @@ function updateSpotlightDisplay(index) {
   state.spotlightIndex = index;
   const game = spotlightGames[index];
 
-  // Update Backdrop Image
+  // Update Backdrop Image (prefer local official game key art)
   const backdrop = document.getElementById('hero-spotlight-backdrop');
   if (backdrop) {
-    backdrop.style.opacity = '0';
-    setTimeout(() => {
-      backdrop.style.backgroundImage = `url('${game.images.backdrop || game.images.banner || game.images.poster}')`;
+    const bgUrl = getProductBackdrop(game);
+    // Preload so the swap is smooth and never shows an empty/black stage
+    const img = new Image();
+    img.onload = () => {
+      backdrop.style.opacity = '0';
+      setTimeout(() => {
+        backdrop.style.backgroundImage = `url('${bgUrl}')`;
+        backdrop.style.opacity = '1';
+      }, 200);
+    };
+    img.onerror = () => {
+      backdrop.style.backgroundImage = `url('${getProductPoster(game)}')`;
       backdrop.style.opacity = '1';
-    }, 200);
+    };
+    img.src = bgUrl;
   }
 
   // Update Hero Content
@@ -3466,7 +3504,12 @@ function renderAdminProductsTable() {
         ${formatRupiah(p.prices.primary)}
       </td>
       <td class="py-2.5 px-3 font-extrabold text-slate-300 font-display">
-        ${formatRupiah(p.prices.secondary)}
+        ${p.prices.original && p.prices.original > p.prices.primary ? `
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="line-through text-slate-400 text-xs">${formatRupiah(p.prices.original)}</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-black bg-rose-600 text-white shadow">-${Math.round((1 - p.prices.primary / p.prices.original) * 100)}%</span>
+          </div>
+        ` : `<span>${formatRupiah(p.prices.original || p.prices.secondary || p.prices.primary)}</span>`}
       </td>
       <td class="py-2.5 px-3">
         <button onclick="toggleProductStock('${p.id}')" class="px-2.5 py-1 rounded-full text-[10px] font-bold ${p.inStock !== false ? 'bg-emerald-950 text-emerald-400 border border-emerald-500/30' : 'bg-rose-950 text-rose-400 border border-rose-500/30'}">
@@ -3516,10 +3559,47 @@ function deleteProduct(productId) {
   }
 }
 
+// Live Discount Calculation Helper for Add/Edit Game Modals
+function updateDiscountCalc(prefix = 'new') {
+  const pOriginalEl = document.getElementById(`${prefix}-game-price-original`);
+  const pDiscountEl = document.getElementById(`${prefix}-game-price-primary`);
+  const container = document.getElementById(`${prefix}-game-discount-preview`);
+  const badge = document.getElementById(`${prefix}-game-discount-percent`);
+  const diffEl = document.getElementById(`${prefix}-game-discount-diff`);
+
+  if (!pOriginalEl || !pDiscountEl || !container || !badge) return;
+
+  const original = parseInt(pOriginalEl.value, 10) || 0;
+  const discount = parseInt(pDiscountEl.value, 10) || 0;
+
+  if (original > 0 && discount > 0 && original > discount) {
+    const diff = original - discount;
+    const percent = Math.round((diff / original) * 100);
+    badge.textContent = `Diskon ${percent}% (-${percent}%)`;
+    if (diffEl) {
+      diffEl.textContent = `Hemat ${formatRupiah(diff)}`;
+    }
+    container.classList.remove('hidden');
+  } else if (original > 0 && discount > 0 && discount === original) {
+    badge.textContent = `Harga Normal (0%)`;
+    if (diffEl) diffEl.textContent = `Tidak ada diskon`;
+    container.classList.remove('hidden');
+  } else {
+    container.classList.add('hidden');
+  }
+}
+
 function openAddProductModal() {
   playSfx('click');
   const modal = document.getElementById('modal-admin-add-product');
   if (!modal) return;
+  document.getElementById('new-game-title').value = '';
+  const pOrig = document.getElementById('new-game-price-original');
+  if (pOrig) pOrig.value = '';
+  document.getElementById('new-game-price-primary').value = '';
+  document.getElementById('new-game-poster').value = '';
+  document.getElementById('new-game-desc').value = '';
+  updateDiscountCalc('new');
   modal.classList.remove('hidden');
   lucide.createIcons();
 }
@@ -3528,13 +3608,14 @@ function submitNewProduct() {
   const title = document.getElementById('new-game-title').value.trim();
   const category = document.getElementById('new-game-category').value;
   const platformChecked = Array.from(document.querySelectorAll('input[name="new-game-platform"]:checked')).map(cb => cb.value);
-  const pricePrimary = parseInt(document.getElementById('new-game-price-primary').value, 10) || 0;
-  const priceSecondary = parseInt(document.getElementById('new-game-price-secondary').value, 10) || pricePrimary;
+  const priceDiscount = parseInt(document.getElementById('new-game-price-primary').value, 10) || 0;
+  const pOrigEl = document.getElementById('new-game-price-original');
+  const priceOriginal = (pOrigEl && parseInt(pOrigEl.value, 10)) || priceDiscount;
   const posterUrl = document.getElementById('new-game-poster').value.trim();
   const desc = document.getElementById('new-game-desc').value.trim();
 
-  if (!title || platformChecked.length === 0 || pricePrimary <= 0) {
-    showToast('Lengkapi judul, platform, dan harga!', 'warning');
+  if (!title || platformChecked.length === 0 || priceDiscount <= 0) {
+    showToast('Lengkapi judul, platform, dan harga diskon!', 'warning');
     return;
   }
 
@@ -3559,9 +3640,9 @@ function submitNewProduct() {
       screenshots: []
     },
     prices: {
-      primary: pricePrimary,
-      secondary: priceSecondary,
-      original: Math.round(pricePrimary * 1.5)
+      primary: priceDiscount,
+      secondary: priceOriginal,
+      original: priceOriginal
     },
     description: desc || 'Game PlayStation original berkualitas tinggi bergaransi resmi ALIANSI STORE.',
     features: [
@@ -3594,10 +3675,14 @@ function openEditProductModal(productId) {
   if (!modal) return;
 
   document.getElementById('edit-game-title').value = p.title;
-  document.getElementById('edit-game-price-primary').value = p.prices.primary;
-  document.getElementById('edit-game-price-secondary').value = p.prices.secondary;
-  document.getElementById('edit-game-poster').value = p.images.poster || p.images.cover || '';
-  document.getElementById('edit-game-desc').value = p.description;
+  document.getElementById('edit-game-price-primary').value = p.prices.primary || '';
+  const pOrigEl = document.getElementById('edit-game-price-original');
+  if (pOrigEl) {
+    pOrigEl.value = p.prices.original || p.prices.secondary || '';
+  }
+  document.getElementById('edit-game-poster').value = (p.images && (p.images.poster || p.images.cover)) || '';
+  document.getElementById('edit-game-desc').value = p.description || '';
+  updateDiscountCalc('edit');
 
   modal.classList.remove('hidden');
   lucide.createIcons();
@@ -3608,11 +3693,17 @@ function submitEditProduct() {
   const p = state.products.find(item => item.id === editingProductId);
   if (!p) return;
 
+  const priceDiscount = parseInt(document.getElementById('edit-game-price-primary').value, 10) || p.prices.primary;
+  const pOrigEl = document.getElementById('edit-game-price-original');
+  const priceOriginal = (pOrigEl && parseInt(pOrigEl.value, 10)) || priceDiscount;
+
   p.title = document.getElementById('edit-game-title').value.trim();
-  p.prices.primary = parseInt(document.getElementById('edit-game-price-primary').value, 10) || p.prices.primary;
-  p.prices.secondary = parseInt(document.getElementById('edit-game-price-secondary').value, 10) || p.prices.secondary;
+  p.prices.primary = priceDiscount;
+  p.prices.original = priceOriginal;
+  p.prices.secondary = priceOriginal;
   const poster = document.getElementById('edit-game-poster').value.trim();
   if (poster) {
+    if (!p.images) p.images = {};
     p.images.poster = poster;
     p.images.cover = poster;
   }
