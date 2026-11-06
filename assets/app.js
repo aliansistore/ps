@@ -2942,7 +2942,7 @@ function updateNavAuthUI() {
             <div class="flex items-center gap-1.5 text-[10px] font-black text-sky-400 uppercase tracking-wider">
               <i data-lucide="shield-alert" class="w-3 h-3"></i> Super Admin
             </div>
-            <div class="text-xs font-bold text-white truncate">admin@aliansistore.com</div>
+            <div class="text-xs font-bold text-white truncate">${(state.config && state.config.adminEmail) || 'admin@aliansistore.com'}</div>
           </div>
           <button onclick="openAdminDashboard(); closeUserDropdown();" class="w-full text-left px-4 py-2.5 text-xs text-slate-200 hover:bg-sky-950/60 hover:text-sky-300 flex items-center justify-between transition-colors cursor-pointer">
             <span class="flex items-center gap-2"><i data-lucide="layout-dashboard" class="w-4 h-4 text-sky-400"></i> Dashboard Toko</span>
@@ -2950,6 +2950,9 @@ function updateNavAuthUI() {
           </button>
           <button onclick="openAdminAddProductModal(); closeUserDropdown();" class="w-full text-left px-4 py-2.5 text-xs text-slate-200 hover:bg-sky-950/60 hover:text-sky-300 flex items-center gap-2 transition-colors cursor-pointer">
             <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-400"></i> Tambah Game Baru
+          </button>
+          <button onclick="openAdminSettingsModal(); closeUserDropdown();" class="w-full text-left px-4 py-2.5 text-xs text-slate-200 hover:bg-sky-950/60 hover:text-sky-300 flex items-center gap-2 transition-colors cursor-pointer">
+            <i data-lucide="settings" class="w-4 h-4 text-cyan-400"></i> Pengaturan Toko & Akun
           </button>
           <button onclick="document.getElementById('modal-search-order').classList.remove('hidden'); closeUserDropdown();" class="w-full text-left px-4 py-2.5 text-xs text-slate-200 hover:bg-sky-950/60 hover:text-sky-300 flex items-center gap-2 transition-colors cursor-pointer">
             <i data-lucide="search" class="w-4 h-4 text-amber-400"></i> Cari & Cek Resi
