@@ -10,7 +10,8 @@ const APP_STORAGE_KEYS = {
   ADMIN_AUTH: 'aliansi_store_admin_auth',
   AUDIO_MUTED: 'aliansi_store_audio_muted',
   THEME: 'aliansi_theme',
-  USERS_DB: 'aliansi_store_users_v3'
+  USERS_DB: 'aliansi_store_users_v3',
+  GAME_REQUESTS: 'aliansi_store_game_requests_v1'
 };
 
 // Permanent High-Resolution Local & Fallback Poster Map (14 Official Sub Indo Titles)
@@ -96,7 +97,11 @@ const state = {
   checkoutType: 'guest',
   adminFilter: 'all',
   currentInvoice: null,
-  orderToFulfill: null
+  orderToFulfill: null,
+  gameRequests: [],
+  adminRequestFilter: 'all',
+  selectedRequestForConfirm: null,
+  lastCreatedRequest: null
 };
 
 // ================= SUPABASE CLOUD DATABASE ADAPTER =================
@@ -397,10 +402,27 @@ function loadStoredData() {
 
   // Admin Session
   state.isAdmin = localStorage.getItem(APP_STORAGE_KEYS.ADMIN_AUTH) === 'true';
+
+  // Game Requests (Customer Requests)
+  const storedReqs = localStorage.getItem(APP_STORAGE_KEYS.GAME_REQUESTS);
+  if (storedReqs) {
+    try {
+      state.gameRequests = JSON.parse(storedReqs);
+    } catch (e) {
+      state.gameRequests = typeof INITIAL_GAME_REQUESTS !== 'undefined' ? [...INITIAL_GAME_REQUESTS] : [];
+    }
+  } else {
+    state.gameRequests = typeof INITIAL_GAME_REQUESTS !== 'undefined' ? [...INITIAL_GAME_REQUESTS] : [];
+    saveGameRequests();
+  }
 }
 
 function saveUsers() {
   localStorage.setItem(APP_STORAGE_KEYS.USERS_DB, JSON.stringify(state.users));
+}
+
+function saveGameRequests() {
+  localStorage.setItem(APP_STORAGE_KEYS.GAME_REQUESTS, JSON.stringify(state.gameRequests));
 }
 
 function saveProducts() {
@@ -515,6 +537,32 @@ async function syncFromSupabase() {
       localStorage.setItem(APP_STORAGE_KEYS.CONFIG, JSON.stringify(state.config));
       updateStoreContactUI();
     }
+
+    // 4. Fetch Game Requests from Cloud (if table exists)
+    try {
+      const { data: reqs, error: rErr } = await supabaseClient.from('game_requests').select('*').order('created_at', { ascending: false });
+      if (!rErr && reqs && reqs.length > 0) {
+        state.gameRequests = reqs.map(r => ({
+          id: r.id,
+          gameTitle: r.game_title || r.gameTitle,
+          platform: Array.isArray(r.platform) ? r.platform : (typeof r.platform === 'string' ? JSON.parse(r.platform) : []),
+          category: r.category || 'Action & Adventure',
+          customerName: r.customer_name || r.customerName,
+          customerEmail: r.customer_email || r.customerEmail,
+          customerPhone: r.customer_phone || r.customerPhone,
+          notes: r.notes || '',
+          status: r.status || 'PENDING',
+          createdAt: r.created_at,
+          fulfilledAt: r.fulfilled_at,
+          adminNotes: r.admin_notes || ''
+        }));
+        saveGameRequests();
+        renderAdminStats();
+        renderAdminRequestsTable();
+      }
+    } catch (e) {
+      // Graceful fallback to local requests
+    }
   } catch (err) {
     console.warn('Supabase cloud sync notice:', err);
   }
@@ -568,6 +616,28 @@ async function syncConfigToSupabase() {
     }
   } catch (err) {
     console.warn('Supabase sync config notice:', err);
+  }
+}
+
+async function syncGameRequestToSupabase(req) {
+  if (!supabaseClient || !req) return;
+  try {
+    await supabaseClient.from('game_requests').upsert({
+      id: req.id,
+      game_title: req.gameTitle,
+      platform: req.platform,
+      category: req.category,
+      customer_name: req.customerName,
+      customer_email: req.customerEmail,
+      customer_phone: req.customerPhone,
+      notes: req.notes,
+      status: req.status,
+      created_at: req.createdAt,
+      fulfilled_at: req.fulfilledAt,
+      admin_notes: req.adminNotes
+    });
+  } catch (err) {
+    console.warn('Supabase sync game request notice:', err);
   }
 }
 
@@ -1490,6 +1560,12 @@ function closeModals() {
   modals.forEach(m => m.classList.add('hidden'));
   const adminSettings = document.getElementById('modal-admin-settings');
   if (adminSettings) adminSettings.classList.add('hidden');
+  const reqModal = document.getElementById('modal-request-game');
+  if (reqModal) reqModal.classList.add('hidden');
+  const reqSuccessModal = document.getElementById('modal-request-success');
+  if (reqSuccessModal) reqSuccessModal.classList.add('hidden');
+  const confirmReqModal = document.getElementById('modal-admin-confirm-request');
+  if (confirmReqModal) confirmReqModal.classList.add('hidden');
 }
 
 // Quick Buy
@@ -3510,6 +3586,7 @@ function openAdminDashboard() {
     renderAdminStats();
     renderAdminOrdersTable();
     renderAdminProductsTable();
+    renderAdminRequestsTable();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   lucide.createIcons();
@@ -3641,6 +3718,554 @@ function saveAdminSettings() {
   showToast(`Pengaturan berhasil disimpan! WA: ${cleanWa} • Email: ${email}`, 'success', 'Pengaturan Tersimpan');
 }
 
+// ================= GAME REQUESTS MANAGEMENT SYSTEM =================
+function openRequestGameModal(prefillTitle = '') {
+  playSfx('click');
+  const modal = document.getElementById('modal-request-game');
+  if (!modal) return;
+
+  const titleInput = document.getElementById('req-game-title');
+  if (titleInput) {
+    titleInput.value = prefillTitle || '';
+  }
+
+  // Pre-fill customer data if logged in
+  const nameInput = document.getElementById('req-customer-name');
+  const emailInput = document.getElementById('req-customer-email');
+  const phoneInput = document.getElementById('req-customer-phone');
+  const notesInput = document.getElementById('req-notes');
+
+  if (state.currentUser) {
+    if (nameInput) nameInput.value = state.currentUser.name || '';
+    if (emailInput) emailInput.value = state.currentUser.email || '';
+    if (phoneInput) phoneInput.value = state.currentUser.phone || '';
+  }
+
+  if (notesInput && !prefillTitle) {
+    notesInput.value = '';
+  }
+
+  modal.classList.remove('hidden');
+  lucide.createIcons();
+  if (titleInput && !prefillTitle) {
+    setTimeout(() => titleInput.focus(), 150);
+  }
+}
+
+function submitGameRequest() {
+  const titleInput = document.getElementById('req-game-title');
+  const nameInput = document.getElementById('req-customer-name');
+  const emailInput = document.getElementById('req-customer-email');
+  const phoneInput = document.getElementById('req-customer-phone');
+  const catInput = document.getElementById('req-game-category');
+  const notesInput = document.getElementById('req-notes');
+
+  if (!titleInput || !nameInput || !emailInput) return;
+
+  const gameTitle = titleInput.value.trim();
+  const customerName = nameInput.value.trim();
+  const customerEmail = emailInput.value.trim();
+  const customerPhone = phoneInput ? phoneInput.value.trim() : '';
+  const category = catInput ? catInput.value : 'Action & Adventure';
+  const notes = notesInput ? notesInput.value.trim() : '';
+
+  // Get selected platforms
+  const checkedPlats = Array.from(document.querySelectorAll('input[name="req-platform"]:checked')).map(cb => cb.value);
+  const platform = checkedPlats.length > 0 ? checkedPlats : ['PS4 HEN'];
+
+  if (!gameTitle) {
+    showToast('Ketik judul game yang ingin Anda request!', 'warning');
+    titleInput.focus();
+    return;
+  }
+  if (!customerName) {
+    showToast('Masukkan nama Anda untuk identifikasi tiket!', 'warning');
+    nameInput.focus();
+    return;
+  }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!customerEmail || !emailRegex.test(customerEmail)) {
+    showToast('Masukkan alamat email yang valid untuk menerima notifikasi!', 'warning');
+    emailInput.focus();
+    return;
+  }
+
+  const reqId = 'REQ-' + Math.floor(1000 + Math.random() * 9000);
+  const newReq = {
+    id: reqId,
+    gameTitle,
+    platform,
+    category,
+    customerName,
+    customerEmail,
+    customerPhone,
+    notes,
+    status: 'PENDING',
+    createdAt: new Date().toISOString(),
+    fulfilledAt: null,
+    adminNotes: ''
+  };
+
+  if (!Array.isArray(state.gameRequests)) {
+    state.gameRequests = [];
+  }
+  state.gameRequests.unshift(newReq);
+  saveGameRequests();
+
+  if (typeof syncGameRequestToSupabase === 'function') {
+    syncGameRequestToSupabase(newReq);
+  }
+
+  state.lastCreatedRequest = newReq;
+
+  // Close request form
+  closeModals();
+
+  // Populate and show success modal
+  const successModal = document.getElementById('modal-request-success');
+  if (successModal) {
+    const sId = document.getElementById('success-req-id');
+    const sTitle = document.getElementById('success-req-title');
+    const sEmail = document.getElementById('success-req-email');
+    const sAdminEmail = document.getElementById('success-req-admin-email');
+
+    const adminEmail = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
+
+    if (sId) sId.textContent = newReq.id;
+    if (sTitle) sTitle.textContent = `${newReq.gameTitle} (${newReq.platform.join(', ')})`;
+    if (sEmail) sEmail.textContent = newReq.customerEmail;
+    if (sAdminEmail) sAdminEmail.textContent = adminEmail;
+
+    successModal.classList.remove('hidden');
+    lucide.createIcons();
+  }
+
+  playSfx('success');
+  showToast(`Permintaan game "${gameTitle}" berhasil dikirim! Salinan detail siap diteruskan ke email admin.`, 'success', 'Request Diterima');
+
+  // Update Admin view if open
+  renderAdminStats();
+  renderAdminRequestsTable();
+}
+
+function sendCurrentRequestEmailToAdmin() {
+  playSfx('click');
+  const req = state.lastCreatedRequest;
+  if (!req) {
+    showToast('Data permintaan tidak ditemukan.', 'warning');
+    return;
+  }
+
+  const adminEmail = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
+  const storeName = (state.config && state.config.storeName) || 'ALIANSI STORE';
+  const subject = `[REQUEST GAME BARU] ${req.gameTitle} - dari ${req.customerName} (${req.id})`;
+
+  const body = 
+`Halo Admin ${storeName},
+
+Terdapat permintaan game baru dari pelanggan website ${storeName}:
+
+No. Tiket: ${req.id}
+Judul Game: ${req.gameTitle}
+Platform: ${req.platform.join(', ')}
+Kategori: ${req.category}
+Tanggal Request: ${new Date(req.createdAt).toLocaleString('id-ID')}
+
+DATA PELANGGAN:
+Nama: ${req.customerName}
+Email Pelanggan: ${req.customerEmail}
+WhatsApp: ${req.customerPhone || '-'}
+
+CATATAN KHUSUS:
+${req.notes || 'Tidak ada catatan tambahan'}
+
+--------------------------------------------------
+Tiket ini juga telah tercatat otomatis di Dashboard Admin ${storeName}.
+Mohon ditindaklanjuti ketersediaan game tersebut. Terima kasih!`;
+
+  const mailtoUrl = `mailto:${encodeURIComponent(adminEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.open(mailtoUrl, '_blank') || (window.location.href = mailtoUrl);
+  showToast('Aplikasi email dibuka untuk mengirim detail ke admin.', 'info');
+}
+
+function sendCurrentRequestWaToAdmin() {
+  playSfx('click');
+  const req = state.lastCreatedRequest;
+  if (!req) {
+    showToast('Data permintaan tidak ditemukan.', 'warning');
+    return;
+  }
+
+  const adminWa = (state.config && state.config.whatsappNumber) || '6281234567890';
+  const storeName = (state.config && state.config.storeName) || 'ALIANSI STORE';
+  const waText = 
+`Halo Admin ${storeName}, saya telah mengajukan Request Game PlayStation:
+Tiket: ${req.id}
+Judul Game: ${req.gameTitle} (${req.platform.join(', ')})
+Nama Pemohon: ${req.customerName}
+Email: ${req.customerEmail}
+Catatan: ${req.notes || '-'}
+
+Mohon konfirmasi dan info jika game sudah tersedia ya min. Terima kasih!`;
+
+  window.open(`https://wa.me/${adminWa}?text=${encodeURIComponent(waText)}`, '_blank');
+}
+
+function setAdminRequestFilter(filter) {
+  playSfx('hover');
+  state.adminRequestFilter = filter;
+  const tabs = document.querySelectorAll('.admin-req-tab');
+  tabs.forEach(t => {
+    t.classList.remove('bg-purple-600', 'text-white');
+    t.classList.add('bg-slate-800', 'text-slate-400');
+  });
+  const activeTab = document.getElementById(`tab-req-${filter}`);
+  if (activeTab) {
+    activeTab.classList.remove('bg-slate-800', 'text-slate-400');
+    activeTab.classList.add('bg-purple-600', 'text-white');
+  }
+  renderAdminRequestsTable();
+}
+
+function renderAdminRequestsTable() {
+  const tbody = document.getElementById('admin-requests-table-body');
+  if (!tbody) return;
+
+  const filter = state.adminRequestFilter || 'all';
+  let list = state.gameRequests || [];
+
+  if (filter === 'pending') {
+    list = list.filter(r => r.status === 'PENDING');
+  } else if (filter === 'ready') {
+    list = list.filter(r => r.status === 'READY');
+  }
+
+  if (list.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="py-10 text-center text-xs text-slate-500">
+          <i data-lucide="inbox" class="w-8 h-8 text-slate-600 mx-auto mb-2 opacity-50"></i>
+          <div>Belum ada data permintaan game dengan filter ini.</div>
+        </td>
+      </tr>
+    `;
+    lucide.createIcons();
+    return;
+  }
+
+  tbody.innerHTML = list.map(req => {
+    const isPending = req.status === 'PENDING';
+    const dateFormatted = new Date(req.createdAt).toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    const statusBadge = isPending ? `
+      <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1.5 w-fit">
+        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+        <span>MENUNGGU</span>
+      </span>
+    ` : `
+      <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5 w-fit">
+        <i data-lucide="check" class="w-3 h-3 text-emerald-400"></i>
+        <span>SUDAH TERSEDIA</span>
+      </span>
+    `;
+
+    const platforms = Array.isArray(req.platform) ? req.platform : [req.platform];
+
+    return `
+      <tr class="border-b border-slate-800/80 hover:bg-slate-900/40 transition-colors text-xs">
+        <td class="py-3 px-3 font-mono">
+          <div class="font-bold text-purple-400">${req.id}</div>
+          <div class="text-[10px] text-slate-500">${dateFormatted}</div>
+        </td>
+        <td class="py-3 px-3">
+          <div class="font-bold text-white max-w-[200px] truncate" title="${req.gameTitle}">${req.gameTitle}</div>
+          <div class="flex items-center gap-1 mt-1 flex-wrap">
+            <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-purple-950/70 text-purple-300 border border-purple-500/30">${req.category || 'Game'}</span>
+            ${platforms.map(pl => `<span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-sky-950/70 text-sky-300 border border-sky-500/30">${pl}</span>`).join('')}
+          </div>
+        </td>
+        <td class="py-3 px-3">
+          <div class="font-semibold text-slate-200">${req.customerName}</div>
+          <div class="text-[11px] text-sky-400 font-mono">${req.customerEmail}</div>
+          ${req.customerPhone ? `<div class="text-[10px] text-slate-400 font-mono flex items-center gap-1 mt-0.5"><i data-lucide="phone" class="w-2.5 h-2.5 text-emerald-400"></i> ${req.customerPhone}</div>` : ''}
+        </td>
+        <td class="py-3 px-3">
+          <div class="text-[11px] text-slate-300 max-w-[180px] line-clamp-2" title="${req.notes || '-'}">
+            ${req.notes ? `"${req.notes}"` : '<span class="text-slate-500 italic">-</span>'}
+          </div>
+          ${req.adminNotes ? `<div class="text-[10px] text-emerald-400 mt-1"><i data-lucide="info" class="w-2.5 h-2.5 inline"></i> ${req.adminNotes}</div>` : ''}
+        </td>
+        <td class="py-3 px-3">
+          ${statusBadge}
+        </td>
+        <td class="py-3 px-3 text-right">
+          <div class="flex items-center justify-end gap-1.5 flex-wrap">
+            <button onclick="openAdminConfirmRequestModal('${req.id}')" class="px-2.5 py-1.5 rounded-lg ${isPending ? 'bg-purple-600 hover:bg-purple-500 text-white shadow-md' : 'bg-slate-800 hover:bg-slate-700 text-purple-300 border border-purple-500/30'} text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer" title="${isPending ? 'Konfirmasi game sudah ada & kirim email ke customer' : 'Kirim ulang email pemberitahuan ke customer'}">
+              <i data-lucide="${isPending ? 'send' : 'mail'}" class="w-3 h-3"></i>
+              <span>${isPending ? 'Konfirmasi & Email' : 'Kirim Ulang Email'}</span>
+            </button>
+            
+            <button onclick="prefillNewProductFromRequest('${req.id}')" class="p-1.5 rounded-lg bg-sky-950/70 hover:bg-sky-900 text-sky-300 border border-sky-500/30 transition-colors cursor-pointer" title="Jadikan Game Baru di Katalog (Buka Modal Tambah Game)">
+              <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+            </button>
+
+            ${req.customerPhone ? `
+              <button onclick="sendConfirmationWaToCustomer('${req.id}')" class="p-1.5 rounded-lg bg-emerald-950/70 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/30 transition-colors cursor-pointer" title="Kirim Konfirmasi via WhatsApp">
+                <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
+              </button>
+            ` : ''}
+
+            <button onclick="deleteGameRequest('${req.id}')" class="p-1.5 rounded-lg bg-rose-950/50 hover:bg-rose-900 text-rose-300 border border-rose-800/40 transition-colors cursor-pointer" title="Hapus Tiket Request">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  lucide.createIcons();
+}
+
+function openAdminConfirmRequestModal(reqId) {
+  playSfx('click');
+  const req = (state.gameRequests || []).find(r => r.id === reqId);
+  if (!req) {
+    showToast('Data permintaan game tidak ditemukan.', 'warning');
+    return;
+  }
+
+  state.selectedRequestForConfirm = reqId;
+  const modal = document.getElementById('modal-admin-confirm-request');
+  if (!modal) return;
+
+  const idEl = document.getElementById('confirm-req-id');
+  const titleEl = document.getElementById('confirm-req-title');
+  const platEl = document.getElementById('confirm-req-platform');
+  const nameEl = document.getElementById('confirm-req-customer-name');
+  const emailEl = document.getElementById('confirm-req-customer-email');
+  const phoneEl = document.getElementById('confirm-req-customer-phone');
+  const notesEl = document.getElementById('confirm-admin-notes');
+
+  if (idEl) idEl.textContent = req.id;
+  if (titleEl) titleEl.textContent = req.gameTitle;
+  if (platEl) platEl.textContent = Array.isArray(req.platform) ? req.platform.join(', ') : req.platform;
+  if (nameEl) nameEl.textContent = req.customerName;
+  if (emailEl) emailEl.textContent = req.customerEmail;
+  if (phoneEl) phoneEl.textContent = req.customerPhone || 'Tidak ada nomor WA';
+  if (notesEl) notesEl.value = req.adminNotes || 'Game saat ini sudah resmi tersedia di katalog ALIANSI STORE dan siap dipesan/diunduh.';
+
+  updateConfirmEmailPreview();
+  modal.classList.remove('hidden');
+  lucide.createIcons();
+}
+
+function updateConfirmEmailPreview() {
+  const reqId = state.selectedRequestForConfirm;
+  const req = (state.gameRequests || []).find(r => r.id === reqId);
+  if (!req) return;
+
+  const previewEl = document.getElementById('confirm-email-preview');
+  if (!previewEl) return;
+
+  const notesEl = document.getElementById('confirm-admin-notes');
+  const customNotes = notesEl ? notesEl.value.trim() : '';
+  const storeName = (state.config && state.config.storeName) || 'ALIANSI STORE';
+  const wa = (state.config && state.config.whatsappNumber) || '6281234567890';
+  const platforms = Array.isArray(req.platform) ? req.platform.join(', ') : req.platform;
+
+  previewEl.textContent = 
+`Kepada: ${req.customerEmail}
+Subjek: [${storeName}] Hore! Game Request Anda "${req.gameTitle}" Sudah Tersedia!
+
+Halo ${req.customerName},
+
+Kabar gembira dari ${storeName}!
+Permintaan game PlayStation yang Anda ajukan sebelumnya:
+• No. Tiket: ${req.id}
+• Judul Game: ${req.gameTitle}
+• Platform: ${platforms}
+
+Saat ini SUDAH RESMI TERSEDIA di katalog website kami dan siap Anda pesan/unduh!
+
+${customNotes ? 'Catatan Toko:\n' + customNotes + '\n\n' : ''}Silakan kunjungi website resmi kami untuk melakukan pemesanan:
+https://aliansi-store.netlify.app/
+
+Jika Anda membutuhkan bantuan pemesanan atau panduan instalasi file PKG, hubungi WhatsApp Customer Service kami di: https://wa.me/${wa}
+
+Terima kasih atas kepercayaan Anda pada ${storeName}!
+
+Salam hangat,
+Tim Operator ${storeName}`;
+}
+
+function sendConfirmationEmailToCustomer(reqId = null) {
+  playSfx('click');
+  const targetId = reqId || state.selectedRequestForConfirm;
+  const req = (state.gameRequests || []).find(r => r.id === targetId);
+  if (!req) {
+    showToast('Data permintaan tidak ditemukan.', 'warning');
+    return;
+  }
+
+  const notesEl = document.getElementById('confirm-admin-notes');
+  const customNotes = notesEl ? notesEl.value.trim() : '';
+
+  // Update status to READY
+  req.status = 'READY';
+  req.fulfilledAt = new Date().toISOString();
+  if (customNotes) {
+    req.adminNotes = customNotes;
+  }
+  saveGameRequests();
+
+  if (typeof syncGameRequestToSupabase === 'function') {
+    syncGameRequestToSupabase(req);
+  }
+
+  const storeName = (state.config && state.config.storeName) || 'ALIANSI STORE';
+  const wa = (state.config && state.config.whatsappNumber) || '6281234567890';
+  const platforms = Array.isArray(req.platform) ? req.platform.join(', ') : req.platform;
+
+  const subject = `[${storeName}] Hore! Game Request Anda "${req.gameTitle}" Sudah Tersedia di Katalog!`;
+  const body = 
+`Halo ${req.customerName},
+
+Kabar gembira dari ${storeName}!
+Permintaan game PlayStation yang Anda ajukan sebelumnya:
+- No. Tiket: ${req.id}
+- Judul Game: ${req.gameTitle}
+- Platform: ${platforms}
+
+Saat ini SUDAH RESMI TERSEDIA di katalog website kami dan siap Anda pesan / download!
+
+${customNotes ? 'Catatan Toko:\n' + customNotes + '\n\n' : ''}Silakan kunjungi website resmi kami untuk melakukan pemesanan:
+https://aliansi-store.netlify.app/
+
+Jika Anda membutuhkan bantuan pemesanan atau panduan instalasi file PKG, silakan hubungi WhatsApp CS kami:
+WhatsApp CS: +${wa} (https://wa.me/${wa})
+
+Terima kasih atas kesabaran dan kepercayaan Anda pada ${storeName}!
+
+Salam hangat,
+Tim Operator ${storeName}`;
+
+  const mailtoUrl = `mailto:${encodeURIComponent(req.customerEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.open(mailtoUrl, '_blank') || (window.location.href = mailtoUrl);
+
+  closeModals();
+  playSfx('success');
+  showToast(`Status game diubah menjadi TERSEDIA! Aplikasi email dibuka untuk mengirim konfirmasi ke ${req.customerEmail}.`, 'success', 'Konfirmasi Terkirim');
+
+  renderAdminStats();
+  renderAdminRequestsTable();
+}
+
+function sendConfirmationWaToCustomer(reqId = null) {
+  playSfx('click');
+  const targetId = reqId || state.selectedRequestForConfirm;
+  const req = (state.gameRequests || []).find(r => r.id === targetId);
+  if (!req) return;
+
+  if (!req.customerPhone) {
+    showToast('Pelanggan ini tidak mencantumkan nomor WhatsApp.', 'warning');
+    return;
+  }
+
+  let cleanPhone = req.customerPhone.replace(/[^0-9]/g, '');
+  if (cleanPhone.startsWith('0')) {
+    cleanPhone = '62' + cleanPhone.slice(1);
+  }
+
+  const storeName = (state.config && state.config.storeName) || 'ALIANSI STORE';
+  const platforms = Array.isArray(req.platform) ? req.platform.join(', ') : req.platform;
+
+  const waText = 
+`Halo Kak ${req.customerName}, kabar gembira dari ${storeName}! 🎮
+Permintaan game PlayStation yang Kakak request sebelumnya:
+🕹️ Judul: ${req.gameTitle} (${platforms})
+Tiket: ${req.id}
+
+Saat ini SUDAH RESMI TERSEDIA di katalog kami dan siap dipesan/didownload!
+Silakan cek di website kami: https://aliansi-store.netlify.app/
+
+Ada yang ingin ditanyakan min? Silakan balas chat ini ya Kak! Terima kasih.`;
+
+  window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(waText)}`, '_blank');
+}
+
+function prefillNewProductFromRequest(reqId = null) {
+  playSfx('click');
+  const targetId = reqId || state.selectedRequestForConfirm;
+  const req = (state.gameRequests || []).find(r => r.id === targetId);
+  if (!req) return;
+
+  closeModals();
+  openAddProductModal();
+
+  const titleInput = document.getElementById('new-game-title');
+  if (titleInput) {
+    titleInput.value = req.gameTitle;
+  }
+
+  // Pre-check platforms
+  const plats = Array.isArray(req.platform) ? req.platform : [req.platform];
+  document.querySelectorAll('input[name="new-game-platform"]').forEach(cb => {
+    cb.checked = plats.some(p => p.toLowerCase().includes(cb.value.toLowerCase()));
+  });
+
+  const catSelect = document.getElementById('new-game-category');
+  if (catSelect && req.category) {
+    // Map or set category if matches
+    for (let opt of catSelect.options) {
+      if (opt.value.toLowerCase() === req.category.toLowerCase() || opt.text.toLowerCase().includes(req.category.toLowerCase())) {
+        catSelect.value = opt.value;
+        break;
+      }
+    }
+  }
+
+  const descInput = document.getElementById('new-game-desc');
+  if (descInput) {
+    descInput.value = `Game ${req.gameTitle} PlayStation dengan performa lancar, koleksi terlengkap, dan file Google Drive link cepat untuk pelanggan ALIANSI STORE.`;
+  }
+
+  showToast(`Data dari request "${req.gameTitle}" berhasil disalin ke formulir Game Baru! Silakan lengkapi harga dan gambar.`, 'info', 'Formulir Terisi');
+}
+
+function deleteGameRequest(reqId) {
+  playSfx('click');
+  const idx = (state.gameRequests || []).findIndex(r => r.id === reqId);
+  if (idx === -1) return;
+
+  const req = state.gameRequests[idx];
+  if (!confirm(`Hapus tiket permintaan game "${req.gameTitle}" (${req.id})?`)) {
+    return;
+  }
+
+  state.gameRequests.splice(idx, 1);
+  saveGameRequests();
+
+  if (supabaseClient) {
+    try {
+      supabaseClient.from('game_requests').delete().eq('id', reqId);
+    } catch (e) {
+      // Ignore
+    }
+  }
+
+  playSfx('success');
+  showToast(`Tiket request ${reqId} berhasil dihapus.`, 'info');
+  renderAdminStats();
+  renderAdminRequestsTable();
+}
+
 function renderAdminStats() {
   const totalRev = state.orders.reduce((sum, o) => o.paymentStatus === 'PAID' ? sum + o.total : sum, 0);
   const totalOrders = state.orders.length;
@@ -3651,6 +4276,13 @@ function renderAdminStats() {
   document.getElementById('stat-total-orders').textContent = totalOrders;
   document.getElementById('stat-pending-fulfill').textContent = pendingFulfill;
   document.getElementById('stat-total-products').textContent = totalGames;
+
+  const totalRequests = (state.gameRequests || []).length;
+  const pendingRequests = (state.gameRequests || []).filter(r => r.status === 'PENDING').length;
+  const statReqEl = document.getElementById('stat-total-requests');
+  if (statReqEl) statReqEl.textContent = totalRequests;
+  const badgeReq = document.getElementById('badge-pending-requests');
+  if (badgeReq) badgeReq.textContent = `${pendingRequests} Menunggu`;
 
   const badge = document.getElementById('admin-pending-badge');
   if (badge) {

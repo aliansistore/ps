@@ -1366,6 +1366,15 @@
           </button>
 
           <button 
+            onclick="openRequestGameModal()" 
+            class="px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-purple-950/90 to-sky-950/90 hover:from-purple-900 hover:to-sky-900 text-purple-300 hover:text-white border border-purple-500/40 hover:border-purple-400 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+            title="Request Game PlayStation yang Belum Ada di Katalog"
+          >
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-purple-400 animate-pulse"></i>
+            <span class="hidden sm:inline">Request Game</span>
+          </button>
+
+          <button 
             onclick="openCartDrawer()" 
             class="relative p-2 sm:px-3.5 sm:py-1.5 rounded-full text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 hover:border-sky-500/50 transition-all flex items-center gap-1.5"
             title="Keranjang Belanja"
@@ -1740,10 +1749,33 @@
           <i data-lucide="search-x" class="w-8 h-8"></i>
         </div>
         <h3 class="text-base font-bold text-white mb-1">Game Tidak Ditemukan</h3>
-        <p id="products-empty-msg" class="text-xs text-slate-400 max-w-sm mx-auto mb-4">Coba cari dengan kata kunci lain (misal: "Sub Indo", "RPG", "Resident Evil") atau reset pencarian.</p>
-        <button onclick="clearCatalogSearch()" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-xs font-bold text-white shadow-lg shadow-sky-600/30 cursor-pointer transition-all">
-          Reset Pencarian & Tampilkan Semua Game
-        </button>
+        <p id="products-empty-msg" class="text-xs text-slate-400 max-w-sm mx-auto mb-4">Coba cari dengan kata kunci lain (misal: "Sub Indo", "RPG", "Resident Evil") atau request game langsung ke tim kami.</p>
+        <div class="flex items-center justify-center gap-3 flex-wrap">
+          <button onclick="clearCatalogSearch()" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-xs font-bold text-white shadow-lg shadow-sky-600/30 cursor-pointer transition-all">
+            Reset Pencarian
+          </button>
+          <button onclick="openRequestGameModal(state.searchQuery)" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-xs font-bold text-white shadow-lg shadow-purple-600/30 flex items-center gap-1.5 cursor-pointer transition-all">
+            <i data-lucide="sparkles" class="w-4 h-4"></i> Request Game Ini ke Admin
+          </button>
+        </div>
+      </div>
+
+      <!-- Request Game Callout Banner -->
+      <div class="mt-12 p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#0c132c] via-[#14143a] to-[#0d1c3a] border border-purple-500/30 relative overflow-hidden shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="relative z-10 max-w-xl text-center md:text-left">
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[11px] font-bold mb-3">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-purple-400"></i> LAYANAN REQUEST GAME
+          </div>
+          <h3 class="text-xl sm:text-2xl font-black text-white font-display leading-tight mb-2">Game yang Kamu Cari Belum Ada di Katalog?</h3>
+          <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            Tenang! Tim <strong>ALIANSI STORE</strong> siap mencarikan game PS4 HEN, Sub Indo, atau Digital impianmu. Kamu akan menerima pemberitahuan email otomatis saat game sudah tersedia!
+          </p>
+        </div>
+        <div class="relative z-10 shrink-0">
+          <button onclick="openRequestGameModal()" class="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-sky-600 hover:from-purple-500 hover:to-sky-500 text-white font-black text-xs sm:text-sm shadow-xl shadow-purple-600/30 flex items-center gap-2 transform hover:scale-105 active:scale-95 transition-all cursor-pointer">
+            <i data-lucide="gamepad-2" class="w-5 h-5"></i> Request Game Sekarang
+          </button>
+        </div>
       </div>
     </main>
 
@@ -1751,6 +1783,10 @@
     <div class="gamepad-hud hidden md:flex items-center gap-4">
       <button onclick="focusCatalogSearch()" class="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white cursor-pointer">
         <span class="ps-triangle font-bold">△</span> <span>Cari</span>
+      </button>
+      <div class="h-4 w-px bg-slate-700"></div>
+      <button onclick="openRequestGameModal()" class="flex items-center gap-1.5 text-xs text-purple-300 hover:text-purple-200 cursor-pointer" title="Request Game PlayStation">
+        <span class="ps-cross font-bold text-purple-400">✕</span> <span>Request Game</span>
       </button>
       <div class="h-4 w-px bg-slate-700"></div>
       <button onclick="openCartDrawer()" class="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white">
@@ -1868,7 +1904,7 @@
     </header>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
         <div class="p-5 rounded-2xl bg-[#081024] border border-slate-800">
           <div class="flex items-center justify-between mb-2">
             <span class="text-xs font-medium text-slate-400">Total Omset</span>
@@ -1889,11 +1925,11 @@
 
         <div class="p-5 rounded-2xl bg-[#081024] border border-sky-500/40 relative overflow-hidden">
           <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-bold text-sky-300">Perlu Diproses (Fulfillment)</span>
+            <span class="text-xs font-bold text-sky-300">Perlu Diproses</span>
             <i data-lucide="key" class="w-4 h-4 text-sky-400"></i>
           </div>
           <div id="stat-pending-fulfill" class="text-xl sm:text-2xl font-black text-sky-400 font-display">0</div>
-          <div class="text-[10px] text-sky-300/80 mt-1">Kirimkan akun ke pembeli</div>
+          <div class="text-[10px] text-sky-300/80 mt-1">Kirim akun / file ke pembeli</div>
         </div>
 
         <div class="p-5 rounded-2xl bg-[#081024] border border-slate-800">
@@ -1903,6 +1939,15 @@
           </div>
           <div id="stat-total-products" class="text-xl sm:text-2xl font-black text-white font-display">0</div>
           <div class="text-[10px] text-slate-500 mt-1">Game di katalog</div>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-[#081024] border border-purple-500/40 relative overflow-hidden">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold text-purple-300">Request Game</span>
+            <i data-lucide="sparkles" class="w-4 h-4 text-purple-400"></i>
+          </div>
+          <div id="stat-total-requests" class="text-xl sm:text-2xl font-black text-purple-400 font-display">0</div>
+          <div class="text-[10px] text-purple-300/80 mt-1">Permintaan game masuk</div>
         </div>
       </div>
 
@@ -1983,6 +2028,47 @@
               </tr>
             </thead>
             <tbody id="admin-products-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Request Game Section (Customer Requests Management) -->
+      <section class="p-5 sm:p-6 rounded-2xl bg-[#081024] border border-slate-800 mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+          <div>
+            <h3 class="text-lg font-bold text-white font-display flex items-center gap-2">
+              <i data-lucide="sparkles" class="w-5 h-5 text-purple-400"></i>
+              <span>Daftar Permintaan Game Customer (Game Requests)</span>
+              <span id="badge-pending-requests" class="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-500/20 text-purple-300 border border-purple-500/30">0 Menunggu</span>
+            </h3>
+            <p class="text-xs text-slate-400">Kelola permintaan game dari pelanggan, tindak lanjuti ketersediaan game, dan kirim konfirmasi email otomatis ke pelanggan.</p>
+          </div>
+
+          <div class="flex items-center gap-2 flex-wrap">
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-1">
+              <button id="tab-req-all" onclick="setAdminRequestFilter('all')" class="admin-req-tab px-3 py-1.5 rounded-lg text-xs font-bold bg-purple-600 text-white">Semua</button>
+              <button id="tab-req-pending" onclick="setAdminRequestFilter('pending')" class="admin-req-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white">Menunggu</button>
+              <button id="tab-req-ready" onclick="setAdminRequestFilter('ready')" class="admin-req-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white">Sudah Tersedia</button>
+            </div>
+            <button onclick="openRequestGameModal()" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-purple-950/70 hover:bg-purple-900 text-purple-300 border border-purple-500/40 flex items-center gap-1.5 shadow" title="Tambah / Input data request manual">
+              <i data-lucide="plus" class="w-3.5 h-3.5 text-purple-400"></i> Request Manual
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-900/60">
+                <th class="py-3 px-3">No. Tiket</th>
+                <th class="py-3 px-3">Judul & Platform</th>
+                <th class="py-3 px-3">Customer</th>
+                <th class="py-3 px-3">Catatan</th>
+                <th class="py-3 px-3">Status</th>
+                <th class="py-3 px-3 text-right">Tindak Lanjut Admin</th>
+              </tr>
+            </thead>
+            <tbody id="admin-requests-table-body"></tbody>
           </table>
         </div>
       </section>
@@ -3146,6 +3232,253 @@
     </div>
   </div>
 
+  <!-- MODAL: Request Game PlayStation (Customer) -->
+  <div id="modal-request-game" class="app-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+    <div class="bg-white dark:bg-[#070d1e] border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-7 max-w-lg w-full max-h-[92vh] overflow-y-auto modal-custom-scroll shadow-2xl relative text-slate-900 dark:text-white" onclick="event.stopPropagation()">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-purple-500/10 text-purple-400 flex items-center justify-center border border-purple-500/20 shadow-sm">
+            <i data-lucide="gamepad-2" class="w-5 h-5 text-purple-400"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white font-display">Request Game PlayStation</h3>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400">Beri tahu kami game PS4 / PS5 yang ingin kamu mainkan</p>
+          </div>
+        </div>
+        <button onclick="closeModals()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800/80 text-slate-400 hover:text-white flex items-center justify-center transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form onsubmit="event.preventDefault(); submitGameRequest();" class="space-y-4 pt-2">
+        <!-- Judul Game -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
+            <i data-lucide="disc" class="w-3.5 h-3.5 text-purple-400"></i>
+            <span>Judul Game yang Diinginkan *</span>
+          </label>
+          <input type="text" id="req-game-title" required placeholder="Contoh: Silent Hill 2 Remake, Dragon Ball Sparking Zero, etc." class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-purple-500 font-semibold" />
+        </div>
+
+        <!-- Platform & Kategori Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
+              <i data-lucide="cpu" class="w-3.5 h-3.5 text-sky-400"></i>
+              <span>Pilihan Platform *</span>
+            </label>
+            <div class="flex items-center gap-2 flex-wrap text-xs">
+              <label class="flex items-center gap-1.5 cursor-pointer px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700">
+                <input type="checkbox" name="req-platform" value="PS4 HEN" checked class="rounded text-purple-500 focus:ring-purple-400" />
+                <span class="font-bold text-[11px]">PS4 HEN</span>
+              </label>
+              <label class="flex items-center gap-1.5 cursor-pointer px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700">
+                <input type="checkbox" name="req-platform" value="PS5" class="rounded text-purple-500 focus:ring-purple-400" />
+                <span class="font-bold text-[11px]">PS5</span>
+              </label>
+              <label class="flex items-center gap-1.5 cursor-pointer px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700">
+                <input type="checkbox" name="req-platform" value="PS4 Digital" class="rounded text-purple-500 focus:ring-purple-400" />
+                <span class="font-bold text-[11px]">PS4 Digital</span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
+              <i data-lucide="tag" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span>Genre / Kategori</span>
+            </label>
+            <select id="req-game-category" class="w-full px-3 py-2 text-xs rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:border-purple-500">
+              <option value="Action & Adventure">⚔️ Action & Adventure</option>
+              <option value="RPG">🛡️ RPG</option>
+              <option value="Horror & Survival">🧟 Horror & Survival</option>
+              <option value="Sports & Racing">⚽ Sports & Racing</option>
+              <option value="Shooter & FPS">🎯 Shooter & FPS</option>
+              <option value="Co-op & Family">👥 Co-op & Family</option>
+              <option value="Fighting">🥊 Fighting</option>
+              <option value="Lainnya">🎮 Lainnya</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Data Customer -->
+        <div class="p-3.5 rounded-2xl bg-slate-100/70 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 space-y-3">
+          <div class="text-[11px] font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+            <i data-lucide="user-check" class="w-3.5 h-3.5 text-sky-400"></i>
+            <span>Data Kontak Anda (Untuk Notifikasi Email)</span>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">Nama Lengkap / Panggilan *</label>
+            <input type="text" id="req-customer-name" required placeholder="Contoh: Rian Pratama" class="w-full px-3 py-2 text-xs rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-purple-500" />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1 flex items-center gap-1">
+                <span>Alamat Email (Wajib) *</span>
+              </label>
+              <input type="email" id="req-customer-email" required placeholder="nama@gmail.com" class="w-full px-3 py-2 text-xs rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-purple-500 font-mono text-[11px]" />
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">No. WhatsApp (Opsional)</label>
+              <input type="tel" id="req-customer-phone" placeholder="Contoh: 081234567890" class="w-full px-3 py-2 text-xs rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-purple-500 font-mono text-[11px]" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Catatan Tambahan -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
+            <i data-lucide="message-square" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>Catatan / Keterangan Khusus (Opsional)</span>
+          </label>
+          <textarea id="req-notes" rows="2" placeholder="Contoh: Tolong cari yang sudah ada Subtitle Indonesia, include DLC, atau patch terbaru ya min..." class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-purple-500"></textarea>
+        </div>
+
+        <!-- Info Note -->
+        <div class="p-3 rounded-2xl bg-purple-950/30 border border-purple-500/20 flex items-start gap-2.5 text-[11px] text-purple-200">
+          <i data-lucide="info" class="w-4 h-4 text-purple-400 shrink-0 mt-0.5"></i>
+          <span>Permintaan ini akan otomatis masuk ke <strong>Dashboard Admin</strong> dan dikirimkan ke <strong>Email Admin</strong> untuk segera dicarikan file game-nya.</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 pt-2">
+          <button type="button" onclick="closeModals()" class="py-2.5 px-4 rounded-xl text-xs font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors">Batal</button>
+          <button type="submit" class="py-2.5 px-4 rounded-xl text-xs font-bold bg-gradient-to-r from-purple-600 to-sky-600 hover:from-purple-500 hover:to-sky-500 text-white shadow-md flex items-center justify-center gap-1.5 transition-all">
+            <i data-lucide="send" class="w-3.5 h-3.5"></i> Kirim Permintaan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Request Game Berhasil Dikirim (Success & Mailto to Admin) -->
+  <div id="modal-request-success" class="app-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+    <div class="bg-white dark:bg-[#070d1e] border border-emerald-500/40 rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl relative text-center text-slate-900 dark:text-white" onclick="event.stopPropagation()">
+      <div class="w-14 h-14 rounded-2xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center mx-auto mb-4 border border-emerald-500/30 shadow-lg">
+        <i data-lucide="check-circle-2" class="w-8 h-8 text-emerald-400"></i>
+      </div>
+      <h3 class="text-lg font-black text-slate-900 dark:text-white font-display mb-1">Permintaan Game Berhasil Dikirim!</h3>
+      <p class="text-xs text-slate-600 dark:text-slate-300 mb-4 leading-relaxed">
+        Tiket request Anda telah tercatat dengan kode: <strong id="success-req-id" class="text-purple-400 font-mono font-bold">REQ-XXXX</strong>
+      </p>
+
+      <div class="p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 text-left text-xs space-y-2 mb-5">
+        <div class="flex items-center justify-between">
+          <span class="text-slate-400 text-[11px]">Judul Game:</span>
+          <span id="success-req-title" class="font-bold text-slate-900 dark:text-white truncate max-w-[200px]"></span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-slate-400 text-[11px]">Email Anda:</span>
+          <span id="success-req-email" class="font-mono text-sky-400 text-[11px]"></span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-slate-400 text-[11px]">Email Admin Toko:</span>
+          <span id="success-req-admin-email" class="font-mono text-emerald-400 text-[11px]"></span>
+        </div>
+      </div>
+
+      <div class="space-y-2.5">
+        <button id="btn-trigger-mail-admin" onclick="sendCurrentRequestEmailToAdmin()" class="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer">
+          <i data-lucide="mail" class="w-4 h-4"></i> Kirim Notifikasi ke Email Admin
+        </button>
+        <button id="btn-trigger-wa-admin" onclick="sendCurrentRequestWaToAdmin()" class="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/30 flex items-center justify-center gap-2 transition-colors cursor-pointer">
+          <i data-lucide="message-square" class="w-4 h-4"></i> Konfirmasi Cepat via WhatsApp CS
+        </button>
+        <button onclick="closeModals()" class="w-full py-2 px-4 rounded-xl text-xs font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors">
+          Selesai & Kembali ke Toko
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Tindak Lanjut Admin & Konfirmasi Game Sudah Ada -->
+  <div id="modal-admin-confirm-request" class="app-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+    <div class="bg-white dark:bg-[#070d1e] border border-purple-500/40 rounded-3xl p-6 sm:p-7 max-w-lg w-full max-h-[92vh] overflow-y-auto modal-custom-scroll shadow-2xl relative text-slate-900 dark:text-white" onclick="event.stopPropagation()">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-purple-500/10 text-purple-400 flex items-center justify-center border border-purple-500/20 shadow-sm">
+            <i data-lucide="check-check" class="w-5 h-5 text-purple-400"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white font-display">Konfirmasi Game Tersedia</h3>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400">Kirim email pemberitahuan resmi ke pelanggan</p>
+          </div>
+        </div>
+        <button onclick="closeModals()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800/80 text-slate-400 hover:text-white flex items-center justify-center transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4 pt-3">
+        <!-- Request Summary Card -->
+        <div class="p-4 rounded-2xl bg-slate-100 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 text-xs space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400 text-[11px]">No. Tiket:</span>
+            <span id="confirm-req-id" class="font-mono text-purple-400 font-bold"></span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400 text-[11px]">Game yang Diminta:</span>
+            <span id="confirm-req-title" class="font-bold text-slate-900 dark:text-white"></span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400 text-[11px]">Platform:</span>
+            <span id="confirm-req-platform" class="text-sky-400 font-mono text-[11px]"></span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400 text-[11px]">Nama Pelanggan:</span>
+            <span id="confirm-req-customer-name" class="font-medium text-slate-900 dark:text-white"></span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400 text-[11px]">Email Pelanggan:</span>
+            <span id="confirm-req-customer-email" class="font-mono text-emerald-400 text-[11px]"></span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400 text-[11px]">WhatsApp:</span>
+            <span id="confirm-req-customer-phone" class="font-mono text-slate-300 text-[11px]"></span>
+          </div>
+        </div>
+
+        <!-- Catatan Admin untuk Customer -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
+            <i data-lucide="file-text" class="w-3.5 h-3.5 text-sky-400"></i>
+            <span>Pesan / Catatan Tambahan Toko (Opsional)</span>
+          </label>
+          <input type="text" id="confirm-admin-notes" oninput="updateConfirmEmailPreview()" placeholder="Contoh: Game sudah siap diupload di Google Drive & katalog dengan Sub Indo!" class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-purple-500" />
+        </div>
+
+        <!-- Pratinjau Teks Email -->
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+              <i data-lucide="mail" class="w-3.5 h-3.5 text-purple-400"></i> Pratinjau Isi Email ke Customer:
+            </span>
+            <span class="text-[10px] text-purple-400 font-mono">Format Otomatis</span>
+          </div>
+          <div id="confirm-email-preview" class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-[11px] text-slate-300 font-mono whitespace-pre-line max-h-36 overflow-y-auto"></div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="space-y-2 pt-2">
+          <button id="btn-dispatch-customer-email" onclick="sendConfirmationEmailToCustomer()" class="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-gradient-to-r from-purple-600 to-sky-600 hover:from-purple-500 hover:to-sky-500 text-white shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer">
+            <i data-lucide="send" class="w-4 h-4"></i> Tandai Tersedia & Buka Pengiriman Email
+          </button>
+          
+          <div class="grid grid-cols-2 gap-2">
+            <button id="btn-dispatch-customer-wa" onclick="sendConfirmationWaToCustomer()" class="py-2 px-3 rounded-xl text-xs font-bold bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/30 flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
+              <i data-lucide="message-square" class="w-3.5 h-3.5"></i> Kirim via WA
+            </button>
+            <button onclick="prefillNewProductFromRequest()" class="py-2 px-3 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 flex items-center justify-center gap-1.5 transition-colors cursor-pointer" title="Buka modal Tambah Game Baru dan isi otomatis dari judul request ini">
+              <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Buat Game di Katalog
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: Image Lightbox Preview (Full Size View) -->
   <div id="modal-image-lightbox" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md transition-opacity duration-300" onclick="closeImageLightbox()">
     <div class="relative max-w-4xl w-full max-h-[92vh] flex flex-col items-center justify-center" onclick="event.stopPropagation()">
@@ -3242,7 +3575,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261107_settings_v4"></script>
-  <script src="assets/app.js?v=20261107_settings_v4"></script>
+  <script src="assets/products-data.js?v=20261107_requestgame_v5"></script>
+  <script src="assets/app.js?v=20261107_requestgame_v5"></script>
 </body>
 </html>

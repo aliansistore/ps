@@ -757,3 +757,35 @@ const RECENT_PURCHASES = [
   { name: "Dimas A.", game: "Hogwarts Legacy (Sub Indo)", city: "Semarang", time: "34 mnt lalu" },
   { name: "Satria N.", game: "Stray (Sub Indo)", city: "Denpasar", time: "41 mnt lalu" }
 ];
+
+// Initial Demo Game Requests from Customers
+const INITIAL_GAME_REQUESTS = [
+  {
+    id: "REQ-9012",
+    gameTitle: "Red Dead Redemption 2 (Sub Indo)",
+    platform: ["PS4 HEN"],
+    category: "Action & Adventure",
+    customerName: "Bayu Perkasa",
+    customerEmail: "bayu.perkasa@gmail.com",
+    customerPhone: "081298765432",
+    notes: "Tolong min cari yang sudah ada Subtitle Indonesia dan update patch terbaru v1.29 biar lancar di FW 9.00.",
+    status: "PENDING", // PENDING, READY, REJECTED
+    createdAt: "2026-11-06T10:15:00.000Z",
+    fulfilledAt: null,
+    adminNotes: ""
+  },
+  {
+    id: "REQ-8845",
+    gameTitle: "Elden Ring + DLC Shadow of the Erdtree",
+    platform: ["PS4 HEN", "PS5"],
+    category: "RPG",
+    customerName: "Derry Pratama",
+    customerEmail: "derry.pratama@yahoo.com",
+    customerPhone: "085712348899",
+    notes: "Mau request yang include DLC Shadow of the Erdtree siap pasang file PKG ya min.",
+    status: "READY",
+    createdAt: "2026-11-05T14:30:00.000Z",
+    fulfilledAt: "2026-11-06T08:00:00.000Z",
+    adminNotes: "Sudah diupload ke Google Drive & tersedia di katalog."
+  }
+];
