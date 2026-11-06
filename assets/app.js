@@ -51,11 +51,14 @@ const BACKDROP_MAP = {
 
 function getProductBackdrop(product) {
   if (!product) return '';
-  if (BACKDROP_MAP[product.id]) return BACKDROP_MAP[product.id];
   const imgs = product.images || {};
-  const generic = (u) => !u || u.includes('images.unsplash.com');
-  if (!generic(imgs.backdrop)) return imgs.backdrop;
-  if (!generic(imgs.banner)) return imgs.banner;
+  if (imgs.backdrop && typeof imgs.backdrop === 'string' && imgs.backdrop.trim().length > 0) {
+    return imgs.backdrop;
+  }
+  if (BACKDROP_MAP[product.id]) return BACKDROP_MAP[product.id];
+  if (imgs.banner && typeof imgs.banner === 'string' && imgs.banner.trim().length > 0) {
+    return imgs.banner;
+  }
   return getProductPoster(product);
 }
 
@@ -3817,6 +3820,537 @@ function deleteProduct(productId) {
   }
 }
 
+// ==========================================
+// ADMIN SMART ASSET & CONTENT GENERATOR
+// ==========================================
+
+// Caching and variation state
+window._imageGenIndices = window._imageGenIndices || {};
+window._descGenIndices = window._descGenIndices || {};
+
+// Curated franchise gaming art presets
+const GAME_ART_PRESETS = {
+  're4': {
+    posters: [
+      'assets/covers/re4-remake.jpg',
+      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1920&q=85',
+      'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1920&q=85',
+      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85'
+    ]
+  },
+  'resident evil': {
+    posters: [
+      'assets/covers/re4-remake.jpg',
+      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1920&q=85',
+      'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1920&q=85'
+    ]
+  },
+  'wukong': {
+    posters: [
+      'assets/covers/wukong.jpg',
+      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1920&q=85',
+      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85'
+    ]
+  },
+  'rdr': {
+    posters: [
+      'assets/covers/rdr2.jpg',
+      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85',
+      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85'
+    ]
+  },
+  'fc 25': {
+    posters: [
+      'assets/covers/fc-25.jpg',
+      'assets/covers/pes-2027.jpg',
+      'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1920&q=85',
+      'assets/backdrops/pes-2027.jpg'
+    ]
+  },
+  'fifa': {
+    posters: [
+      'assets/covers/fc-25.jpg',
+      'assets/covers/pes-2027.jpg',
+      'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1920&q=85',
+      'assets/backdrops/pes-2027.jpg'
+    ]
+  },
+  'pes': {
+    posters: [
+      'assets/covers/pes-2027.jpg',
+      'assets/covers/pes-2025.jpg',
+      'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'assets/backdrops/pes-2027.jpg',
+      'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1920&q=85'
+    ]
+  },
+  'god of war': {
+    posters: [
+      'assets/covers/gow-ragnarok.jpg',
+      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'assets/backdrops/gow-ragnarok.jpg',
+      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1920&q=85'
+    ]
+  },
+  'gow': {
+    posters: [
+      'assets/covers/gow-ragnarok.jpg',
+      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'assets/backdrops/gow-ragnarok.jpg',
+      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1920&q=85'
+    ]
+  },
+  'spiderman': {
+    posters: [
+      'assets/covers/spiderman.jpg',
+      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'assets/backdrops/spiderman.jpg',
+      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85'
+    ]
+  },
+  'last of us': {
+    posters: [
+      'assets/covers/tlou-part2.jpg',
+      'assets/covers/tlou-part1.jpg'
+    ],
+    backdrops: [
+      'assets/backdrops/tlou-part2.jpg',
+      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85'
+    ]
+  },
+  'tlou': {
+    posters: [
+      'assets/covers/tlou-part2.jpg',
+      'assets/covers/tlou-part1.jpg'
+    ],
+    backdrops: [
+      'assets/backdrops/tlou-part2.jpg',
+      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85'
+    ]
+  },
+  'gta': {
+    posters: [
+      'assets/covers/gta-v.jpg',
+      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'assets/backdrops/gta-v.jpg',
+      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1920&q=85'
+    ]
+  },
+  'ghost': {
+    posters: [
+      'assets/covers/ghost-tsushima.jpg',
+      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'assets/backdrops/ghost-tsushima.jpg',
+      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85'
+    ]
+  },
+  'hogwarts': {
+    posters: [
+      'assets/covers/hogwarts-legacy.jpg',
+      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'assets/backdrops/hogwarts-legacy.jpg',
+      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1920&q=85'
+    ]
+  },
+  'mortal kombat': {
+    posters: [
+      'assets/covers/mortal-kombat-11.jpg',
+      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'assets/backdrops/mortal-kombat-11.jpg',
+      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85'
+    ]
+  },
+  'uncharted': {
+    posters: [
+      'assets/covers/uncharted-4.jpg',
+      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'assets/backdrops/uncharted-4.jpg',
+      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85'
+    ]
+  },
+  'stray': {
+    posters: [
+      'assets/covers/stray.jpg',
+      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'assets/backdrops/stray.jpg',
+      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1920&q=85'
+    ]
+  },
+  'it takes two': {
+    posters: [
+      'assets/covers/it-takes-two.jpg',
+      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'assets/backdrops/it-takes-two.jpg',
+      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85'
+    ]
+  },
+  'ac': {
+    posters: [
+      'assets/covers/ac-odyssey.jpg',
+      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'assets/backdrops/ac-odyssey.jpg',
+      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85'
+    ]
+  },
+  'assassin': {
+    posters: [
+      'assets/covers/ac-odyssey.jpg',
+      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'assets/backdrops/ac-odyssey.jpg',
+      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85'
+    ]
+  },
+  'watch dogs': {
+    posters: [
+      'assets/covers/watch-dogs.jpg',
+      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'assets/backdrops/watch-dogs.jpg',
+      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1920&q=85'
+    ]
+  },
+  'one piece': {
+    posters: [
+      'assets/covers/one-piece-odyssey.jpg',
+      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'assets/backdrops/one-piece-odyssey.jpg',
+      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85'
+    ]
+  }
+};
+
+// High-resolution genre fallback pools for Posters & 16:9 Backdrops
+const GENRE_ART_PRESETS = {
+  action: {
+    posters: [
+      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1920&q=85',
+      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85',
+      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85'
+    ]
+  },
+  horror: {
+    posters: [
+      'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1920&q=85',
+      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85'
+    ]
+  },
+  rpg: {
+    posters: [
+      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1920&q=85',
+      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85'
+    ]
+  },
+  sports: {
+    posters: [
+      'assets/covers/pes-2027.jpg',
+      'assets/covers/fc-25.jpg',
+      'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'assets/backdrops/pes-2027.jpg',
+      'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1920&q=85'
+    ]
+  },
+  fighting: {
+    posters: [
+      'assets/covers/mortal-kombat-11.jpg',
+      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'assets/backdrops/mortal-kombat-11.jpg',
+      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85'
+    ]
+  },
+  racing: {
+    posters: [
+      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1920&q=85',
+      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1920&q=85'
+    ]
+  },
+  family: {
+    posters: [
+      'assets/covers/it-takes-two.jpg',
+      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'assets/backdrops/it-takes-two.jpg',
+      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85'
+    ]
+  },
+  default: {
+    posters: [
+      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80'
+    ],
+    backdrops: [
+      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1920&q=85',
+      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85',
+      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1920&q=85'
+    ]
+  }
+};
+
+function updateImagePreview(prefix, type) {
+  const inputEl = document.getElementById(`${prefix}-game-${type}`);
+  const previewImg = document.getElementById(`${prefix}-game-${type}-preview`);
+  const placeholder = document.getElementById(`${prefix}-${type}-placeholder`);
+  if (!inputEl || !previewImg || !placeholder) return;
+
+  const url = inputEl.value.trim();
+  if (url) {
+    previewImg.src = url;
+    previewImg.classList.remove('hidden');
+    placeholder.classList.add('hidden');
+  } else {
+    previewImg.src = '';
+    previewImg.classList.add('hidden');
+    placeholder.classList.remove('hidden');
+  }
+}
+
+function handleImageFileUpload(event, prefix, type) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    showToast('Pilih file gambar valid (JPG, PNG, WebP)!', 'warning');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      // Scale down image to fit storage quota comfortably
+      const maxW = type === 'poster' ? 600 : 1280;
+      const maxH = type === 'poster' ? 900 : 720;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > maxW || height > maxH) {
+        if (width / maxW > height / maxH) {
+          height = Math.round((height * maxW) / width);
+          width = maxW;
+        } else {
+          width = Math.round((width * maxH) / height);
+          height = maxH;
+        }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      const inputEl = document.getElementById(`${prefix}-game-${type}`);
+      if (inputEl) {
+        inputEl.value = dataUrl;
+        updateImagePreview(prefix, type);
+      }
+      playSfx('success');
+      showToast(`Gambar ${type === 'poster' ? 'Poster' : 'Background'} berhasil diunggah dari komputer!`, 'success');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
+
+function generateGameImage(prefix, type) {
+  playSfx('click');
+  const titleEl = document.getElementById(`${prefix}-game-title`);
+  const title = titleEl ? titleEl.value.trim() : '';
+
+  if (!title) {
+    showToast('Ketik Judul Game terlebih dahulu untuk generate gambar!', 'warning');
+    if (titleEl) titleEl.focus();
+    return;
+  }
+
+  const titleLower = title.toLowerCase();
+  const catEl = document.getElementById(`${prefix}-game-category`);
+  const category = catEl ? catEl.value : 'action';
+
+  // 1. Try to find a matched franchise in GAME_ART_PRESETS
+  let candidatePool = null;
+  for (const [key, data] of Object.entries(GAME_ART_PRESETS)) {
+    if (titleLower.includes(key)) {
+      candidatePool = type === 'poster' ? data.posters : data.backdrops;
+      break;
+    }
+  }
+
+  // 2. If not matched, fallback to selected category
+  if (!candidatePool || candidatePool.length === 0) {
+    const genreData = GENRE_ART_PRESETS[category] || GENRE_ART_PRESETS.default;
+    candidatePool = type === 'poster' ? genreData.posters : genreData.backdrops;
+  }
+
+  if (!candidatePool || candidatePool.length === 0) {
+    candidatePool = type === 'poster' ? GENRE_ART_PRESETS.default.posters : GENRE_ART_PRESETS.default.backdrops;
+  }
+
+  // 3. Cycle variations repeatedly
+  const stateKey = `${prefix}-${type}-${titleLower}`;
+  const nextIdx = (window._imageGenIndices[stateKey] = (window._imageGenIndices[stateKey] === undefined ? 0 : window._imageGenIndices[stateKey] + 1)) % candidatePool.length;
+  const pickedUrl = candidatePool[nextIdx];
+
+  const inputEl = document.getElementById(`${prefix}-game-${type}`);
+  if (inputEl) {
+    inputEl.value = pickedUrl;
+    updateImagePreview(prefix, type);
+  }
+
+  playSfx('success');
+  showToast(`🎨 ${type === 'poster' ? 'Poster' : 'Wallpaper'} dihasilkan (Variasi ${nextIdx + 1}/${candidatePool.length})! Klik lagi untuk variasi lain.`, 'success', 'AI Generator');
+}
+
+function generateGameDescription(prefix) {
+  playSfx('click');
+  const titleEl = document.getElementById(`${prefix}-game-title`);
+  const title = titleEl ? titleEl.value.trim() : '';
+
+  if (!title) {
+    showToast('Ketik Judul Game terlebih dahulu untuk membuat deskripsi!', 'warning');
+    if (titleEl) titleEl.focus();
+    return;
+  }
+
+  const titleLower = title.toLowerCase();
+  const catEl = document.getElementById(`${prefix}-game-category`);
+  const category = catEl ? catEl.value : 'action';
+  const platformCbs = Array.from(document.querySelectorAll(`input[name="${prefix}-game-platform"]:checked`)).map(cb => cb.value);
+  const platforms = platformCbs.length > 0 ? platformCbs.join(', ') : 'PS4 / PS5';
+  const genreLabel = typeof getCategoryLabel === 'function' ? getCategoryLabel(category) : 'Game PlayStation';
+
+  // Lore / franchise hook snippet
+  let lore = 'Aksi petualangan mendebarkan dengan alur cerita sinematik yang sarat misteri, eksplorasi dunia yang luas, dan gameplay penuh tantangan.';
+  if (titleLower.includes('resident evil') || titleLower.includes('re4') || titleLower.includes('biohazard') || titleLower.includes('silent hill')) {
+    lore = 'Sensasi bertahan hidup dari ancaman horor biologis misterius, mengelola inventaris amunisi terbatas, dan memecahkan teka-teki lingkungan yang sangat menegangkan.';
+  } else if (titleLower.includes('god of war') || titleLower.includes('gow') || titleLower.includes('kratos')) {
+    lore = 'Perjalanan mitologi epik melintasi alam sembilan dewa Nordik yang brutal dan spektakuler, sarat emosi ikatan ayah dan anak dengan pertarungan kapak Leviathan legendaris.';
+  } else if (titleLower.includes('spiderman') || titleLower.includes('spider-man') || titleLower.includes('miles')) {
+    lore = 'Sensasi berayun jaring laba-laba dinamis melintasi gedung pencakar langit kota New York menghadapi para penjahat Sinister Six yang mengancam keselamatan kota.';
+  } else if (titleLower.includes('last of us') || titleLower.includes('tlou') || titleLower.includes('ellie')) {
+    lore = 'Kisah emosional mendalam tentang bertahan hidup, kesetiaan, dan pengorbanan di tengah dunia pasca-pandemi yang hancur dengan mekanik stealth survival paling realistis.';
+  } else if (titleLower.includes('gta') || titleLower.includes('grand theft auto')) {
+    lore = 'Petualangan kriminal dunia terbuka tanpa batas, kebebasan menjelajahi kota besar, misi heists spektakuler, modifikasi kendaraan, dan aksi bebas paling seru.';
+  } else if (titleLower.includes('wukong') || titleLower.includes('black myth')) {
+    lore = 'Kisah Sang Kera Sakti Takdir dalam legenda Tiongkok kuno menghadapi monster mitologi mistis dengan jurus tongkat sakti dinamis dan sihir transformasi memukau.';
+  } else if (titleLower.includes('rdr') || titleLower.includes('red dead')) {
+    lore = 'Kisah geng koboi penjahat legendaris di tanah liar Amerika Barat dengan ekosistem open-world paling hidup, mendalam, dan kaya akan detail sejarah.';
+  } else if (titleLower.includes('pes') || titleLower.includes('fifa') || titleLower.includes('fc 25') || titleLower.includes('football')) {
+    lore = 'Pertandingan sepak bola paling realistis dengan update bursa transfer musim terbaru, jersey anyar, animasi pemain lincah, dan atmosfer stadion berlisensi megah.';
+  } else if (titleLower.includes('hogwarts') || titleLower.includes('harry potter')) {
+    lore = 'Wujudkan impian menjadi murid sekolah sihir legendaris abad ke-19, kuasai mantra sihir kuno, jelajahi Hogsmeade dan Hutan Terlarang tanpa batas.';
+  } else if (titleLower.includes('mortal kombat') || titleLower.includes('tekken')) {
+    lore = 'Pertarungan versus brutal satu lawan satu paling kompetitif dengan combo beruntun tajam, visual sinematik memukau, dan deretan petarung legendaris berlisensi.';
+  } else if (titleLower.includes('it takes two')) {
+    lore = 'Mahakarya petualangan co-op 2 pemain paling seru pemenang Game of the Year yang menyajikan perpaduan komedi emosional dan gameplay variatif tiada henti.';
+  } else if (titleLower.includes('ghost') || titleLower.includes('tsushima')) {
+    lore = 'Perjuangan samurai kehormatan Jin Sakai yang berkorban membela tanah air Tsushima dari serbuan penjajah dengan seni pedang katana mematikan.';
+  }
+
+  // 5 Distinct Variations
+  const variations = [
+    `Rasakan sensasi petualangan kelas dunia dalam ${title} untuk konsol ${platforms}! ${lore} Dioptimalkan secara sempurna untuk menghadirkan performa stabil 60 FPS dan visual sinematik memanjakan mata. Pilihan terbaik untuk pengalaman bermain game yang tak terlupakan. Bergaransi resmi dan siap diunduh instan di ALIANSI STORE.`,
+    `Hadirkan mahakarya ${title} dengan kenyamanan maksimal di konsol ${platforms} Anda! Nikmati dialog alur cerita utama dan instruksi misi yang kini 100% mudah dipahami dengan Full Subtitle Bahasa Indonesia yang rapi. File instalasi game telah teruji bebas bug dan bergaransi anti-revoke selamanya. Belanja game digital aman dan terpercaya hanya di ALIANSI STORE.`,
+    `${title} - Salah satu judul ${genreLabel} paling diminati untuk rental maupun koleksi pribadi gamer ${platforms}! Menyajikan pertempuran spektakuler dengan deretan mode permainan lengkap yang siap dimainkan solo maupun mabar bersama teman. Didukung file PKG / lisensi resmi berkecepatan tinggi via Google Drive. Garansi lancar jaya dan anti-crash 100%!`,
+    `Mahakarya video game peraih rating tinggi yang wajib masuk daftar koleksi Anda! ${title} memaksimalkan kemampuan performa konsol ${platforms} dengan tata cahaya memukau dan audio 3D imersif. Setiap aksi terasa nyata dan mendebarkan. Dapatkan softfile digital lengkap berserta panduan instalasi mudah hanya di ALIANSI STORE.`,
+    `${title} edisi digital & PKG untuk konsol ${platforms}. Kualitas visual HD/4K tajam, update patch terbaru, dan gameplay responsif tanpa macet. Link akses Google Drive resmi otomatis aktif dan dibagikan ke email setelah pesanan sukses. 100% aman, original, dan bergaransi resmi ALIANSI STORE!`
+  ];
+
+  const nextIdx = (window._descGenIndices[prefix] = (window._descGenIndices[prefix] === undefined ? 0 : window._descGenIndices[prefix] + 1)) % variations.length;
+  const chosenDesc = variations[nextIdx];
+
+  const descEl = document.getElementById(`${prefix}-game-desc`);
+  if (descEl) {
+    descEl.value = chosenDesc;
+    descEl.focus();
+  }
+
+  const btnLabel = document.getElementById(`${prefix}-desc-btn-label`);
+  if (btnLabel) {
+    btnLabel.textContent = `Variasi ${nextIdx + 1}/5`;
+  }
+
+  playSfx('success');
+  showToast(`✨ Deskripsi dibuat (Variasi ${nextIdx + 1}/5)! Klik lagi untuk variasi gaya lainnya.`, 'success', 'AI Copywriter');
+}
+
 function openAddProductModal() {
   playSfx('click');
   const modal = document.getElementById('modal-admin-add-product');
@@ -3829,9 +4363,15 @@ function openAddProductModal() {
   const newDriveEl = document.getElementById('new-game-drive-link');
   if (newDriveEl) newDriveEl.value = '';
   document.getElementById('new-game-poster').value = '';
+  const newBackdropEl = document.getElementById('new-game-backdrop');
+  if (newBackdropEl) newBackdropEl.value = '';
   document.getElementById('new-game-desc').value = '';
+  const descLabel = document.getElementById('new-desc-btn-label');
+  if (descLabel) descLabel.textContent = 'Generate AI';
   const preview = document.getElementById('new-game-discount-preview');
   if (preview) preview.classList.add('hidden');
+  updateImagePreview('new', 'poster');
+  updateImagePreview('new', 'backdrop');
   modal.classList.remove('hidden');
   updateDiscountCalc('new');
   lucide.createIcons();
@@ -3953,6 +4493,7 @@ function submitNewProduct() {
   const priceOriginal = priceOriginalInput > pricePrimary ? priceOriginalInput : 0;
   const driveLink = document.getElementById('new-game-drive-link') ? document.getElementById('new-game-drive-link').value.trim() : '';
   const posterUrl = document.getElementById('new-game-poster').value.trim();
+  const backdropUrl = document.getElementById('new-game-backdrop') ? document.getElementById('new-game-backdrop').value.trim() : '';
   const desc = document.getElementById('new-game-desc').value.trim();
 
   if (!title || platformChecked.length === 0 || pricePrimary <= 0) {
@@ -3977,7 +4518,7 @@ function submitNewProduct() {
     tagline: 'Game PlayStation Berkualitas Tinggi ALIANSI STORE',
     images: {
       cover: posterUrl || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=600&q=80',
-      backdrop: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85',
+      backdrop: backdropUrl || posterUrl || 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85',
       poster: posterUrl || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=600&q=80',
       screenshots: []
     },
@@ -4035,8 +4576,16 @@ function openEditProductModal(productId) {
   }
   const editDriveEl = document.getElementById('edit-game-drive-link');
   if (editDriveEl) editDriveEl.value = p.driveLink || '';
-  document.getElementById('edit-game-poster').value = p.images.poster || p.images.cover || '';
-  document.getElementById('edit-game-desc').value = p.description;
+  const posterVal = (p.images && (p.images.poster || p.images.cover)) || '';
+  const backdropVal = (p.images && p.images.backdrop) || '';
+  document.getElementById('edit-game-poster').value = posterVal;
+  const editBackdropEl = document.getElementById('edit-game-backdrop');
+  if (editBackdropEl) editBackdropEl.value = backdropVal;
+  document.getElementById('edit-game-desc').value = p.description || '';
+  const descLabel = document.getElementById('edit-desc-btn-label');
+  if (descLabel) descLabel.textContent = 'Generate AI';
+  updateImagePreview('edit', 'poster');
+  updateImagePreview('edit', 'backdrop');
 
   modal.classList.remove('hidden');
   updateDiscountCalc('edit');
@@ -4060,9 +4609,14 @@ function submitEditProduct() {
   const editDriveEl = document.getElementById('edit-game-drive-link');
   if (editDriveEl) p.driveLink = editDriveEl.value.trim();
   const poster = document.getElementById('edit-game-poster').value.trim();
+  const backdrop = document.getElementById('edit-game-backdrop') ? document.getElementById('edit-game-backdrop').value.trim() : '';
+  if (!p.images) p.images = {};
   if (poster) {
     p.images.poster = poster;
     p.images.cover = poster;
+  }
+  if (backdrop) {
+    p.images.backdrop = backdrop;
   }
   p.description = document.getElementById('edit-game-desc').value.trim();
 

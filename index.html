@@ -2802,10 +2802,64 @@
           </div>
           <span id="new-game-discount-percent" class="px-2.5 py-0.5 rounded-full font-black bg-rose-600 text-white text-[11px] shadow">Diskon 0%</span>
         </div>
+        <!-- URL Poster / Gambar Game -->
         <div>
-          <label class="block text-xs font-bold text-slate-300 mb-1">URL Poster / Gambar Game</label>
-          <input type="url" id="new-game-poster" placeholder="https://..." class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" />
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+              <i data-lucide="image" class="w-3.5 h-3.5 text-sky-400"></i>
+              <span>URL Poster / Gambar Game</span>
+            </label>
+            <div class="flex items-center gap-1.5">
+              <input type="file" id="new-game-poster-file" accept="image/*" class="hidden" onchange="handleImageFileUpload(event, 'new', 'poster')" />
+              <button type="button" onclick="document.getElementById('new-game-poster-file').click()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[10px] font-bold flex items-center gap-1 transition-all" title="Unggah gambar poster dari komputer">
+                <i data-lucide="upload" class="w-3 h-3 text-sky-400"></i> Upload
+              </button>
+              <button type="button" onclick="generateGameImage('new', 'poster')" class="px-2.5 py-1 rounded-lg bg-sky-950/80 hover:bg-sky-900 text-sky-300 border border-sky-500/40 text-[10px] font-bold flex items-center gap-1 shadow transition-all" title="Cari / Generate poster otomatis berdasarkan judul">
+                <i data-lucide="sparkles" class="w-3 h-3 text-sky-400"></i> Generate
+              </button>
+            </div>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <input type="url" id="new-game-poster" oninput="updateImagePreview('new', 'poster')" placeholder="https://... atau klik Upload / Generate" class="flex-1 px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:border-sky-500 font-mono text-[11px]" />
+            <div id="new-poster-preview-container" class="w-[52px] h-[70px] sm:w-[60px] sm:h-[80px] rounded-xl bg-slate-950 border border-slate-700/80 overflow-hidden flex items-center justify-center shrink-0 shadow-inner relative" title="Preview Poster">
+              <img id="new-game-poster-preview" src="" alt="Poster" class="w-full h-full object-cover hidden" onload="this.classList.remove('hidden'); document.getElementById('new-poster-placeholder').classList.add('hidden')" onerror="this.classList.add('hidden'); document.getElementById('new-poster-placeholder').classList.remove('hidden')" />
+              <div id="new-poster-placeholder" class="text-center p-1 text-slate-500 flex flex-col items-center">
+                <i data-lucide="image" class="w-4 h-4 mb-0.5 opacity-60"></i>
+                <span class="text-[8px] font-bold uppercase tracking-wider block scale-90">Cover</span>
+              </div>
+            </div>
+          </div>
         </div>
+
+        <!-- URL Background / Wallpaper Game (Highlight) -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+              <i data-lucide="tv" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span>URL Background / Wallpaper (Highlight)</span>
+            </label>
+            <div class="flex items-center gap-1.5">
+              <input type="file" id="new-game-backdrop-file" accept="image/*" class="hidden" onchange="handleImageFileUpload(event, 'new', 'backdrop')" />
+              <button type="button" onclick="document.getElementById('new-game-backdrop-file').click()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[10px] font-bold flex items-center gap-1 transition-all" title="Unggah background dari komputer">
+                <i data-lucide="upload" class="w-3 h-3 text-amber-400"></i> Upload
+              </button>
+              <button type="button" onclick="generateGameImage('new', 'backdrop')" class="px-2.5 py-1 rounded-lg bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-500/40 text-[10px] font-bold flex items-center gap-1 shadow transition-all" title="Cari / Generate wallpaper 16:9 otomatis berdasarkan judul">
+                <i data-lucide="sparkles" class="w-3 h-3 text-amber-400"></i> Generate
+              </button>
+            </div>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <input type="url" id="new-game-backdrop" oninput="updateImagePreview('new', 'backdrop')" placeholder="https://... atau klik Upload / Generate" class="flex-1 px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:border-amber-500 font-mono text-[11px]" />
+            <div id="new-backdrop-preview-container" class="w-[100px] h-[58px] sm:w-[115px] sm:h-[66px] rounded-xl bg-slate-950 border border-slate-700/80 overflow-hidden flex items-center justify-center shrink-0 shadow-inner relative" title="Preview Wallpaper 16:9">
+              <img id="new-game-backdrop-preview" src="" alt="Backdrop" class="w-full h-full object-cover hidden" onload="this.classList.remove('hidden'); document.getElementById('new-backdrop-placeholder').classList.add('hidden')" onerror="this.classList.add('hidden'); document.getElementById('new-backdrop-placeholder').classList.remove('hidden')" />
+              <div id="new-backdrop-placeholder" class="text-center p-1 text-slate-500 flex flex-col items-center">
+                <i data-lucide="tv" class="w-4 h-4 mb-0.5 opacity-60"></i>
+                <span class="text-[8px] font-bold uppercase tracking-wider block scale-90">16:9 Banner</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div>
           <label class="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
             <span class="flex items-center gap-1.5 text-emerald-400">
@@ -2817,8 +2871,17 @@
           <p class="text-[10px] text-slate-400 mt-1">Link folder/file Google Drive ini yang akan dibagikan secara otomatis ke email pembeli saat pesanan sukses.</p>
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-300 mb-1">Deskripsi Singkat</label>
-          <textarea id="new-game-desc" rows="3" placeholder="Deskripsi game, gameplay & fitur..." class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500"></textarea>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+              <i data-lucide="file-text" class="w-3.5 h-3.5 text-purple-400"></i>
+              <span>Deskripsi Singkat</span>
+            </label>
+            <button type="button" onclick="generateGameDescription('new')" class="px-2.5 py-1 rounded-lg bg-purple-950/80 hover:bg-purple-900 text-purple-300 border border-purple-500/40 text-[10px] font-bold flex items-center gap-1 shadow transition-all" title="Buat kata-kata deskripsi otomatis dari judul game">
+              <i data-lucide="sparkles" class="w-3 h-3 text-purple-400"></i>
+              <span id="new-desc-btn-label">Generate AI</span>
+            </button>
+          </div>
+          <textarea id="new-game-desc" rows="3" placeholder="Deskripsi game, gameplay & fitur (atau klik tombol Generate AI)..." class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-purple-500"></textarea>
         </div>
       </div>
       <div class="grid grid-cols-2 gap-3">
@@ -2896,10 +2959,64 @@
           </div>
           <span id="edit-game-discount-percent" class="px-2.5 py-0.5 rounded-full font-black bg-rose-600 text-white text-[11px] shadow">Diskon 0%</span>
         </div>
+        <!-- URL Poster / Gambar Game -->
         <div>
-          <label class="block text-xs font-bold text-slate-300 mb-1">URL Poster Game</label>
-          <input type="url" id="edit-game-poster" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" />
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+              <i data-lucide="image" class="w-3.5 h-3.5 text-sky-400"></i>
+              <span>URL Poster / Gambar Game</span>
+            </label>
+            <div class="flex items-center gap-1.5">
+              <input type="file" id="edit-game-poster-file" accept="image/*" class="hidden" onchange="handleImageFileUpload(event, 'edit', 'poster')" />
+              <button type="button" onclick="document.getElementById('edit-game-poster-file').click()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[10px] font-bold flex items-center gap-1 transition-all" title="Unggah gambar poster dari komputer">
+                <i data-lucide="upload" class="w-3 h-3 text-sky-400"></i> Upload
+              </button>
+              <button type="button" onclick="generateGameImage('edit', 'poster')" class="px-2.5 py-1 rounded-lg bg-sky-950/80 hover:bg-sky-900 text-sky-300 border border-sky-500/40 text-[10px] font-bold flex items-center gap-1 shadow transition-all" title="Cari / Generate poster otomatis berdasarkan judul">
+                <i data-lucide="sparkles" class="w-3 h-3 text-sky-400"></i> Generate
+              </button>
+            </div>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <input type="url" id="edit-game-poster" oninput="updateImagePreview('edit', 'poster')" placeholder="https://... atau klik Upload / Generate" class="flex-1 px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:border-sky-500 font-mono text-[11px]" />
+            <div id="edit-poster-preview-container" class="w-[52px] h-[70px] sm:w-[60px] sm:h-[80px] rounded-xl bg-slate-950 border border-slate-700/80 overflow-hidden flex items-center justify-center shrink-0 shadow-inner relative" title="Preview Poster">
+              <img id="edit-game-poster-preview" src="" alt="Poster" class="w-full h-full object-cover hidden" onload="this.classList.remove('hidden'); document.getElementById('edit-poster-placeholder').classList.add('hidden')" onerror="this.classList.add('hidden'); document.getElementById('edit-poster-placeholder').classList.remove('hidden')" />
+              <div id="edit-poster-placeholder" class="text-center p-1 text-slate-500 flex flex-col items-center">
+                <i data-lucide="image" class="w-4 h-4 mb-0.5 opacity-60"></i>
+                <span class="text-[8px] font-bold uppercase tracking-wider block scale-90">Cover</span>
+              </div>
+            </div>
+          </div>
         </div>
+
+        <!-- URL Background / Wallpaper Game (Highlight) -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+              <i data-lucide="tv" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span>URL Background / Wallpaper (Highlight)</span>
+            </label>
+            <div class="flex items-center gap-1.5">
+              <input type="file" id="edit-game-backdrop-file" accept="image/*" class="hidden" onchange="handleImageFileUpload(event, 'edit', 'backdrop')" />
+              <button type="button" onclick="document.getElementById('edit-game-backdrop-file').click()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[10px] font-bold flex items-center gap-1 transition-all" title="Unggah background dari komputer">
+                <i data-lucide="upload" class="w-3 h-3 text-amber-400"></i> Upload
+              </button>
+              <button type="button" onclick="generateGameImage('edit', 'backdrop')" class="px-2.5 py-1 rounded-lg bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-500/40 text-[10px] font-bold flex items-center gap-1 shadow transition-all" title="Cari / Generate wallpaper 16:9 otomatis berdasarkan judul">
+                <i data-lucide="sparkles" class="w-3 h-3 text-amber-400"></i> Generate
+              </button>
+            </div>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <input type="url" id="edit-game-backdrop" oninput="updateImagePreview('edit', 'backdrop')" placeholder="https://... atau klik Upload / Generate" class="flex-1 px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:border-amber-500 font-mono text-[11px]" />
+            <div id="edit-backdrop-preview-container" class="w-[100px] h-[58px] sm:w-[115px] sm:h-[66px] rounded-xl bg-slate-950 border border-slate-700/80 overflow-hidden flex items-center justify-center shrink-0 shadow-inner relative" title="Preview Wallpaper 16:9">
+              <img id="edit-game-backdrop-preview" src="" alt="Backdrop" class="w-full h-full object-cover hidden" onload="this.classList.remove('hidden'); document.getElementById('edit-backdrop-placeholder').classList.add('hidden')" onerror="this.classList.add('hidden'); document.getElementById('edit-backdrop-placeholder').classList.remove('hidden')" />
+              <div id="edit-backdrop-placeholder" class="text-center p-1 text-slate-500 flex flex-col items-center">
+                <i data-lucide="tv" class="w-4 h-4 mb-0.5 opacity-60"></i>
+                <span class="text-[8px] font-bold uppercase tracking-wider block scale-90">16:9 Banner</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div>
           <label class="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
             <span class="flex items-center gap-1.5 text-emerald-400">
@@ -2911,8 +3028,17 @@
           <p class="text-[10px] text-slate-400 mt-1">Link folder/file Google Drive ini yang akan dibagikan secara otomatis ke email pembeli saat pesanan sukses.</p>
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-300 mb-1">Deskripsi</label>
-          <textarea id="edit-game-desc" rows="3" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500"></textarea>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+              <i data-lucide="file-text" class="w-3.5 h-3.5 text-purple-400"></i>
+              <span>Deskripsi Singkat</span>
+            </label>
+            <button type="button" onclick="generateGameDescription('edit')" class="px-2.5 py-1 rounded-lg bg-purple-950/80 hover:bg-purple-900 text-purple-300 border border-purple-500/40 text-[10px] font-bold flex items-center gap-1 shadow transition-all" title="Buat kata-kata deskripsi otomatis dari judul game">
+              <i data-lucide="sparkles" class="w-3 h-3 text-purple-400"></i>
+              <span id="edit-desc-btn-label">Generate AI</span>
+            </button>
+          </div>
+          <textarea id="edit-game-desc" rows="3" placeholder="Deskripsi game, gameplay & fitur (atau klik tombol Generate AI)..." class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-purple-500"></textarea>
         </div>
       </div>
       <div class="grid grid-cols-2 gap-3">
@@ -2986,7 +3112,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261107_drive_v1"></script>
-  <script src="assets/app.js?v=20261107_drive_v1"></script>
+  <script src="assets/products-data.js?v=20261107_generator_v2"></script>
+  <script src="assets/app.js?v=20261107_generator_v2"></script>
 </body>
 </html>
