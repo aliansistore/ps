@@ -3690,6 +3690,8 @@ function openAddProductModal() {
   if (newRateEl) newRateEl.value = '';
   document.getElementById('new-game-poster').value = '';
   document.getElementById('new-game-desc').value = '';
+  const preview = document.getElementById('new-game-discount-preview');
+  if (preview) preview.classList.add('hidden');
   modal.classList.remove('hidden');
   updateDiscountCalc('new');
   lucide.createIcons();
