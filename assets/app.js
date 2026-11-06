@@ -3631,21 +3631,100 @@ function openAddProductModal() {
   playSfx('click');
   const modal = document.getElementById('modal-admin-add-product');
   if (!modal) return;
+  document.getElementById('new-game-title').value = '';
+  document.getElementById('new-game-price-original').value = '';
+  document.getElementById('new-game-price-primary').value = '';
+  const newRateEl = document.getElementById('new-game-discount-rate');
+  if (newRateEl) newRateEl.value = '';
+  document.getElementById('new-game-poster').value = '';
+  document.getElementById('new-game-desc').value = '';
   modal.classList.remove('hidden');
   updateDiscountCalc('new');
   lucide.createIcons();
 }
 
-// Live discount calculator for Add / Edit game forms
-// prefix: 'new' | 'edit'  ->  Harga (Rp) = original, Harga Diskon (Rp) = primary
-function getDiscountPercent(original, discounted) {
-  if (!original || !discounted || discounted >= original) return 0;
-  return Math.round((1 - discounted / original) * 100);
+// Two-Way Interactive Discount Calculator for Admin Forms (prefix: 'new' | 'edit')
+function onPriceOriginalInput(prefix) {
+  const origEl = document.getElementById(`${prefix}-game-price-original`);
+  const rateEl = document.getElementById(`${prefix}-game-discount-rate`);
+  const discEl = document.getElementById(`${prefix}-game-price-primary`);
+  if (!origEl || !rateEl || !discEl) return;
+
+  const original = parseInt(origEl.value, 10) || 0;
+  const rate = parseFloat(rateEl.value) || 0;
+  const discounted = parseInt(discEl.value, 10) || 0;
+
+  if (original > 0 && rate > 0) {
+    discEl.value = Math.round(original * (1 - rate / 100));
+  } else if (original > 0 && discounted > 0) {
+    if (discounted < original) {
+      rateEl.value = Math.round((1 - discounted / original) * 100);
+    } else {
+      rateEl.value = 0;
+    }
+  }
+  updateDiscountCalc(prefix);
+}
+
+function onDiscountRateInput(prefix) {
+  const origEl = document.getElementById(`${prefix}-game-price-original`);
+  const rateEl = document.getElementById(`${prefix}-game-discount-rate`);
+  const discEl = document.getElementById(`${prefix}-game-price-primary`);
+  if (!origEl || !rateEl || !discEl) return;
+
+  const original = parseInt(origEl.value, 10) || 0;
+  const rateStr = rateEl.value.trim();
+
+  if (rateStr === '') {
+    updateDiscountCalc(prefix);
+    return;
+  }
+
+  let rate = parseFloat(rateStr);
+  if (isNaN(rate)) return;
+  if (rate < 0) rate = 0;
+  if (rate > 99) rate = 99;
+
+  if (original > 0) {
+    discEl.value = Math.round(original * (1 - rate / 100));
+  }
+  updateDiscountCalc(prefix);
+}
+
+function onPriceDiscountInput(prefix) {
+  const origEl = document.getElementById(`${prefix}-game-price-original`);
+  const rateEl = document.getElementById(`${prefix}-game-discount-rate`);
+  const discEl = document.getElementById(`${prefix}-game-price-primary`);
+  if (!origEl || !rateEl || !discEl) return;
+
+  const original = parseInt(origEl.value, 10) || 0;
+  const discStr = discEl.value.trim();
+
+  if (discStr === '') {
+    rateEl.value = '';
+    updateDiscountCalc(prefix);
+    return;
+  }
+
+  const discounted = parseInt(discStr, 10);
+  if (isNaN(discounted)) return;
+
+  if (original > 0) {
+    if (discounted < original && discounted > 0) {
+      rateEl.value = Math.round((1 - discounted / original) * 100);
+    } else {
+      rateEl.value = 0;
+    }
+  } else {
+    rateEl.value = '';
+  }
+  updateDiscountCalc(prefix);
 }
 
 function updateDiscountCalc(prefix) {
   const origEl = document.getElementById(`${prefix}-game-price-original`);
   const discEl = document.getElementById(`${prefix}-game-price-primary`);
+  const rateEl = document.getElementById(`${prefix}-game-discount-rate`);
   const preview = document.getElementById(`${prefix}-game-discount-preview`);
   const diffEl = document.getElementById(`${prefix}-game-discount-diff`);
   const pctEl = document.getElementById(`${prefix}-game-discount-percent`);
@@ -3655,12 +3734,19 @@ function updateDiscountCalc(prefix) {
   const discounted = parseInt(discEl.value, 10) || 0;
   const pct = getDiscountPercent(original, discounted);
 
-  if (pct > 0) {
-    if (diffEl) diffEl.textContent = `Hemat ${formatRupiah(original - discounted)}`;
-    if (pctEl) pctEl.textContent = `Diskon ${pct}%`;
+  if (pct > 0 && original > discounted) {
+    const diff = original - discounted;
+    if (diffEl) diffEl.textContent = `Hemat ${formatRupiah(diff)}`;
+    if (pctEl) pctEl.textContent = `Diskon ${pct}% (Hemat ${formatRupiah(diff)})`;
     preview.classList.remove('hidden');
+    if (rateEl && (!rateEl.value || document.activeElement !== rateEl)) {
+      rateEl.value = pct;
+    }
   } else {
     preview.classList.add('hidden');
+    if (discounted >= original && rateEl && document.activeElement !== rateEl) {
+      rateEl.value = original > 0 ? 0 : '';
+    }
   }
 }
 
@@ -3737,6 +3823,14 @@ function openEditProductModal(productId) {
   document.getElementById('edit-game-title').value = p.title;
   document.getElementById('edit-game-price-primary').value = p.prices.primary;
   document.getElementById('edit-game-price-original').value = p.prices.original || '';
+  const editRateEl = document.getElementById('edit-game-discount-rate');
+  if (editRateEl) {
+    if (p.prices.original && p.prices.original > p.prices.primary) {
+      editRateEl.value = getDiscountPercent(p.prices.original, p.prices.primary);
+    } else {
+      editRateEl.value = '';
+    }
+  }
   document.getElementById('edit-game-poster').value = p.images.poster || p.images.cover || '';
   document.getElementById('edit-game-desc').value = p.description;
 
