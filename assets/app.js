@@ -286,21 +286,15 @@ function loadStoredData() {
   state.isAudioMuted = localStorage.getItem(APP_STORAGE_KEYS.AUDIO_MUTED) === 'true';
   updateAudioIndicator();
 
-  // Products (Enforce 14 Official Titles)
-  const CATALOG_VERSION = '20261104_14titles_v5';
-  if (localStorage.getItem('aliansi_catalog_version') !== CATALOG_VERSION) {
-    localStorage.removeItem(APP_STORAGE_KEYS.PRODUCTS);
-    localStorage.setItem('aliansi_catalog_version', CATALOG_VERSION);
-  }
-
+  // Load Products from Local Storage
   const storedProducts = localStorage.getItem(APP_STORAGE_KEYS.PRODUCTS);
   if (storedProducts) {
     try {
-      state.products = JSON.parse(storedProducts);
-      const validIds = new Set((typeof INITIAL_PRODUCTS !== 'undefined' ? INITIAL_PRODUCTS : []).map(ip => ip.id));
-      state.products = state.products.filter(p => validIds.has(p.id));
-      if (typeof INITIAL_PRODUCTS !== 'undefined' && state.products.length !== INITIAL_PRODUCTS.length) {
-        state.products = [...INITIAL_PRODUCTS];
+      const parsed = JSON.parse(storedProducts);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        state.products = parsed;
+      } else {
+        state.products = typeof INITIAL_PRODUCTS !== 'undefined' ? [...INITIAL_PRODUCTS] : [];
       }
     } catch (e) {
       state.products = typeof INITIAL_PRODUCTS !== 'undefined' ? [...INITIAL_PRODUCTS] : [];
@@ -310,21 +304,27 @@ function loadStoredData() {
     saveProducts();
   }
 
-  // Ensure high quality covers, updated PS categories & Drive Links
+  // Ensure default catalog products exist without overwriting custom modifications
+  if (typeof INITIAL_PRODUCTS !== 'undefined' && Array.isArray(INITIAL_PRODUCTS)) {
+    INITIAL_PRODUCTS.forEach(ip => {
+      const existing = state.products.find(p => p.id === ip.id);
+      if (!existing) {
+        state.products.push({ ...ip });
+      } else {
+        // Fallback for missing driveLink or covers if empty
+        if (ip.driveLink && !existing.driveLink) {
+          existing.driveLink = ip.driveLink;
+        }
+      }
+    });
+  }
+
+  // Ensure cover fallbacks if image is missing
   state.products.forEach(p => {
-    if (COVER_FALLBACK_MAP[p.id]) {
+    if (COVER_FALLBACK_MAP[p.id] && (!p.images || !p.images.poster)) {
       if (!p.images) p.images = {};
       p.images.poster = COVER_FALLBACK_MAP[p.id];
       p.images.cover = COVER_FALLBACK_MAP[p.id];
-    }
-    const initProd = typeof INITIAL_PRODUCTS !== 'undefined' ? INITIAL_PRODUCTS.find(ip => ip.id === p.id) : null;
-    if (initProd) {
-      if (initProd.category) {
-        p.category = initProd.category;
-      }
-      if (initProd.driveLink && !p.driveLink) {
-        p.driveLink = initProd.driveLink;
-      }
     }
   });
   saveProducts();
@@ -446,7 +446,7 @@ async function syncFromSupabase() {
     // 1. Fetch Products from Cloud
     const { data: prods, error: pErr } = await supabaseClient.from('products').select('*');
     if (!pErr && prods && prods.length > 0) {
-      state.products = prods.map(p => ({
+      const cloudProducts = prods.map(p => ({
         id: p.id,
         title: p.title,
         slug: p.slug,
@@ -456,7 +456,7 @@ async function syncFromSupabase() {
         badge: p.badge,
         isSubIndo: !!p.is_sub_indo,
         isHen: !!p.is_hen,
-        isSpotlight: !!p.is_spotlight,
+        isSpotlight: !!p.isSpotlight,
         rating: Number(p.rating) || 5.0,
         soldCount: Number(p.sold_count) || 0,
         releaseYear: p.release_year,
@@ -465,7 +465,7 @@ async function syncFromSupabase() {
         tagline: p.tagline,
         images: (() => {
           const imgs = typeof p.images === 'object' && p.images !== null ? { ...p.images } : {};
-          if (COVER_FALLBACK_MAP[p.id]) {
+          if (COVER_FALLBACK_MAP[p.id] && !imgs.poster) {
             imgs.poster = COVER_FALLBACK_MAP[p.id];
             imgs.cover = COVER_FALLBACK_MAP[p.id];
           }
@@ -474,25 +474,40 @@ async function syncFromSupabase() {
         prices: typeof p.prices === 'object' && p.prices !== null ? p.prices : {},
         description: p.description,
         features: Array.isArray(p.features) ? p.features : [],
-        driveLink: p.drive_link || p.driveLink || '',
-        inStock: p.in_stock !== false
+        driveLink: p.drive_link || (p.images && p.images.driveLink) || '',
+        inStock: p.in_stock !== false,
+        updatedAt: p.updated_at || null
       }));
 
-      // Enforce only the 14 official products
-      const validIds = new Set(INITIAL_PRODUCTS.map(ip => ip.id));
-      state.products = state.products.filter(p => validIds.has(p.id));
+      // Smart merge: preserve local changes if local is newer or cloud is stale
+      const currentList = Array.isArray(state.products) ? [...state.products] : [];
+      const mergedProducts = [...currentList];
 
-      if (typeof INITIAL_PRODUCTS !== 'undefined' && Array.isArray(INITIAL_PRODUCTS)) {
-        INITIAL_PRODUCTS.forEach(ip => {
-          if (!state.products.find(item => item.id === ip.id)) {
-            state.products.push(ip);
+      cloudProducts.forEach(cp => {
+        const localIdx = mergedProducts.findIndex(lp => lp.id === cp.id);
+        if (localIdx === -1) {
+          mergedProducts.push(cp);
+        } else {
+          const localProd = mergedProducts[localIdx];
+          const localTime = localProd.updatedAt ? new Date(localProd.updatedAt).getTime() : 0;
+          const cloudTime = cp.updatedAt ? new Date(cp.updatedAt).getTime() : 0;
+          if (cloudTime >= localTime || !localProd.updatedAt) {
+            mergedProducts[localIdx] = {
+              ...cp,
+              driveLink: cp.driveLink || localProd.driveLink || ''
+            };
+          } else {
+            // Local change is newer; keep local and sync up to cloud
+            syncProductToSupabase(localProd);
           }
-        });
-      }
+        }
+      });
 
+      state.products = mergedProducts;
       localStorage.setItem(APP_STORAGE_KEYS.PRODUCTS, JSON.stringify(state.products));
       renderProducts();
       initSpotlightHero();
+      renderAdminProductsTable();
     }
 
     // 2. Fetch Orders from Cloud
@@ -644,32 +659,44 @@ async function syncGameRequestToSupabase(req) {
 async function syncProductToSupabase(p) {
   if (!supabaseClient || !p) return;
   try {
-    await supabaseClient.from('products').upsert({
+    const cloudImages = typeof p.images === 'object' && p.images !== null ? { ...p.images } : {};
+    if (p.driveLink) {
+      cloudImages.driveLink = p.driveLink;
+    }
+
+    const payload = {
       id: p.id,
       title: p.title,
-      slug: p.slug,
+      slug: p.slug || p.id,
       platform: p.platform,
       category: p.category,
       type: p.type || 'digital',
-      badge: p.badge,
+      badge: p.badge || null,
       is_sub_indo: !!p.isSubIndo,
       is_hen: !!p.isHen,
       is_spotlight: !!p.isSpotlight,
-      rating: p.rating,
-      sold_count: p.soldCount,
-      release_year: p.releaseYear,
-      size: p.size,
-      publisher: p.publisher,
-      tagline: p.tagline,
-      images: p.images,
+      rating: p.rating || 5.0,
+      sold_count: p.soldCount || 0,
+      release_year: p.releaseYear || new Date().getFullYear(),
+      size: p.size || '',
+      publisher: p.publisher || '',
+      tagline: p.tagline || '',
+      images: cloudImages,
       prices: p.prices,
-      description: p.description,
-      features: p.features,
-      drive_link: p.driveLink || '',
-      in_stock: p.inStock !== false
-    });
+      description: p.description || '',
+      features: p.features || [],
+      in_stock: p.inStock !== false,
+      updated_at: new Date().toISOString()
+    };
+
+    const { data, error } = await supabaseClient.from('products').upsert(payload);
+    if (error) {
+      console.warn('Supabase product sync warning:', error);
+    } else {
+      console.info(`Supabase product "${p.title}" synced successfully with prices:`, p.prices);
+    }
   } catch (err) {
-    console.warn('Failed to sync product to Supabase:', err);
+    console.warn('Failed to sync product to Supabase exception:', err);
   }
 }
 
@@ -5874,6 +5901,7 @@ function submitNewProduct() {
     inStock: true
   };
 
+  newGame.updatedAt = new Date().toISOString();
   state.products.unshift(newGame);
   saveProducts();
   syncProductToSupabase(newGame);
@@ -5957,6 +5985,7 @@ function submitEditProduct() {
     p.images.backdrop = backdrop;
   }
   p.description = document.getElementById('edit-game-desc').value.trim();
+  p.updatedAt = new Date().toISOString();
 
   saveProducts();
   syncProductToSupabase(p);
