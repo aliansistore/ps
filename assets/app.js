@@ -3500,16 +3500,14 @@ function renderAdminProductsTable() {
           </div>
         </div>
       </td>
-      <td class="py-2.5 px-3 font-extrabold text-sky-400 font-display">
-        ${formatRupiah(p.prices.primary)}
+      <td class="py-2.5 px-3 font-semibold text-slate-400 font-display">
+        ${p.prices.original && p.prices.original > p.prices.primary ? `<span class="line-through">${formatRupiah(p.prices.original)}</span>` : '<span class="text-slate-600">-</span>'}
       </td>
-      <td class="py-2.5 px-3 font-extrabold text-slate-300 font-display">
-        ${p.prices.original && p.prices.original > p.prices.primary ? `
-          <div class="flex items-center gap-1.5 flex-wrap">
-            <span class="line-through text-slate-400 text-xs">${formatRupiah(p.prices.original)}</span>
-            <span class="px-1.5 py-0.5 rounded text-[10px] font-black bg-rose-600 text-white shadow">-${Math.round((1 - p.prices.primary / p.prices.original) * 100)}%</span>
-          </div>
-        ` : `<span>${formatRupiah(p.prices.original || p.prices.secondary || p.prices.primary)}</span>`}
+      <td class="py-2.5 px-3 font-extrabold text-sky-400 font-display">
+        <div class="flex items-center gap-1.5">
+          <span>${formatRupiah(p.prices.primary)}</span>
+          ${getDiscountPercent(p.prices.original, p.prices.primary) > 0 ? `<span class="px-1.5 py-0.5 rounded-md text-[9px] font-black bg-rose-600 text-white">-${getDiscountPercent(p.prices.original, p.prices.primary)}%</span>` : ''}
+        </div>
       </td>
       <td class="py-2.5 px-3">
         <button onclick="toggleProductStock('${p.id}')" class="px-2.5 py-1 rounded-full text-[10px] font-bold ${p.inStock !== false ? 'bg-emerald-950 text-emerald-400 border border-emerald-500/30' : 'bg-rose-950 text-rose-400 border border-rose-500/30'}">
@@ -3559,62 +3557,54 @@ function deleteProduct(productId) {
   }
 }
 
-// Live Discount Calculation Helper for Add/Edit Game Modals
-function updateDiscountCalc(prefix = 'new') {
-  const pOriginalEl = document.getElementById(`${prefix}-game-price-original`);
-  const pDiscountEl = document.getElementById(`${prefix}-game-price-primary`);
-  const container = document.getElementById(`${prefix}-game-discount-preview`);
-  const badge = document.getElementById(`${prefix}-game-discount-percent`);
-  const diffEl = document.getElementById(`${prefix}-game-discount-diff`);
-
-  if (!pOriginalEl || !pDiscountEl || !container || !badge) return;
-
-  const original = parseInt(pOriginalEl.value, 10) || 0;
-  const discount = parseInt(pDiscountEl.value, 10) || 0;
-
-  if (original > 0 && discount > 0 && original > discount) {
-    const diff = original - discount;
-    const percent = Math.round((diff / original) * 100);
-    badge.textContent = `Diskon ${percent}% (-${percent}%)`;
-    if (diffEl) {
-      diffEl.textContent = `Hemat ${formatRupiah(diff)}`;
-    }
-    container.classList.remove('hidden');
-  } else if (original > 0 && discount > 0 && discount === original) {
-    badge.textContent = `Harga Normal (0%)`;
-    if (diffEl) diffEl.textContent = `Tidak ada diskon`;
-    container.classList.remove('hidden');
-  } else {
-    container.classList.add('hidden');
-  }
-}
-
 function openAddProductModal() {
   playSfx('click');
   const modal = document.getElementById('modal-admin-add-product');
   if (!modal) return;
-  document.getElementById('new-game-title').value = '';
-  const pOrig = document.getElementById('new-game-price-original');
-  if (pOrig) pOrig.value = '';
-  document.getElementById('new-game-price-primary').value = '';
-  document.getElementById('new-game-poster').value = '';
-  document.getElementById('new-game-desc').value = '';
-  updateDiscountCalc('new');
   modal.classList.remove('hidden');
+  updateDiscountCalc('new');
   lucide.createIcons();
+}
+
+// Live discount calculator for Add / Edit game forms
+// prefix: 'new' | 'edit'  ->  Harga (Rp) = original, Harga Diskon (Rp) = primary
+function getDiscountPercent(original, discounted) {
+  if (!original || !discounted || discounted >= original) return 0;
+  return Math.round((1 - discounted / original) * 100);
+}
+
+function updateDiscountCalc(prefix) {
+  const origEl = document.getElementById(`${prefix}-game-price-original`);
+  const discEl = document.getElementById(`${prefix}-game-price-primary`);
+  const preview = document.getElementById(`${prefix}-game-discount-preview`);
+  const diffEl = document.getElementById(`${prefix}-game-discount-diff`);
+  const pctEl = document.getElementById(`${prefix}-game-discount-percent`);
+  if (!origEl || !discEl || !preview) return;
+
+  const original = parseInt(origEl.value, 10) || 0;
+  const discounted = parseInt(discEl.value, 10) || 0;
+  const pct = getDiscountPercent(original, discounted);
+
+  if (pct > 0) {
+    if (diffEl) diffEl.textContent = `Hemat ${formatRupiah(original - discounted)}`;
+    if (pctEl) pctEl.textContent = `Diskon ${pct}%`;
+    preview.classList.remove('hidden');
+  } else {
+    preview.classList.add('hidden');
+  }
 }
 
 function submitNewProduct() {
   const title = document.getElementById('new-game-title').value.trim();
   const category = document.getElementById('new-game-category').value;
   const platformChecked = Array.from(document.querySelectorAll('input[name="new-game-platform"]:checked')).map(cb => cb.value);
-  const priceDiscount = parseInt(document.getElementById('new-game-price-primary').value, 10) || 0;
-  const pOrigEl = document.getElementById('new-game-price-original');
-  const priceOriginal = (pOrigEl && parseInt(pOrigEl.value, 10)) || priceDiscount;
+  const pricePrimary = parseInt(document.getElementById('new-game-price-primary').value, 10) || 0;
+  const priceOriginalInput = parseInt(document.getElementById('new-game-price-original').value, 10) || 0;
+  const priceOriginal = priceOriginalInput > pricePrimary ? priceOriginalInput : 0;
   const posterUrl = document.getElementById('new-game-poster').value.trim();
   const desc = document.getElementById('new-game-desc').value.trim();
 
-  if (!title || platformChecked.length === 0 || priceDiscount <= 0) {
+  if (!title || platformChecked.length === 0 || pricePrimary <= 0) {
     showToast('Lengkapi judul, platform, dan harga diskon!', 'warning');
     return;
   }
@@ -3640,8 +3630,8 @@ function submitNewProduct() {
       screenshots: []
     },
     prices: {
-      primary: priceDiscount,
-      secondary: priceOriginal,
+      primary: pricePrimary,
+      secondary: pricePrimary,
       original: priceOriginal
     },
     description: desc || 'Game PlayStation original berkualitas tinggi bergaransi resmi ALIANSI STORE.',
@@ -3675,16 +3665,13 @@ function openEditProductModal(productId) {
   if (!modal) return;
 
   document.getElementById('edit-game-title').value = p.title;
-  document.getElementById('edit-game-price-primary').value = p.prices.primary || '';
-  const pOrigEl = document.getElementById('edit-game-price-original');
-  if (pOrigEl) {
-    pOrigEl.value = p.prices.original || p.prices.secondary || '';
-  }
-  document.getElementById('edit-game-poster').value = (p.images && (p.images.poster || p.images.cover)) || '';
-  document.getElementById('edit-game-desc').value = p.description || '';
-  updateDiscountCalc('edit');
+  document.getElementById('edit-game-price-primary').value = p.prices.primary;
+  document.getElementById('edit-game-price-original').value = p.prices.original || '';
+  document.getElementById('edit-game-poster').value = p.images.poster || p.images.cover || '';
+  document.getElementById('edit-game-desc').value = p.description;
 
   modal.classList.remove('hidden');
+  updateDiscountCalc('edit');
   lucide.createIcons();
 }
 
@@ -3693,17 +3680,13 @@ function submitEditProduct() {
   const p = state.products.find(item => item.id === editingProductId);
   if (!p) return;
 
-  const priceDiscount = parseInt(document.getElementById('edit-game-price-primary').value, 10) || p.prices.primary;
-  const pOrigEl = document.getElementById('edit-game-price-original');
-  const priceOriginal = (pOrigEl && parseInt(pOrigEl.value, 10)) || priceDiscount;
-
   p.title = document.getElementById('edit-game-title').value.trim();
-  p.prices.primary = priceDiscount;
-  p.prices.original = priceOriginal;
-  p.prices.secondary = priceOriginal;
+  p.prices.primary = parseInt(document.getElementById('edit-game-price-primary').value, 10) || p.prices.primary;
+  p.prices.secondary = p.prices.primary;
+  const editOriginal = parseInt(document.getElementById('edit-game-price-original').value, 10) || 0;
+  p.prices.original = editOriginal > p.prices.primary ? editOriginal : 0;
   const poster = document.getElementById('edit-game-poster').value.trim();
   if (poster) {
-    if (!p.images) p.images = {};
     p.images.poster = poster;
     p.images.cover = poster;
   }
