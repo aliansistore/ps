@@ -46,7 +46,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <!-- Custom Next-Gen Stylesheet (with cache buster query) -->
-  <link rel="stylesheet" href="assets/style.css?v=20261106_diskon_v3" />
+  <link rel="stylesheet" href="assets/style.css?v=20261106_kategori_v1" />
 
   <!-- Critical Inline Styles to Guarantee Immediate High-Contrast Rendering (Dark & Light Mode) -->
   <style>
@@ -1291,20 +1291,38 @@
 
       <!-- Filter Tabs -->
       <div class="flex items-center gap-2 overflow-x-auto pb-3 mb-6 no-scrollbar">
-        <button data-filter="all" class="filter-tab-btn px-4 py-2 rounded-full text-xs font-black bg-sky-600 text-white shadow-lg shadow-sky-600/40 shrink-0 transition-all">
-          Semua Koleksi
+        <button data-filter="all" class="filter-tab-btn px-4 py-2 rounded-full text-xs font-black bg-sky-600 text-white shadow-lg shadow-sky-600/40 shrink-0 transition-all flex items-center gap-1.5">
+          <span>🌟</span> Semua Koleksi
         </button>
         <button data-filter="subindo" class="filter-tab-btn px-4 py-2 rounded-full text-xs font-bold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white shrink-0 transition-all flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span> 🇮🇩 Game Sub Indo
+          <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span> 🇮🇩 Sub Indo
         </button>
         <button data-filter="hen" class="filter-tab-btn px-4 py-2 rounded-full text-xs font-bold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white shrink-0 transition-all flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-purple-500"></span> 🎮 Game PS4 HEN
+          <span class="w-2 h-2 rounded-full bg-purple-500"></span> 🎮 PS4 HEN
+        </button>
+        <button data-filter="action" class="filter-tab-btn px-4 py-2 rounded-full text-xs font-bold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white shrink-0 transition-all flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-amber-500"></span> ⚔️ Action & Adventure
+        </button>
+        <button data-filter="rpg" class="filter-tab-btn px-4 py-2 rounded-full text-xs font-bold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white shrink-0 transition-all flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-indigo-500"></span> 🧙‍♂️ RPG & Open World
+        </button>
+        <button data-filter="horror" class="filter-tab-btn px-4 py-2 rounded-full text-xs font-bold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white shrink-0 transition-all flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-red-600"></span> 🧟 Horror & Survival
         </button>
         <button data-filter="sports" class="filter-tab-btn px-4 py-2 rounded-full text-xs font-bold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white shrink-0 transition-all flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-emerald-400"></span> ⚽ Olahraga & Bola
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span> ⚽ Olahraga & Balap
+        </button>
+        <button data-filter="fighting" class="filter-tab-btn px-4 py-2 rounded-full text-xs font-bold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white shrink-0 transition-all flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-orange-500"></span> 🥊 Fighting
+        </button>
+        <button data-filter="family" class="filter-tab-btn px-4 py-2 rounded-full text-xs font-bold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white shrink-0 transition-all flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-pink-500"></span> 👥 Co-op & Family
+        </button>
+        <button data-filter="shooter" class="filter-tab-btn px-4 py-2 rounded-full text-xs font-bold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white shrink-0 transition-all flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 🎯 Shooter & FPS
         </button>
         <button data-filter="digital" class="filter-tab-btn px-4 py-2 rounded-full text-xs font-bold bg-slate-900 text-slate-400 border border-slate-800 hover:text-white shrink-0 transition-all flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-blue-500"></span> ⚡ Game Digital PS4/PS5
+          <span class="w-2 h-2 rounded-full bg-blue-500"></span> ⚡ Digital PS4/PS5
         </button>
       </div>
 
@@ -1369,12 +1387,13 @@
 
           <div>
             <h5 class="text-white font-bold text-sm mb-3">Kategori Produk</h5>
-            <ul class="space-y-2.5">
-              <li><a href="#katalog" onclick="state.activeFilter='subindo'; renderProducts();" class="hover:text-sky-400 transition-colors flex items-center justify-between"><span>🇮🇩 Game Subtitle Indonesia</span> <span class="text-[9px] px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-md font-bold">Ready</span></a></li>
-              <li><a href="#katalog" onclick="state.activeFilter='hen'; renderProducts();" class="hover:text-sky-400 transition-colors flex items-center justify-between"><span>🎮 Game PS4 HEN PKG</span> <span class="text-[9px] px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-md font-bold">Ready</span></a></li>
-              <li><a href="#katalog" onclick="state.activeFilter='sports'; renderProducts();" class="hover:text-sky-400 transition-colors flex items-center justify-between"><span>⚽ PES & Olahraga</span> <span class="text-[9px] px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-md font-bold">Ready</span></a></li>
-              <li><span class="text-slate-500 flex items-center justify-between cursor-not-allowed"><span>💾 Jasa Isi HDD HEN</span> <span class="text-[9px] px-1.5 py-0.5 bg-amber-500/15 text-amber-400 border border-amber-500/30 rounded-md font-bold">Soon</span></span></li>
-              <li><span class="text-slate-500 flex items-center justify-between cursor-not-allowed"><span>⚡ Akun Digital Resmi</span> <span class="text-[9px] px-1.5 py-0.5 bg-sky-500/15 text-sky-400 border border-sky-500/30 rounded-md font-bold">Soon</span></span></li>
+            <ul class="space-y-2 text-xs">
+              <li><a href="#katalog" onclick="state.activeFilter='subindo'; renderProducts();" class="hover:text-sky-400 transition-colors flex items-center justify-between"><span>🇮🇩 Game Sub Indo</span> <span class="text-[9px] px-1.5 py-0.5 bg-rose-500/20 text-rose-400 rounded-md font-bold">Populer</span></a></li>
+              <li><a href="#katalog" onclick="state.activeFilter='hen'; renderProducts();" class="hover:text-sky-400 transition-colors flex items-center justify-between"><span>🎮 Game PS4 HEN PKG</span> <span class="text-[9px] px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded-md font-bold">Ready</span></a></li>
+              <li><a href="#katalog" onclick="state.activeFilter='action'; renderProducts();" class="hover:text-sky-400 transition-colors flex items-center justify-between"><span>⚔️ Action & Adventure</span> <span class="text-[9px] px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded-md font-bold">Top</span></a></li>
+              <li><a href="#katalog" onclick="state.activeFilter='rpg'; renderProducts();" class="hover:text-sky-400 transition-colors flex items-center justify-between"><span>🧙‍♂️ RPG & Open World</span> <span class="text-[9px] px-1.5 py-0.5 bg-indigo-500/20 text-indigo-400 rounded-md font-bold">Hot</span></a></li>
+              <li><a href="#katalog" onclick="state.activeFilter='horror'; renderProducts();" class="hover:text-sky-400 transition-colors flex items-center justify-between"><span>🧟 Horror & Survival</span> <span class="text-[9px] px-1.5 py-0.5 bg-red-500/20 text-red-400 rounded-md font-bold">Seru</span></a></li>
+              <li><a href="#katalog" onclick="state.activeFilter='sports'; renderProducts();" class="hover:text-sky-400 transition-colors flex items-center justify-between"><span>⚽ Olahraga & Balap</span> <span class="text-[9px] px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-md font-bold">2027</span></a></li>
             </ul>
           </div>
 
@@ -1575,6 +1594,8 @@
             <div class="flex items-center gap-2 mb-1.5" id="modal-platform-container"></div>
             <h2 id="modal-product-title" class="text-xl sm:text-2xl font-black text-white mb-2 leading-snug font-display"></h2>
             <div class="flex items-center gap-3 text-xs text-slate-400 mb-3 flex-wrap font-mono">
+              <span>Genre: <strong id="modal-product-genre" class="text-sky-400 font-bold"></strong></span>
+              <span>•</span>
               <span>Publisher: <strong id="modal-product-publisher" class="text-slate-200"></strong></span>
               <span>•</span>
               <span>Rilis: <strong id="modal-product-year" class="text-slate-200"></strong></span>
@@ -2283,9 +2304,20 @@
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-bold text-slate-300 mb-1">Kategori</label>
-            <select id="new-game-category" class="w-full px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none">
-              <option value="action">Action / Adventure</option><option value="sports">Sports</option><option value="rpg">RPG</option><option value="horror">Horror</option><option value="hen">Jasa Isi HEN</option><option value="psplus">PS Plus</option><option value="voucher">Voucher PSN</option>
+            <label class="block text-xs font-bold text-slate-300 mb-1">Kategori Genre PS</label>
+            <select id="new-game-category" class="w-full px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500">
+              <option value="action">⚔️ Action & Adventure</option>
+              <option value="rpg">🧙‍♂️ RPG & Open World</option>
+              <option value="horror">🧟 Horror & Survival</option>
+              <option value="sports">⚽ Olahraga & Sepak Bola</option>
+              <option value="racing">🏎️ Balapan / Racing</option>
+              <option value="fighting">🥊 Fighting / Tarung</option>
+              <option value="shooter">🎯 Shooter & FPS</option>
+              <option value="family">👥 Co-op & Family</option>
+              <option value="subindo">🇮🇩 Khusus Sub Indo</option>
+              <option value="hen">🎮 Khusus PS4 HEN (PKG)</option>
+              <option value="psplus">⭐ PlayStation Plus</option>
+              <option value="voucher">🎫 Voucher PSN</option>
             </select>
           </div>
           <div>
@@ -2353,6 +2385,33 @@
         <div>
           <label class="block text-xs font-bold text-slate-300 mb-1">Judul Game</label>
           <input type="text" id="edit-game-title" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1">Kategori Genre PS</label>
+            <select id="edit-game-category" class="w-full px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500">
+              <option value="action">⚔️ Action & Adventure</option>
+              <option value="rpg">🧙‍♂️ RPG & Open World</option>
+              <option value="horror">🧟 Horror & Survival</option>
+              <option value="sports">⚽ Olahraga & Sepak Bola</option>
+              <option value="racing">🏎️ Balapan / Racing</option>
+              <option value="fighting">🥊 Fighting / Tarung</option>
+              <option value="shooter">🎯 Shooter & FPS</option>
+              <option value="family">👥 Co-op & Family</option>
+              <option value="subindo">🇮🇩 Khusus Sub Indo</option>
+              <option value="hen">🎮 Khusus PS4 HEN (PKG)</option>
+              <option value="psplus">⭐ PlayStation Plus</option>
+              <option value="voucher">🎫 Voucher PSN</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1">Platform Konsol</label>
+            <div class="flex items-center gap-3 pt-1 text-xs">
+              <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" name="edit-game-platform" value="PS5" /> PS5</label>
+              <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" name="edit-game-platform" value="PS4" /> PS4</label>
+              <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" name="edit-game-platform" value="PS4 HEN" /> HEN</label>
+            </div>
+          </div>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
@@ -2464,7 +2523,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261106_diskon_v3"></script>
-  <script src="assets/app.js?v=20261106_diskon_v3"></script>
+  <script src="assets/products-data.js?v=20261106_kategori_v1"></script>
+  <script src="assets/app.js?v=20261106_kategori_v1"></script>
 </body>
 </html>

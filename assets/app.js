@@ -301,12 +301,16 @@ function loadStoredData() {
     saveProducts();
   }
 
-  // Ensure high quality covers
+  // Ensure high quality covers & updated PS categories
   state.products.forEach(p => {
     if (COVER_FALLBACK_MAP[p.id]) {
       if (!p.images) p.images = {};
       p.images.poster = COVER_FALLBACK_MAP[p.id];
       p.images.cover = COVER_FALLBACK_MAP[p.id];
+    }
+    const initProd = typeof INITIAL_PRODUCTS !== 'undefined' ? INITIAL_PRODUCTS.find(ip => ip.id === p.id) : null;
+    if (initProd && initProd.category) {
+      p.category = initProd.category;
     }
   });
   saveProducts();
@@ -579,6 +583,25 @@ function formatRupiah(num) {
 function getDiscountPercent(original, discounted) {
   if (!original || !discounted || discounted >= original) return 0;
   return Math.round((1 - discounted / original) * 100);
+}
+
+function getCategoryLabel(cat) {
+  const map = {
+    'action': 'Action & Adventure',
+    'adventure': 'Action & Adventure',
+    'rpg': 'RPG & Open World',
+    'horror': 'Horror & Survival',
+    'sports': 'Olahraga & Balap',
+    'racing': 'Balapan / Racing',
+    'fighting': 'Fighting / Tarung',
+    'shooter': 'Shooter & FPS',
+    'family': 'Co-op & Family',
+    'coop': 'Co-op & Family',
+    'subindo': 'Subtitle Indonesia',
+    'hen': 'Game PS4 HEN',
+    'digital': 'Game Digital PSN'
+  };
+  return map[cat] || (cat ? cat.toUpperCase() : 'PlayStation Game');
 }
 
 function formatDate(isoStr) {
@@ -874,13 +897,25 @@ function initSocialProofStream() {
 function getFilteredProducts() {
   let list = [...state.products];
 
-  // Category & Platform Filter
+  // Category & Platform Filter (PlayStation Official Genres)
   if (state.activeFilter === 'subindo') {
     list = list.filter(p => p.isSubIndo || (p.badge && p.badge.toLowerCase().includes('sub indo')) || p.title.toLowerCase().includes('sub indo') || p.category === 'subindo');
   } else if (state.activeFilter === 'hen') {
     list = list.filter(p => p.isHen || (p.platform && p.platform.some(pl => pl.includes('HEN'))) || p.category === 'hen');
+  } else if (state.activeFilter === 'action') {
+    list = list.filter(p => p.category === 'action' || p.category === 'adventure' || /action|adventure|petualangan|spider|god of war|uncharted|gta|watch dogs/i.test(p.title));
+  } else if (state.activeFilter === 'rpg') {
+    list = list.filter(p => p.category === 'rpg' || /rpg|hogwarts|odyssey|witcher|elden|final fantasy/i.test(p.title));
+  } else if (state.activeFilter === 'horror') {
+    list = list.filter(p => p.category === 'horror' || /horror|survival|last of us|resident evil|silent hill/i.test(p.title));
   } else if (state.activeFilter === 'sports') {
-    list = list.filter(p => p.category === 'sports' || p.title.toLowerCase().includes('pes') || (p.badge && p.badge.includes('⚽')));
+    list = list.filter(p => p.category === 'sports' || p.category === 'racing' || /sports|racing|bola|pes|fifa|fc 2|nba|motogp|gran turismo/i.test(p.title));
+  } else if (state.activeFilter === 'fighting') {
+    list = list.filter(p => p.category === 'fighting' || /fighting|tarung|mortal kombat|tekken|street fighter|naruto/i.test(p.title));
+  } else if (state.activeFilter === 'family' || state.activeFilter === 'coop') {
+    list = list.filter(p => p.category === 'family' || p.category === 'coop' || /takes two|mabar|co-op|family|lego|overcooked|sackboy|crash/i.test(p.title));
+  } else if (state.activeFilter === 'shooter') {
+    list = list.filter(p => p.category === 'shooter' || /shooter|fps|call of duty|battlefield|helldivers/i.test(p.title));
   } else if (state.activeFilter === 'digital') {
     list = list.filter(p => p.platform.includes('PS5') || p.platform.includes('PS4'));
   } else if (state.activeFilter === 'ps5') {
@@ -938,7 +973,21 @@ function toggleCardVariant(productId, variant) {
   }
 }
 
+function updateActiveFilterTab() {
+  const filterBtns = document.querySelectorAll('.filter-tab-btn');
+  filterBtns.forEach(b => {
+    if (b.dataset.filter === state.activeFilter) {
+      b.classList.remove('bg-slate-900', 'text-slate-400');
+      b.classList.add('bg-sky-600', 'text-white', 'shadow-lg', 'shadow-sky-600/40');
+    } else {
+      b.classList.remove('bg-sky-600', 'text-white', 'shadow-lg', 'shadow-sky-600/40');
+      b.classList.add('bg-slate-900', 'text-slate-400');
+    }
+  });
+}
+
 function renderProducts() {
+  updateActiveFilterTab();
   const container = document.getElementById('products-grid');
   const emptyState = document.getElementById('products-empty');
   const countBadge = document.getElementById('products-count');
@@ -1022,10 +1071,11 @@ function renderProducts() {
             </button>
           </div>
 
-          <!-- Platforms & Star Rating -->
+          <!-- Platforms, Category & Star Rating -->
           <div class="flex items-center justify-between gap-1 mb-1.5 sm:mb-2">
             <div class="flex items-center gap-1 flex-wrap">
               ${subIndoTag}
+              <span class="px-2 py-0.5 text-[10px] rounded-md bg-slate-900/90 text-sky-300 font-bold border border-slate-700/60">${getCategoryLabel(product.category)}</span>
               ${platformsHtml}
             </div>
             <div class="flex items-center gap-1 text-amber-400 text-[11px] sm:text-xs font-bold shrink-0">
@@ -1156,6 +1206,8 @@ function openProductDetail(productId) {
   }
 
   document.getElementById('modal-product-title').textContent = product.title;
+  const modalGenreEl = document.getElementById('modal-product-genre');
+  if (modalGenreEl) modalGenreEl.textContent = getCategoryLabel(product.category);
   document.getElementById('modal-product-publisher').textContent = product.publisher || 'PlayStation Store';
   document.getElementById('modal-product-year').textContent = product.releaseYear || '2024';
   document.getElementById('modal-product-size').textContent = product.size || 'Digital Download';
@@ -3566,7 +3618,7 @@ function renderAdminProductsTable() {
           <img src="${getProductPoster(p)}" class="w-8 h-10 object-cover rounded-lg bg-slate-800" onerror="this.onerror=null; this.src='assets/covers/service-1tb.jpg'" alt="" />
           <div>
             <div class="font-bold text-white">${p.title}</div>
-            <div class="text-[10px] text-slate-400 font-mono">${p.platform.join(', ')} • ${p.category}</div>
+            <div class="text-[10px] text-slate-400 font-mono">${p.platform.join(', ')} • <span class="text-sky-400 font-bold">${getCategoryLabel(p.category)}</span></div>
           </div>
         </div>
       </td>
@@ -3821,6 +3873,12 @@ function openEditProductModal(productId) {
   if (!modal) return;
 
   document.getElementById('edit-game-title').value = p.title;
+  const editCatEl = document.getElementById('edit-game-category');
+  if (editCatEl && p.category) editCatEl.value = p.category;
+  const editPlatCbs = document.querySelectorAll('input[name="edit-game-platform"]');
+  editPlatCbs.forEach(cb => {
+    cb.checked = Array.isArray(p.platform) && p.platform.includes(cb.value);
+  });
   document.getElementById('edit-game-price-primary').value = p.prices.primary;
   document.getElementById('edit-game-price-original').value = p.prices.original || '';
   const editRateEl = document.getElementById('edit-game-discount-rate');
@@ -3845,6 +3903,10 @@ function submitEditProduct() {
   if (!p) return;
 
   p.title = document.getElementById('edit-game-title').value.trim();
+  const editCatEl = document.getElementById('edit-game-category');
+  if (editCatEl && editCatEl.value) p.category = editCatEl.value;
+  const editPlatCbs = Array.from(document.querySelectorAll('input[name="edit-game-platform"]:checked')).map(cb => cb.value);
+  if (editPlatCbs.length > 0) p.platform = editPlatCbs;
   p.prices.primary = parseInt(document.getElementById('edit-game-price-primary').value, 10) || p.prices.primary;
   p.prices.secondary = p.prices.primary;
   const editOriginal = parseInt(document.getElementById('edit-game-price-original').value, 10) || 0;
