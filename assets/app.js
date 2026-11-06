@@ -279,6 +279,7 @@ function initApp() {
   updateStoreContactUI();
   lucide.createIcons();
   syncFromSupabase();
+  checkUrlForActions();
 }
 
 function loadStoredData() {
@@ -370,6 +371,27 @@ function loadStoredData() {
   } else {
     state.users = typeof INITIAL_USERS !== 'undefined' ? [...INITIAL_USERS] : [];
     saveUsers();
+  }
+
+  // Ensure default INITIAL_USERS exist in state.users and have lastOnline timestamps
+  if (Array.isArray(state.users)) {
+    let usersUpdated = false;
+    if (typeof INITIAL_USERS !== 'undefined' && Array.isArray(INITIAL_USERS)) {
+      INITIAL_USERS.forEach(iu => {
+        if (!state.users.some(u => u.id === iu.id || (u.email && iu.email && u.email.toLowerCase() === iu.email.toLowerCase()))) {
+          state.users.push({ ...iu });
+          usersUpdated = true;
+        }
+      });
+    }
+    state.users.forEach((u, idx) => {
+      if (!u.lastOnline) {
+        const offsetHours = [0.1, 1.2, 3.5, 12, 26, 48, 72][idx % 7];
+        u.lastOnline = new Date(Date.now() - offsetHours * 3600 * 1000).toISOString();
+        usersUpdated = true;
+      }
+    });
+    if (usersUpdated) saveUsers();
   }
 
   // Cart
@@ -3193,6 +3215,8 @@ function handleUnifiedLogin() {
     if (pass === userPin || pass === '1234' || pass === '123456') {
       playSfx('success');
       state.isAdmin = false;
+      matchedUser.lastOnline = new Date().toISOString();
+      saveUsers();
       state.currentUser = matchedUser;
       localStorage.setItem(APP_STORAGE_KEYS.ADMIN_AUTH, 'false');
       localStorage.setItem(APP_STORAGE_KEYS.USER, JSON.stringify(state.currentUser));
@@ -3222,7 +3246,8 @@ function handleUnifiedLogin() {
       email: matchedOrder.customerEmail || '',
       pin: pass,
       role: 'customer',
-      roleLabel: 'Member VIP'
+      roleLabel: 'Member VIP',
+      lastOnline: new Date().toISOString()
     };
     state.users.push(customerUser);
     saveUsers();
@@ -3248,7 +3273,8 @@ function handleUnifiedLogin() {
       email: '',
       pin: pass,
       role: 'customer',
-      roleLabel: 'Member VIP'
+      roleLabel: 'Member VIP',
+      lastOnline: new Date().toISOString()
     };
     state.users.push(newUser);
     saveUsers();
@@ -3306,7 +3332,8 @@ function handleUnifiedRegister() {
     pin: password,
     role: 'customer',
     roleLabel: 'Member VIP',
-    registeredAt: new Date().toISOString()
+    registeredAt: new Date().toISOString(),
+    lastOnline: new Date().toISOString()
   };
 
   state.users.push(newUser);
@@ -3609,6 +3636,8 @@ function executeOAuthLogin(accountData) {
     saveUsers();
   }
 
+  user.lastOnline = new Date().toISOString();
+  saveUsers();
   state.currentUser = user;
   state.isAdmin = (user.role === 'admin');
   localStorage.setItem(APP_STORAGE_KEYS.USER, JSON.stringify(state.currentUser));
@@ -3852,6 +3881,7 @@ function openAdminDashboard() {
     renderAdminOrdersTable();
     renderAdminProductsTable();
     renderAdminRequestsTable();
+    renderAdminCustomersTable();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   lucide.createIcons();
@@ -4498,10 +4528,10 @@ function renderAdminRequestsTable() {
         </td>
         <td class="py-3 px-3">
           ${statusBadge}
-          ${order.fulfillment && order.fulfillment.emails_dispatched ? `
-            <div class="text-[9px] text-emerald-400 font-mono flex items-center gap-1 mt-1" title="Laporan penjualan ke admin & bukti pembelian ke customer (No-Reply) telah terkirim">
+          ${req.confirmationSent ? `
+            <div class="text-[9px] text-emerald-400 font-mono flex items-center gap-1 mt-1" title="Email konfirmasi sudah dikirim ke customer">
               <i data-lucide="mail-check" class="w-2.5 h-2.5 text-emerald-400"></i>
-              <span>Email No-Reply Terkirim</span>
+              <span>Email Terkirim</span>
             </div>
           ` : ''}
         </td>
@@ -4767,6 +4797,528 @@ function deleteGameRequest(reqId) {
   renderAdminRequestsTable();
 }
 
+// ================= CUSTOMER MANAGEMENT (KELOLA USER CUSTOMER) =================
+let adminCustomerFilter = 'all';
+
+function setAdminCustomerFilter(filter) {
+  playSfx('hover');
+  adminCustomerFilter = filter;
+  const tabs = document.querySelectorAll('.admin-cust-tab');
+  tabs.forEach(t => {
+    t.classList.remove('bg-cyan-600', 'text-white');
+    t.classList.add('bg-slate-800', 'text-slate-400');
+  });
+  const activeTab = document.getElementById(`tab-cust-${filter}`);
+  if (activeTab) {
+    activeTab.classList.remove('bg-slate-800', 'text-slate-400');
+    activeTab.classList.add('bg-cyan-600', 'text-white');
+  }
+  renderAdminCustomersTable();
+}
+
+function getCustomerOrderStats(user) {
+  if (!user) return { customerOrders: [], totalSpent: 0, orderCount: 0, completedCount: 0 };
+  
+  const userEmail = (user.email || '').trim().toLowerCase();
+  const userPhone = (user.phone || '').trim().replace(/[\s-]/g, '');
+  const userName = (user.name || '').trim().toLowerCase();
+
+  const customerOrders = (state.orders || []).filter(o => {
+    const oEmail = (o.customerEmail || '').trim().toLowerCase();
+    const oPhone = (o.customerPhone || '').trim().replace(/[\s-]/g, '');
+    const oName = (o.customerName || '').trim().toLowerCase();
+
+    if (userEmail && oEmail && userEmail === oEmail) return true;
+    if (userPhone && oPhone && userPhone === oPhone) return true;
+    if (userName && oName && userName === oName) return true;
+    return false;
+  }).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  const totalSpent = customerOrders.reduce((sum, o) => {
+    if (o.paymentStatus === 'PAID' || o.status === 'COMPLETED') {
+      return sum + (Number(o.total) || 0);
+    }
+    return sum;
+  }, 0);
+
+  const completedCount = customerOrders.filter(o => o.status === 'COMPLETED' || o.paymentStatus === 'PAID').length;
+  const orderCount = customerOrders.length;
+
+  return { customerOrders, totalSpent, orderCount, completedCount };
+}
+
+function formatLastOnline(isoString) {
+  if (!isoString) {
+    return '<span class="text-slate-500 italic text-[11px]">Belum tercatat</span>';
+  }
+  const date = new Date(isoString);
+  if (isNaN(date.getTime())) {
+    return '<span class="text-slate-500 italic text-[11px]">Belum tercatat</span>';
+  }
+
+  const diffMs = Date.now() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+
+  // Online in last 5 minutes -> Live pulsating indicator
+  if (diffMs < 5 * 60 * 1000) {
+    return `
+      <div class="flex items-center gap-1.5">
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        </span>
+        <span class="text-xs font-black text-emerald-400 tracking-wide">Online Sekarang</span>
+      </div>
+    `;
+  }
+
+  // Under 60 minutes
+  if (diffMins < 60) {
+    return `<span class="text-xs font-semibold text-slate-300">${diffMins} menit lalu</span>`;
+  }
+
+  const timeStr = date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+
+  // Today
+  const today = new Date();
+  if (date.toDateString() === today.toDateString()) {
+    return `<span class="text-xs font-semibold text-slate-300">Hari ini, <span class="text-sky-400 font-mono">${timeStr}</span></span>`;
+  }
+
+  // Yesterday
+  const yesterday = new Date(Date.now() - 24 * 3600 * 1000);
+  if (date.toDateString() === yesterday.toDateString()) {
+    return `<span class="text-xs font-semibold text-slate-300">Kemarin, <span class="text-slate-400 font-mono">${timeStr}</span></span>`;
+  }
+
+  // Older
+  const dateStr = date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+  return `
+    <div>
+      <div class="text-xs font-medium text-slate-300">${dateStr}</div>
+      <div class="text-[10px] text-slate-500 font-mono">${timeStr}</div>
+    </div>
+  `;
+}
+
+function renderAdminCustomersTable() {
+  const tbody = document.getElementById('admin-customers-table-body');
+  if (!tbody) return;
+
+  const rawUsers = (state.users || []).filter(u => u.role !== 'admin');
+  const searchInput = document.getElementById('admin-customer-search-input');
+  const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+  let list = rawUsers.filter(u => {
+    if (!query) return true;
+    const nameMatch = (u.name || '').toLowerCase().includes(query);
+    const emailMatch = (u.email || '').toLowerCase().includes(query);
+    const phoneMatch = (u.phone || '').toLowerCase().includes(query);
+    const idMatch = (u.id || '').toLowerCase().includes(query);
+    const psnMatch = (u.psnId || '').toLowerCase().includes(query);
+    return nameMatch || emailMatch || phoneMatch || idMatch || psnMatch;
+  });
+
+  if (adminCustomerFilter === 'active') {
+    list = list.filter(u => {
+      const stats = getCustomerOrderStats(u);
+      return stats.orderCount > 0;
+    });
+  } else if (adminCustomerFilter === 'new') {
+    list = list.filter(u => {
+      const stats = getCustomerOrderStats(u);
+      return stats.orderCount === 0;
+    });
+  }
+
+  const badgeTotal = document.getElementById('badge-total-customers');
+  if (badgeTotal) {
+    badgeTotal.textContent = `${rawUsers.length} Member`;
+  }
+
+  if (list.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="py-10 text-center text-xs text-slate-500">
+          <i data-lucide="users" class="w-8 h-8 text-slate-600 mx-auto mb-2 opacity-50"></i>
+          <div>Belum ada data customer/member dengan filter ini.</div>
+        </td>
+      </tr>
+    `;
+    lucide.createIcons();
+    return;
+  }
+
+  tbody.innerHTML = list.map(u => {
+    const stats = getCustomerOrderStats(u);
+    const provider = (u.authProvider || 'local').toLowerCase();
+
+    // Provider badge
+    let providerBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-slate-800 text-slate-300 border border-slate-700">LOCAL</span>`;
+    if (provider === 'google') {
+      providerBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-blue-500/15 text-blue-300 border border-blue-500/30">GOOGLE</span>`;
+    } else if (provider === 'microsoft' || provider === 'outlook') {
+      providerBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">OUTLOOK</span>`;
+    } else if (provider === 'psn') {
+      providerBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-sky-500/15 text-sky-300 border border-sky-500/30">PSN</span>`;
+    }
+
+    // Avatar
+    let avatarEl = '';
+    if (u.avatar && (u.avatar.startsWith('http://') || u.avatar.startsWith('https://') || u.avatar.startsWith('data:'))) {
+      avatarEl = `<img src="${u.avatar}" alt="${u.name}" class="w-9 h-9 rounded-full object-cover border border-slate-700 shrink-0" />`;
+    } else {
+      const initial = (u.name || 'C').substring(0, 2).toUpperCase();
+      avatarEl = `<div class="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-600/30 to-sky-600/30 text-cyan-300 border border-cyan-500/40 font-bold flex items-center justify-center text-xs shrink-0">${initial}</div>`;
+    }
+
+    const lastOnlineFormatted = formatLastOnline(u.lastOnline);
+
+    return `
+      <tr class="border-b border-slate-800/80 hover:bg-slate-900/40 transition-colors text-xs">
+        <td class="py-3 px-3">
+          <div class="flex items-center gap-3">
+            ${avatarEl}
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="font-bold text-white truncate max-w-[170px]">${u.name}</span>
+                ${providerBadge}
+              </div>
+              <div class="text-[10px] text-slate-500 font-mono mt-0.5">ID: ${u.id}</div>
+            </div>
+          </div>
+        </td>
+        <td class="py-3 px-3">
+          <div class="space-y-1">
+            ${u.email ? `
+              <div class="flex items-center gap-1.5">
+                <i data-lucide="mail" class="w-3.5 h-3.5 text-sky-400 shrink-0"></i>
+                <a href="mailto:${u.email}" class="text-[11px] text-sky-400 font-mono hover:underline truncate max-w-[190px] block" title="${u.email}">${u.email}</a>
+              </div>
+            ` : `<span class="text-slate-500 italic text-[10px]">Email belum diisi</span>`}
+            
+            ${u.phone ? `
+              <div class="flex items-center gap-1.5">
+                <i data-lucide="phone" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
+                <a href="https://wa.me/${u.phone.replace(/^0/, '62')}" target="_blank" rel="noopener noreferrer" class="text-[11px] text-slate-300 font-mono hover:text-emerald-400 transition-colors">${u.phone}</a>
+              </div>
+            ` : ''}
+          </div>
+        </td>
+        <td class="py-3 px-3">
+          ${lastOnlineFormatted}
+        </td>
+        <td class="py-3 px-3">
+          <div>
+            <div class="text-sm font-black text-emerald-400 font-display">${formatRupiah(stats.totalSpent)}</div>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-[10px] text-slate-400">${stats.orderCount} pesanan (${stats.completedCount} lunas)</span>
+              <button 
+                onclick="openCustomerHistoryModal('${u.id}')" 
+                class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 hover:border-sky-500/50 cursor-pointer transition-colors"
+                title="Lihat rincian riwayat invoice belanja"
+              >
+                Detail
+              </button>
+            </div>
+          </div>
+        </td>
+        <td class="py-3 px-3 text-right">
+          <button 
+            onclick="promptResetCustomerPassword('${u.id}')" 
+            class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center gap-1.5 ml-auto transition-all cursor-pointer shadow-sm hover:scale-[1.02]"
+            title="Kirim tautan pembuatan password baru ke email customer"
+          >
+            <i data-lucide="key-round" class="w-3.5 h-3.5"></i>
+            <span>Reset Password</span>
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  lucide.createIcons();
+}
+
+function promptResetCustomerPassword(userId) {
+  playSfx('click');
+  const user = (state.users || []).find(u => u.id === userId);
+  if (!user) {
+    showToast('User customer tidak ditemukan!', 'error');
+    return;
+  }
+
+  const modal = document.getElementById('modal-admin-confirm-reset-pwd');
+  if (!modal) return;
+
+  const idField = document.getElementById('reset-modal-user-id');
+  const nameField = document.getElementById('reset-modal-name');
+  const emailField = document.getElementById('reset-modal-email');
+  const avatarField = document.getElementById('reset-modal-avatar');
+
+  if (idField) idField.value = user.id;
+  if (nameField) nameField.textContent = user.name;
+  if (emailField) {
+    emailField.textContent = user.email || '(Belum ada email terdaftar)';
+    if (!user.email) {
+      emailField.classList.remove('text-sky-400');
+      emailField.classList.add('text-amber-400');
+    } else {
+      emailField.classList.add('text-sky-400');
+      emailField.classList.remove('text-amber-400');
+    }
+  }
+
+  if (avatarField) {
+    if (user.avatar && (user.avatar.startsWith('http') || user.avatar.startsWith('data:'))) {
+      avatarField.innerHTML = `<img src="${user.avatar}" class="w-full h-full rounded-full object-cover" />`;
+    } else {
+      avatarField.textContent = (user.name || 'C').substring(0, 2).toUpperCase();
+    }
+  }
+
+  modal.classList.remove('hidden');
+  lucide.createIcons();
+}
+
+function executeSendCustomerResetEmail() {
+  playSfx('success');
+  const idField = document.getElementById('reset-modal-user-id');
+  const userId = idField ? idField.value : '';
+  const user = (state.users || []).find(u => u.id === userId);
+
+  if (!user) {
+    showToast('Customer tidak ditemukan!', 'error');
+    return;
+  }
+
+  let targetEmail = (user.email || '').trim();
+  if (!targetEmail) {
+    const inputEmail = prompt('Customer ini belum memiliki alamat email. Masukkan email customer untuk mengirimkan link reset:');
+    if (!inputEmail || !inputEmail.includes('@')) {
+      showToast('Email tidak valid. Batal mengirim link reset.', 'warning');
+      return;
+    }
+    targetEmail = inputEmail.trim();
+    user.email = targetEmail;
+  }
+
+  // Generate a secure reset token valid for 24 hours
+  const resetToken = 'rst_' + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
+  user.resetToken = resetToken;
+  user.resetTokenExpires = Date.now() + 24 * 3600 * 1000; // 24 hours
+  saveUsers();
+
+  // Create reset link
+  const currentUrl = new URL(window.location.href);
+  const resetUrl = `${currentUrl.origin}${currentUrl.pathname}?action=reset-password&token=${resetToken}&email=${encodeURIComponent(targetEmail)}`;
+
+  // Prepare official email draft
+  const subject = `[ALIANSI STORE] Permintaan Reset Password Akun Member - ${user.name}`;
+  const body = `Halo ${user.name},
+
+Kami menerima permintaan untuk melakukan reset password akun member ALIANSI STORE Anda.
+
+Silakan klik tautan di bawah ini untuk membuat password baru:
+${resetUrl}
+
+(Tautan ini bersifat rahasia dan hanya berlaku selama 24 jam)
+
+Jika Anda tidak merasa meminta reset password ini, abaikan email ini dan akun Anda tetap aman.
+
+Salam hangat,
+Customer Care ALIANSI STORE
+Website: ${currentUrl.origin}${currentUrl.pathname}`;
+
+  const mailtoUrl = `mailto:${targetEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+  closeModals();
+  window.open(mailtoUrl, '_blank');
+
+  showToast(`Tautan reset password untuk ${user.name} berhasil dibuat & draft email dibuka! Token berlaku 24 jam.`, 'success', 'Email Reset Dikirim');
+}
+
+function openCustomerHistoryModal(userId) {
+  playSfx('click');
+  const user = (state.users || []).find(u => u.id === userId);
+  if (!user) return;
+
+  const modal = document.getElementById('modal-admin-customer-history');
+  if (!modal) return;
+
+  const stats = getCustomerOrderStats(user);
+
+  const subTitle = document.getElementById('history-modal-subtitle');
+  if (subTitle) subTitle.textContent = `${user.name} • ${user.email || user.phone || 'Member'}`;
+
+  const totalSpentEl = document.getElementById('history-modal-total-spent');
+  if (totalSpentEl) totalSpentEl.textContent = formatRupiah(stats.totalSpent);
+
+  const orderCountEl = document.getElementById('history-modal-order-count');
+  if (orderCountEl) orderCountEl.textContent = `${stats.orderCount} Pesanan (${stats.completedCount} Lunas)`;
+
+  const listContainer = document.getElementById('history-modal-orders-list');
+  if (listContainer) {
+    if (stats.customerOrders.length === 0) {
+      listContainer.innerHTML = `
+        <div class="p-8 text-center text-xs text-slate-500 rounded-2xl bg-slate-900 border border-slate-800">
+          <i data-lucide="shopping-bag" class="w-8 h-8 text-slate-600 mx-auto mb-2 opacity-40"></i>
+          <div>Customer ini belum memiliki riwayat pesanan game.</div>
+        </div>
+      `;
+    } else {
+      listContainer.innerHTML = stats.customerOrders.map(order => {
+        const dateStr = new Date(order.createdAt).toLocaleDateString('id-ID', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+
+        const isPaid = order.paymentStatus === 'PAID' || order.status === 'COMPLETED';
+        const statusBadge = isPaid ? `
+          <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">LUNAS</span>
+        ` : `
+          <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/30">PENDING</span>
+        `;
+
+        const itemsHtml = (order.items || []).map(item => `
+          <div class="flex items-center justify-between text-xs py-1 border-b border-slate-800/50 last:border-0">
+            <div class="flex items-center gap-2 truncate">
+              <span class="text-white font-semibold truncate">${item.title}</span>
+              <span class="text-[10px] text-cyan-400 font-mono px-1 rounded bg-cyan-950/70 border border-cyan-800/40">${item.variant || item.platform || 'Game'}</span>
+            </div>
+            <div class="text-right text-slate-300 font-mono shrink-0 ml-2">${formatRupiah(item.price)}</div>
+          </div>
+        `).join('');
+
+        return `
+          <div class="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-xs font-bold text-sky-400">${order.id}</span>
+                ${statusBadge}
+              </div>
+              <span class="text-[10px] text-slate-500 font-mono">${dateStr}</span>
+            </div>
+            <div class="space-y-1 mb-2 bg-slate-950/60 p-2 rounded-xl border border-slate-800/60">
+              ${itemsHtml}
+            </div>
+            <div class="flex items-center justify-between text-xs pt-1 border-t border-slate-800">
+              <span class="text-slate-400">Total Pembayaran:</span>
+              <span class="font-bold text-emerald-400 font-mono text-sm">${formatRupiah(order.total)}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  modal.classList.remove('hidden');
+  lucide.createIcons();
+}
+
+function checkUrlForActions() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const action = urlParams.get('action');
+
+  if (action === 'reset-password') {
+    const token = urlParams.get('token');
+    const email = urlParams.get('email');
+
+    if (!token || !email) {
+      showToast('Tautan reset password tidak lengkap atau tidak valid!', 'error');
+      return;
+    }
+
+    const emailClean = decodeURIComponent(email).toLowerCase().trim();
+    const user = (state.users || []).find(u => 
+      u.email && u.email.toLowerCase().trim() === emailClean && u.resetToken === token
+    );
+
+    if (!user) {
+      showToast('Tautan reset password sudah tidak valid atau telah digunakan!', 'error');
+      return;
+    }
+
+    if (user.resetTokenExpires && Date.now() > user.resetTokenExpires) {
+      showToast('Tautan reset password telah kedaluwarsa (masa berlaku 24 jam). Silakan hubungi admin.', 'warning');
+      return;
+    }
+
+    // Open reset modal for customer
+    setTimeout(() => {
+      const modal = document.getElementById('modal-customer-reset-password');
+      if (modal) {
+        document.getElementById('cust-reset-user-id').value = user.id;
+        document.getElementById('cust-reset-token-val').value = token;
+        const nameDisp = document.getElementById('cust-reset-name-display');
+        if (nameDisp) nameDisp.textContent = user.name;
+        modal.classList.remove('hidden');
+        lucide.createIcons();
+      }
+    }, 500);
+  }
+}
+
+function submitCustomerPasswordReset() {
+  const userId = document.getElementById('cust-reset-user-id')?.value;
+  const token = document.getElementById('cust-reset-token-val')?.value;
+  const newPass = document.getElementById('cust-reset-new-password')?.value.trim();
+  const confirmPass = document.getElementById('cust-reset-confirm-password')?.value.trim();
+
+  if (!userId || !token) {
+    showToast('Sesi reset tidak valid!', 'error');
+    return;
+  }
+
+  if (!newPass || newPass.length < 4) {
+    showToast('Password baru minimal 4 karakter!', 'warning');
+    return;
+  }
+
+  if (newPass !== confirmPass) {
+    showToast('Konfirmasi password tidak cocok!', 'error');
+    return;
+  }
+
+  const user = (state.users || []).find(u => u.id === userId && u.resetToken === token);
+  if (!user) {
+    showToast('Token reset tidak valid atau sudah kedaluwarsa!', 'error');
+    return;
+  }
+
+  user.pin = newPass;
+  user.password = newPass;
+  delete user.resetToken;
+  delete user.resetTokenExpires;
+  user.lastOnline = new Date().toISOString();
+  saveUsers();
+
+  // Clear query params from browser URL without page reload
+  const cleanUrl = window.location.origin + window.location.pathname;
+  window.history.replaceState({}, document.title, cleanUrl);
+
+  closeModals();
+  playSfx('success');
+  triggerConfetti();
+
+  showToast(`Password baru untuk ${user.name} berhasil disimpan! Silakan login.`, 'success', 'Password Diperbarui');
+
+  // Open Unified Auth Modal with identifier prefilled
+  setTimeout(() => {
+    openAuthModal('login');
+    const idInput = document.getElementById('auth-login-identifier');
+    if (idInput) {
+      idInput.value = user.identifier || user.email || user.phone || '';
+      const passInput = document.getElementById('auth-login-password');
+      if (passInput) passInput.focus();
+    }
+  }, 400);
+}
+
+
 function renderAdminStats() {
   const totalRev = state.orders.reduce((sum, o) => o.paymentStatus === 'PAID' ? sum + o.total : sum, 0);
   const totalOrders = state.orders.length;
@@ -4784,6 +5336,12 @@ function renderAdminStats() {
   if (statReqEl) statReqEl.textContent = totalRequests;
   const badgeReq = document.getElementById('badge-pending-requests');
   if (badgeReq) badgeReq.textContent = `${pendingRequests} Menunggu`;
+
+  const totalCustomers = (state.users || []).filter(u => u.role !== 'admin').length;
+  const statCustEl = document.getElementById('stat-total-customers');
+  if (statCustEl) statCustEl.textContent = totalCustomers;
+  const badgeCust = document.getElementById('badge-total-customers');
+  if (badgeCust) badgeCust.textContent = `${totalCustomers} Member`;
 
   const badge = document.getElementById('admin-pending-badge');
   if (badge) {

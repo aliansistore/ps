@@ -1904,7 +1904,7 @@
     </header>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
         <div class="p-5 rounded-2xl bg-[#081024] border border-slate-800">
           <div class="flex items-center justify-between mb-2">
             <span class="text-xs font-medium text-slate-400">Total Omset</span>
@@ -1948,6 +1948,15 @@
           </div>
           <div id="stat-total-requests" class="text-xl sm:text-2xl font-black text-purple-400 font-display">0</div>
           <div class="text-[10px] text-purple-300/80 mt-1">Permintaan game masuk</div>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-[#081024] border border-cyan-500/40 relative overflow-hidden">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold text-cyan-300">Total Customer</span>
+            <i data-lucide="users" class="w-4 h-4 text-cyan-400"></i>
+          </div>
+          <div id="stat-total-customers" class="text-xl sm:text-2xl font-black text-cyan-400 font-display">0</div>
+          <div class="text-[10px] text-cyan-300/80 mt-1">Member terdaftar</div>
         </div>
       </div>
 
@@ -2069,6 +2078,53 @@
               </tr>
             </thead>
             <tbody id="admin-requests-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Customers Section (Kelola User Customer) -->
+      <section class="p-5 sm:p-6 rounded-2xl bg-[#081024] border border-slate-800 mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+          <div>
+            <h3 class="text-lg font-bold text-white font-display flex items-center gap-2">
+              <i data-lucide="users" class="w-5 h-5 text-cyan-400"></i>
+              <span>Kelola User Customer (Member Toko)</span>
+              <span id="badge-total-customers" class="px-2 py-0.5 rounded-full text-[10px] font-black bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">0 Member</span>
+            </h3>
+            <p class="text-xs text-slate-400">Pantau data member, status online terakhir, detail akumulasi belanja, dan kirim tautan reset password ke email customer.</p>
+          </div>
+
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <div class="relative w-full sm:w-64">
+              <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+              <input 
+                type="text" 
+                id="admin-customer-search-input" 
+                oninput="renderAdminCustomersTable()" 
+                placeholder="Cari nama, email, no. HP..." 
+                class="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-400 focus:border-cyan-500 outline-none" 
+              />
+            </div>
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-1">
+              <button id="tab-cust-all" onclick="setAdminCustomerFilter('all')" class="admin-cust-tab px-3 py-1.5 rounded-lg text-xs font-bold bg-cyan-600 text-white shadow-sm transition-colors">Semua</button>
+              <button id="tab-cust-active" onclick="setAdminCustomerFilter('active')" class="admin-cust-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white transition-colors">Pernah Belanja</button>
+              <button id="tab-cust-new" onclick="setAdminCustomerFilter('new')" class="admin-cust-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white transition-colors">Member Baru</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-900/60">
+                <th class="py-3 px-3">Customer / Member</th>
+                <th class="py-3 px-3">Kontak & Akun</th>
+                <th class="py-3 px-3">Terakhir Online</th>
+                <th class="py-3 px-3">Detail Total Pembelian</th>
+                <th class="py-3 px-3 text-right">Tindakan Admin</th>
+              </tr>
+            </thead>
+            <tbody id="admin-customers-table-body"></tbody>
           </table>
         </div>
       </section>
@@ -3306,7 +3362,174 @@
     </div>
   </div>
 
-    <!-- MODAL: Lupa Password Admin (Reset via Email OTP) -->
+      <!-- MODAL: Konfirmasi Kirim Tautan Reset Password Customer -->
+  <div id="modal-admin-confirm-reset-pwd" class="app-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+    <div class="bg-[#080f24] border border-slate-700/80 rounded-3xl p-6 sm:p-7 max-w-md w-full max-h-[92vh] overflow-y-auto modal-custom-scroll shadow-2xl relative text-white" onclick="event.stopPropagation()">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-inner">
+            <i data-lucide="key-round" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-black font-display text-white">Reset Password Customer</h3>
+            <p class="text-[11px] text-slate-400">Kirim tautan reset resmi ke email customer</p>
+          </div>
+        </div>
+        <button onclick="closeModals()" class="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <div class="p-3.5 rounded-2xl bg-slate-900 border border-slate-700/80 space-y-2">
+          <div class="text-xs text-slate-400">Akun Customer:</div>
+          <div class="flex items-center gap-2.5">
+            <div id="reset-modal-avatar" class="w-8 h-8 rounded-full bg-sky-600/20 text-sky-400 border border-sky-500/30 font-bold flex items-center justify-center text-xs"></div>
+            <div>
+              <div id="reset-modal-name" class="text-sm font-bold text-white"></div>
+              <div id="reset-modal-email" class="text-xs font-mono text-sky-400"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-3.5 rounded-2xl bg-amber-950/40 border border-amber-500/30 flex items-start gap-2.5 text-xs text-amber-200">
+          <i data-lucide="alert-circle" class="w-4 h-4 text-amber-400 shrink-0 mt-0.5"></i>
+          <p class="leading-relaxed">
+            Sistem akan men-generate token unik dan membuat draft email resmi yang memuat tautan aman untuk membuat password baru. Tautan hanya berlaku selama <strong>24 jam</strong>.
+          </p>
+        </div>
+
+        <input type="hidden" id="reset-modal-user-id" value="" />
+
+        <div class="grid grid-cols-2 gap-3 pt-2">
+          <button type="button" onclick="closeModals()" class="py-2.5 px-4 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors">
+            Batal
+          </button>
+          <button type="button" onclick="executeSendCustomerResetEmail()" class="py-2.5 px-4 rounded-xl text-xs font-black bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white shadow-lg shadow-amber-600/25 flex items-center justify-center gap-1.5 transition-all">
+            <i data-lucide="send" class="w-3.5 h-3.5"></i>
+            <span>Ya, Kirim Email Reset</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Detail Riwayat Belanja Customer -->
+  <div id="modal-admin-customer-history" class="app-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+    <div class="bg-[#080f24] border border-slate-700/80 rounded-3xl p-6 sm:p-7 max-w-xl w-full max-h-[92vh] overflow-y-auto modal-custom-scroll shadow-2xl relative text-white" onclick="event.stopPropagation()">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-inner">
+            <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-black font-display text-white">Detail Riwayat Pembelian</h3>
+            <p id="history-modal-subtitle" class="text-[11px] text-slate-400"></p>
+          </div>
+        </div>
+        <button onclick="closeModals()" class="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <!-- Summary Strip -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="p-3.5 rounded-2xl bg-slate-900 border border-slate-800">
+            <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wider block mb-1">Total Pengeluaran:</span>
+            <span id="history-modal-total-spent" class="text-lg font-black text-emerald-400 font-display">Rp 0</span>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-slate-900 border border-slate-800">
+            <span class="text-[10px] text-slate-400 uppercase font-bold tracking-wider block mb-1">Total Transaksi:</span>
+            <span id="history-modal-order-count" class="text-lg font-black text-sky-400 font-display">0 Pesanan</span>
+          </div>
+        </div>
+
+        <!-- Orders List -->
+        <div>
+          <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Daftar Invoice & Game:</h4>
+          <div id="history-modal-orders-list" class="space-y-2.5 max-h-[48vh] overflow-y-auto pr-1"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Customer Set New Password via Reset Token -->
+  <div id="modal-customer-reset-password" class="app-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+    <div class="bg-[#080f24] border border-slate-700/80 rounded-3xl p-6 sm:p-7 max-w-md w-full max-h-[92vh] overflow-y-auto modal-custom-scroll shadow-2xl relative text-white" onclick="event.stopPropagation()">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 shadow-inner">
+            <i data-lucide="shield-check" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-black font-display text-white">Buat Password Baru</h3>
+            <p class="text-[11px] text-slate-400">Keamanan akun member ALIANSI STORE</p>
+          </div>
+        </div>
+        <button onclick="closeModals()" class="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <div class="p-3.5 rounded-2xl bg-sky-950/40 border border-sky-500/30 text-xs text-sky-200">
+          <p class="font-bold mb-0.5">Halo, <span id="cust-reset-name-display" class="text-white"></span>!</p>
+          <p class="text-[11px] text-sky-300/90 leading-relaxed">Tautan reset password valid. Silakan buat password baru Anda untuk login.</p>
+        </div>
+
+        <input type="hidden" id="cust-reset-user-id" value="" />
+        <input type="hidden" id="cust-reset-token-val" value="" />
+
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1 flex items-center gap-1.5">
+            <i data-lucide="lock" class="w-3.5 h-3.5 text-sky-400"></i>
+            <span>Password Baru (min. 4 karakter) *</span>
+          </label>
+          <div class="relative">
+            <input 
+              type="password" 
+              id="cust-reset-new-password" 
+              placeholder="Masukkan password baru..." 
+              class="w-full pl-3.5 pr-8 py-2.5 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:border-sky-500 font-mono" 
+            />
+            <button type="button" onclick="toggleAuthPasswordVisibility('cust-reset-new-password', 'eye-cust-reset-new')" class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-white cursor-pointer">
+              <i data-lucide="eye" id="eye-cust-reset-new" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1 flex items-center gap-1.5">
+            <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>Konfirmasi Password Baru *</span>
+          </label>
+          <div class="relative">
+            <input 
+              type="password" 
+              id="cust-reset-confirm-password" 
+              placeholder="Ulangi password baru..." 
+              class="w-full pl-3.5 pr-8 py-2.5 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:border-sky-500 font-mono" 
+            />
+            <button type="button" onclick="toggleAuthPasswordVisibility('cust-reset-confirm-password', 'eye-cust-reset-confirm')" class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-white cursor-pointer">
+              <i data-lucide="eye" id="eye-cust-reset-confirm" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+
+        <button 
+          type="button" 
+          onclick="submitCustomerPasswordReset()" 
+          class="w-full py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-emerald-600 hover:from-sky-500 hover:to-emerald-500 text-xs font-black text-white shadow-lg shadow-sky-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all"
+        >
+          <i data-lucide="save" class="w-4 h-4"></i>
+          <span>Simpan Password & Masuk</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Lupa Password Admin (Reset via Email OTP) -->
   <div id="modal-admin-forgot-password" class="app-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
     <div class="bg-[#080f24] border border-slate-700/80 rounded-3xl p-6 sm:p-7 max-w-md w-full max-h-[92vh] overflow-y-auto modal-custom-scroll shadow-2xl relative text-white" onclick="event.stopPropagation()">
       <div class="flex items-center justify-between pb-3 border-b border-slate-800">
@@ -3811,7 +4034,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261107_navsettings_v10"></script>
-  <script src="assets/app.js?v=20261107_navsettings_v10"></script>
+  <script src="assets/products-data.js?v=20261107_custmgmt_v11"></script>
+  <script src="assets/app.js?v=20261107_custmgmt_v11"></script>
 </body>
 </html>
