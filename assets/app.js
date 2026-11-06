@@ -271,6 +271,7 @@ function initApp() {
   updateCartBadge();
   initSocialProofStream();
   updateNavAuthUI();
+  updateStoreContactUI();
   lucide.createIcons();
   syncFromSupabase();
 }
@@ -348,6 +349,10 @@ function loadStoredData() {
     state.config = typeof INITIAL_CONFIG !== 'undefined' ? { ...INITIAL_CONFIG } : {};
     saveConfig();
   }
+  if (!state.config.adminEmail) {
+    state.config.adminEmail = (typeof INITIAL_CONFIG !== 'undefined' && INITIAL_CONFIG.adminEmail) || 'aliansistore.id@gmail.com';
+  }
+  updateStoreContactUI();
 
   // Users Database (Admin & Customer Profiles)
   const storedUsers = localStorage.getItem(APP_STORAGE_KEYS.USERS_DB);
@@ -502,11 +507,13 @@ async function syncFromSupabase() {
         tagline: cfg.tagline || state.config.tagline,
         whatsappNumber: cfg.whatsapp_number || state.config.whatsappNumber,
         whatsappFormatted: cfg.whatsapp_formatted || state.config.whatsappFormatted,
+        adminEmail: cfg.admin_email || state.config.adminEmail || 'aliansistore.id@gmail.com',
         adminPin: cfg.admin_pin || state.config.adminPin || '1234',
         bankAccounts: cfg.bank_accounts || state.config.bankAccounts,
         vouchers: cfg.vouchers || state.config.vouchers
       };
       localStorage.setItem(APP_STORAGE_KEYS.CONFIG, JSON.stringify(state.config));
+      updateStoreContactUI();
     }
   } catch (err) {
     console.warn('Supabase cloud sync notice:', err);
@@ -536,6 +543,31 @@ async function syncOrderToSupabase(order) {
     });
   } catch (err) {
     console.warn('Failed to sync order to Supabase:', err);
+  }
+}
+
+async function syncConfigToSupabase() {
+  if (!supabaseClient || !state.config) return;
+  try {
+    const payload = {
+      id: 'main',
+      store_name: state.config.storeName || 'ALIANSI STORE',
+      tagline: state.config.tagline || '',
+      whatsapp_number: state.config.whatsappNumber || '6281234567890',
+      whatsapp_formatted: state.config.whatsappFormatted || '+62 812-3456-7890',
+      admin_email: state.config.adminEmail || 'aliansistore.id@gmail.com',
+      admin_pin: state.config.adminPin || '1234',
+      bank_accounts: state.config.bankAccounts || [],
+      vouchers: state.config.vouchers || [],
+      updated_at: new Date().toISOString()
+    };
+    const { error } = await supabaseClient.from('store_config').upsert(payload);
+    if (error && error.message && error.message.includes('admin_email')) {
+      delete payload.admin_email;
+      await supabaseClient.from('store_config').upsert(payload);
+    }
+  } catch (err) {
+    console.warn('Supabase sync config notice:', err);
   }
 }
 
@@ -1456,6 +1488,8 @@ function closeModals() {
   stopInvoiceLivePolling();
   const modals = document.querySelectorAll('.app-modal');
   modals.forEach(m => m.classList.add('hidden'));
+  const adminSettings = document.getElementById('modal-admin-settings');
+  if (adminSettings) adminSettings.classList.add('hidden');
 }
 
 // Quick Buy
@@ -3456,7 +3490,7 @@ function renderCustomerOrders() {
           <button onclick="openInvoiceModal('${order.id}')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer">
             <i data-lucide="file-text" class="w-3.5 h-3.5 text-sky-400"></i> Buka Invoice
           </button>
-          <a href="https://wa.me/6281234567890?text=Halo%20Admin%20Aliansi%20Store%2C%20saya%20mau%20konfirmasi%20pesanan%20${order.id}" target="_blank" class="px-3 py-1.5 rounded-lg bg-emerald-950 hover:bg-emerald-900/80 text-emerald-300 border border-emerald-500/30 text-xs font-bold transition-colors flex items-center gap-1.5">
+          <a href="https://wa.me/${(state.config && state.config.whatsappNumber) || '6281234567890'}?text=Halo%20Admin%20${encodeURIComponent((state.config && state.config.storeName) || 'Aliansi Store')}%2C%20saya%20mau%20konfirmasi%20pesanan%20${order.id}" target="_blank" class="px-3 py-1.5 rounded-lg bg-emerald-950 hover:bg-emerald-900/80 text-emerald-300 border border-emerald-500/30 text-xs font-bold transition-colors flex items-center gap-1.5">
             <i data-lucide="message-square" class="w-3.5 h-3.5"></i> CS WhatsApp
           </a>
         </div>
@@ -3490,6 +3524,121 @@ function closeAdminDashboard() {
     renderProducts();
   }
   lucide.createIcons();
+}
+
+// ================= STORE SETTINGS & CONTACT MANAGEMENT =================
+function updateStoreContactUI() {
+  const wa = (state.config && state.config.whatsappNumber) || '6281234567890';
+  const email = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
+  const formattedWa = (state.config && state.config.whatsappFormatted) || `+${wa}`;
+
+  // Update all WhatsApp links across navbar, footer, HUD, and mobile bottom bar
+  document.querySelectorAll('a.wa-contact-link, a[data-wa-link]').forEach(el => {
+    el.href = `https://wa.me/${wa}`;
+  });
+
+  // Update footer and contact email labels & mailto links
+  document.querySelectorAll('.store-admin-email').forEach(el => {
+    el.textContent = email;
+  });
+  document.querySelectorAll('a.store-admin-email-link').forEach(el => {
+    el.href = `mailto:${email}`;
+  });
+
+  // Update invoice print header
+  document.querySelectorAll('.invoice-print-wa').forEach(el => {
+    el.textContent = formattedWa;
+  });
+  document.querySelectorAll('.invoice-print-email').forEach(el => {
+    el.textContent = email;
+  });
+}
+
+function openAdminSettingsModal() {
+  playSfx('click');
+  const modal = document.getElementById('modal-admin-settings');
+  if (!modal) return;
+  const waEl = document.getElementById('setting-admin-wa');
+  const emailEl = document.getElementById('setting-admin-email');
+  const nameEl = document.getElementById('setting-store-name');
+
+  if (waEl) waEl.value = (state.config && state.config.whatsappNumber) || '6281234567890';
+  if (emailEl) emailEl.value = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
+  if (nameEl) nameEl.value = (state.config && state.config.storeName) || 'ALIANSI STORE';
+
+  modal.classList.remove('hidden');
+  lucide.createIcons();
+}
+
+function testCurrentWaLink() {
+  playSfx('click');
+  const rawWa = document.getElementById('setting-admin-wa') ? document.getElementById('setting-admin-wa').value.trim() : '';
+  let cleanWa = rawWa.replace(/[^0-9]/g, '');
+  if (cleanWa.startsWith('0')) {
+    cleanWa = '62' + cleanWa.slice(1);
+  }
+  if (!cleanWa || cleanWa.length < 8) {
+    showToast('Ketik nomor WhatsApp yang valid terlebih dahulu untuk tes!', 'warning');
+    return;
+  }
+  const storeName = (state.config && state.config.storeName) || 'ALIANSI STORE';
+  const testMsg = encodeURIComponent(`Halo Admin ${storeName}, ini tes pesan WhatsApp dari Dashboard Pengaturan Admin.`);
+  window.open(`https://wa.me/${cleanWa}?text=${testMsg}`, '_blank');
+}
+
+function saveAdminSettings() {
+  const waInput = document.getElementById('setting-admin-wa');
+  const emailInput = document.getElementById('setting-admin-email');
+  const nameInput = document.getElementById('setting-store-name');
+
+  if (!waInput || !emailInput) return;
+
+  let rawWa = waInput.value.trim();
+  const email = emailInput.value.trim();
+  const storeName = nameInput ? nameInput.value.trim() : 'ALIANSI STORE';
+
+  // Normalize phone number to standard international format (e.g. 0812... -> 62812...)
+  let cleanWa = rawWa.replace(/[^0-9]/g, '');
+  if (cleanWa.startsWith('0')) {
+    cleanWa = '62' + cleanWa.slice(1);
+  }
+
+  if (!cleanWa || cleanWa.length < 9) {
+    showToast('Nomor WhatsApp tidak valid (minimal 9 digit, cth: 081234567890)!', 'warning');
+    waInput.focus();
+    return;
+  }
+
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailRegex.test(email)) {
+    showToast('Masukkan format alamat email admin yang valid!', 'warning');
+    emailInput.focus();
+    return;
+  }
+
+  if (!state.config) state.config = {};
+  state.config.whatsappNumber = cleanWa;
+  
+  // Format formatted number e.g. +62 812-3456-7890
+  if (cleanWa.startsWith('62')) {
+    const rest = cleanWa.slice(2);
+    state.config.whatsappFormatted = `+62 ${rest.slice(0, 3)}-${rest.slice(3, 7)}-${rest.slice(7)}`;
+  } else {
+    state.config.whatsappFormatted = `+${cleanWa}`;
+  }
+
+  state.config.adminEmail = email;
+  if (storeName) state.config.storeName = storeName;
+
+  saveConfig();
+  if (typeof syncConfigToSupabase === 'function') {
+    syncConfigToSupabase();
+  }
+  updateStoreContactUI();
+  closeModals();
+  playSfx('success');
+  showToast(`Pengaturan berhasil disimpan! WA: ${cleanWa} • Email: ${email}`, 'success', 'Pengaturan Tersimpan');
 }
 
 function renderAdminStats() {

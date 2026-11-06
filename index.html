@@ -1757,7 +1757,7 @@
         <span class="ps-square font-bold">▢</span> <span>Keranjang</span>
       </button>
       <div class="h-4 w-px bg-slate-700"></div>
-      <a href="https://wa.me/6281234567890" target="_blank" class="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white">
+      <a href="https://wa.me/6281234567890" target="_blank" class="wa-contact-link flex items-center gap-1.5 text-xs text-slate-300 hover:text-white">
         <span class="ps-circle font-bold">○</span> <span>Bantuan CS</span>
       </a>
       <div class="h-4 w-px bg-slate-700"></div>
@@ -1779,9 +1779,12 @@
             <p class="text-slate-400 max-w-sm mb-4 leading-relaxed">
               <strong>ALIANSI STORE</strong> adalah spesialis game PlayStation 4 HEN, koleksi Game Subtitle Indonesia terlengkap, Jasa Isi Harddisk Eksternal, dan Akun Game Digital PS4/PS5 terpercaya dengan harga terjangkau di Indonesia.
             </p>
-            <div class="flex items-center gap-3">
-              <a href="https://wa.me/6281234567890" target="_blank" class="px-3.5 py-2 rounded-xl bg-emerald-950 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 font-bold hover:bg-emerald-900/50 transition-colors">
+            <div class="flex items-center gap-2.5 flex-wrap">
+              <a href="https://wa.me/6281234567890" target="_blank" class="wa-contact-link px-3.5 py-2 rounded-xl bg-emerald-950 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 font-bold hover:bg-emerald-900/50 transition-colors">
                 <i data-lucide="message-square" class="w-4 h-4"></i> WhatsApp CS Admin
+              </a>
+              <a href="mailto:aliansistore.id@gmail.com" class="store-admin-email-link px-3.5 py-2 rounded-xl bg-sky-950/70 text-sky-300 border border-sky-500/30 flex items-center gap-1.5 font-bold hover:bg-sky-900/70 transition-colors" title="Kirim Email ke Admin">
+                <i data-lucide="mail" class="w-4 h-4"></i> <span class="store-admin-email">aliansistore.id@gmail.com</span>
               </a>
               <button onclick="handleFooterAuthClick()" class="px-3.5 py-2 rounded-xl bg-slate-900 text-slate-300 border border-slate-800 hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer">
                 <i data-lucide="user-check" class="w-4 h-4 text-sky-400"></i>
@@ -1852,6 +1855,9 @@
       </div>
 
       <div class="flex items-center gap-3">
+        <button onclick="openAdminSettingsModal()" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-sky-950/70 hover:bg-sky-900/90 text-sky-300 border border-sky-500/40 transition-colors flex items-center gap-1.5 shadow" title="Pengaturan Nomor WhatsApp & Email Admin">
+          <i data-lucide="settings" class="w-3.5 h-3.5 text-sky-400"></i> Pengaturan
+        </button>
         <button onclick="closeAdminDashboard()" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors flex items-center gap-1.5">
           <i data-lucide="store" class="w-3.5 h-3.5 text-sky-400"></i> Lihat Toko
         </button>
@@ -2228,7 +2234,7 @@
               <span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded bg-sky-100 text-sky-800 border border-sky-300">OFFICIAL STORE</span>
             </div>
             <p class="text-xs text-slate-700 font-medium">Pusat Layanan Game PS4 HEN, Subtitle Indonesia & Softfile Digital</p>
-            <p class="text-[11px] text-slate-500 font-mono mt-0.5">Website: aliansi-store.netlify.app • WhatsApp CS Resmi: +62 812-3456-7890</p>
+            <p class="text-[11px] text-slate-500 font-mono mt-0.5">Website: aliansi-store.netlify.app • WhatsApp CS Resmi: <span class="invoice-print-wa">+62 812-3456-7890</span> • Email: <span class="invoice-print-email">aliansistore.id@gmail.com</span></p>
           </div>
           <div class="text-right shrink-0">
             <div class="text-xs font-black uppercase tracking-wider text-sky-800 bg-sky-50 px-3 py-1 rounded-md border border-sky-200 mb-1">
@@ -3070,6 +3076,76 @@
     </div>
   </div>
 
+  <!-- MODAL: Pengaturan Toko & Kontak Admin -->
+  <div id="modal-admin-settings" class="app-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+    <div class="bg-white dark:bg-[#070d1e] border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-7 max-w-lg w-full space-y-5 shadow-2xl relative text-slate-900 dark:text-white" onclick="event.stopPropagation()">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-sky-500/10 text-sky-500 flex items-center justify-center border border-sky-500/20 shadow-sm">
+            <i data-lucide="settings" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white font-display">Pengaturan Toko & Admin</h3>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400">Atur nomor WhatsApp CS dan alamat email resmi toko</p>
+          </div>
+        </div>
+        <button onclick="closeModals()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-700 flex items-center justify-center transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <!-- Nama Toko -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
+            <i data-lucide="store" class="w-3.5 h-3.5 text-sky-400"></i>
+            <span>Nama Toko / Brand</span>
+          </label>
+          <input type="text" id="setting-store-name" placeholder="ALIANSI STORE" class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-sky-500 font-semibold" />
+        </div>
+
+        <!-- Nomor WhatsApp CS -->
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+              <i data-lucide="message-square" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span>Nomor WhatsApp CS Admin *</span>
+            </label>
+            <button type="button" onclick="testCurrentWaLink()" class="px-2.5 py-0.5 rounded-lg bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/40 text-[10px] font-bold flex items-center gap-1 shadow transition-colors" title="Buka WhatsApp untuk tes nomor ini di tab baru">
+              <i data-lucide="external-link" class="w-3 h-3 text-emerald-400"></i>
+              <span>Tes WA</span>
+            </button>
+          </div>
+          <input type="tel" id="setting-admin-wa" placeholder="Contoh: 081234567890 atau 6281234567890" class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-emerald-500 font-mono font-medium" />
+          <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-1">Bisa dimulai dari 08... atau 628... Sistem otomatis menormalkan ke format nomor internasional.</p>
+        </div>
+
+        <!-- Email Admin / Toko -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
+            <i data-lucide="mail" class="w-3.5 h-3.5 text-sky-400"></i>
+            <span>Email Resmi Admin / Toko *</span>
+          </label>
+          <input type="email" id="setting-admin-email" placeholder="contoh: aliansistore.id@gmail.com" class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-sky-500 font-mono" />
+          <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-1">Email ini digunakan pada kontak footer toko dan dokumen invoice pesanan.</p>
+        </div>
+
+        <!-- Info Card -->
+        <div class="p-3 rounded-2xl bg-sky-950/40 border border-sky-500/20 flex items-start gap-2.5 text-[11px] text-sky-200">
+          <i data-lucide="info" class="w-4 h-4 text-sky-400 shrink-0 mt-0.5"></i>
+          <span>Perubahan disimpan ke sistem lokal & disinkronkan ke Supabase cloud agar link WhatsApp CS dan email di seluruh toko langsung terupdate secara real-time.</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 pt-2">
+        <button onclick="closeModals()" class="py-2.5 px-4 rounded-xl text-xs font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors">Batal</button>
+        <button onclick="saveAdminSettings()" class="py-2.5 px-4 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white shadow-md flex items-center justify-center gap-1.5 transition-colors">
+          <i data-lucide="save" class="w-3.5 h-3.5"></i> Simpan Pengaturan
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: Image Lightbox Preview (Full Size View) -->
   <div id="modal-image-lightbox" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md transition-opacity duration-300" onclick="closeImageLightbox()">
     <div class="relative max-w-4xl w-full max-h-[92vh] flex flex-col items-center justify-center" onclick="event.stopPropagation()">
@@ -3155,7 +3231,7 @@
       </div>
       <span class="text-[10px] font-bold">Keranjang</span>
     </button>
-    <a href="https://wa.me/6281234567890" target="_blank" onclick="playSfx('click')" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-emerald-400 active:text-emerald-400 py-1 px-2 transition-colors">
+    <a href="https://wa.me/6281234567890" target="_blank" onclick="playSfx('click')" class="wa-contact-link flex flex-col items-center gap-0.5 text-slate-400 hover:text-emerald-400 active:text-emerald-400 py-1 px-2 transition-colors">
       <i data-lucide="message-circle" class="w-5 h-5 text-emerald-400"></i>
       <span class="text-[10px] font-bold">CS WA</span>
     </a>
@@ -3166,7 +3242,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261107_lightbox_v3"></script>
-  <script src="assets/app.js?v=20261107_lightbox_v3"></script>
+  <script src="assets/products-data.js?v=20261107_settings_v4"></script>
+  <script src="assets/app.js?v=20261107_settings_v4"></script>
 </body>
 </html>

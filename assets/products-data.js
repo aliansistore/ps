@@ -732,6 +732,7 @@ const INITIAL_CONFIG = {
   tagline: "Spesialis Game PS4 HEN, Game Subtitle Indonesia & File PKG Google Drive Terpercaya",
   whatsappNumber: "6281234567890",
   whatsappFormatted: "+62 812-3456-7890",
+  adminEmail: "aliansistore.id@gmail.com",
   adminPin: "1234",
   bankAccounts: [
     { bank: "BCA", number: "8830192831", name: "ALIANSI STORE INDONESIA" },
