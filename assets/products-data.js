@@ -40,6 +40,7 @@ const INITIAL_PRODUCTS = [
       "Termasuk Panduan Pasang File PKG Mudah",
       "Garansi Game Lancar Bebas Bug"
     ],
+    driveLink: "https://drive.google.com/drive/folders/17B_ittakestwo_subindo_ps4pkg",
     inStock: true
   },
   {
@@ -80,6 +81,7 @@ const INITIAL_PRODUCTS = [
       "Support Audio Dubbing Inggris Asli dengan Sub Indo Selaras",
       "File Game PKG Lengkap + Panduan Install Anti Gagal"
     ],
+    driveLink: "https://drive.google.com/drive/folders/18C_gowragnarok_subindo_ps4pkg",
     inStock: true
   },
   {
@@ -120,6 +122,7 @@ const INITIAL_PRODUCTS = [
       "Kompatibel PS4 HEN Semua Firmware",
       "File Game PKG Tested 100% Anti Crash"
     ],
+    driveLink: "https://drive.google.com/drive/folders/19D_ghosttsushima_subindo_ps4pkg",
     inStock: true
   },
   {
@@ -160,6 +163,7 @@ const INITIAL_PRODUCTS = [
       "Support PS4 HEN Firmware 5.05 - 11.00",
       "File Google Drive Lengkap Part 1 - Selesai"
     ],
+    driveLink: "https://drive.google.com/drive/folders/20E_tloupart2_subindo_ps4pkg",
     inStock: true
   },
   {
@@ -200,6 +204,7 @@ const INITIAL_PRODUCTS = [
       "Khusus Konsol PS4 HEN Semua Tipe (Fat/Slim/Pro)",
       "Tested 100% Anti Hang & Anti Crash"
     ],
+    driveLink: "https://drive.google.com/drive/folders/21F_gta5mod_subindo_ps4pkg",
     inStock: true
   },
   {
@@ -240,6 +245,7 @@ const INITIAL_PRODUCTS = [
       "Mendukung 2 Pemain Versus Lokal Offline",
       "File Game PKG Siap Instal untuk PS4 HEN"
     ],
+    driveLink: "https://drive.google.com/drive/folders/22G_mk11ultimate_subindo_ps4pkg",
     inStock: true
   },
   {
@@ -280,6 +286,7 @@ const INITIAL_PRODUCTS = [
       "Support PS4 HEN Semua Firmware (5.05 - 11.00)",
       "File Bersih & Bergaransi Anti Macet"
     ],
+    driveLink: "https://drive.google.com/drive/folders/23H_hogwartslegacy_subindo_ps4pkg",
     inStock: true
   },
   {
@@ -320,6 +327,7 @@ const INITIAL_PRODUCTS = [
       "Kompatibel Semua Firmware PS4 HEN (5.05 - 11.00)",
       "Pengiriman Link Google Drive Berkecepatan Tinggi"
     ],
+    driveLink: "https://drive.google.com/drive/folders/24I_uncharted4_subindo_ps4pkg",
     inStock: true
   },
   {
@@ -360,6 +368,7 @@ const INITIAL_PRODUCTS = [
       "Kompatibel PS4 HEN Semua Versi Firmware",
       "Garansi Game Berjalan Sempurna"
     ],
+    driveLink: "https://drive.google.com/drive/folders/25J_stray_subindo_ps4pkg",
     inStock: true
   },
   {
@@ -400,6 +409,7 @@ const INITIAL_PRODUCTS = [
       "Support PS4 HEN Firmware 5.05 - 11.00",
       "Termasuk DLC Paket Tambahan Cerita Atlantis"
     ],
+    driveLink: "https://drive.google.com/drive/folders/26K_acodyssey_subindo_ps4pkg",
     inStock: true
   },
   {
@@ -440,6 +450,7 @@ const INITIAL_PRODUCTS = [
       "Support PS4 HEN Semua Versi",
       "Link Download Cepat Tanpa Batas Kuota"
     ],
+    driveLink: "https://drive.google.com/drive/folders/27L_onepieceodyssey_subindo_ps4pkg",
     inStock: true
   },
   {
@@ -480,6 +491,7 @@ const INITIAL_PRODUCTS = [
       "Kompatibel PS4 HEN Firmware 5.05 - 11.00",
       "Ukuran Hemat 25 GB Siap Instalasi Cepat"
     ],
+    driveLink: "https://drive.google.com/drive/folders/28M_watchdogs_subindo_ps4pkg",
     inStock: true
   },
   {
@@ -520,6 +532,7 @@ const INITIAL_PRODUCTS = [
       "Support PS4 HEN Semua Firmware",
       "File Game Teruji 100% Working"
     ],
+    driveLink: "https://drive.google.com/drive/folders/29N_spiderman_subindo_ps4pkg",
     inStock: true
   },
   {
@@ -560,6 +573,7 @@ const INITIAL_PRODUCTS = [
       "Grafis Tajam & Gameplay Responsif untuk PS4 HEN",
       "Tinggal Pasang File PKG Langsung Main"
     ],
+    driveLink: "https://drive.google.com/drive/folders/30O_pes2027bitbox_subindo_ps4pkg",
     inStock: true
   }
 ];

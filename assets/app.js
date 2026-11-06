@@ -301,7 +301,7 @@ function loadStoredData() {
     saveProducts();
   }
 
-  // Ensure high quality covers & updated PS categories
+  // Ensure high quality covers, updated PS categories & Drive Links
   state.products.forEach(p => {
     if (COVER_FALLBACK_MAP[p.id]) {
       if (!p.images) p.images = {};
@@ -309,8 +309,13 @@ function loadStoredData() {
       p.images.cover = COVER_FALLBACK_MAP[p.id];
     }
     const initProd = typeof INITIAL_PRODUCTS !== 'undefined' ? INITIAL_PRODUCTS.find(ip => ip.id === p.id) : null;
-    if (initProd && initProd.category) {
-      p.category = initProd.category;
+    if (initProd) {
+      if (initProd.category) {
+        p.category = initProd.category;
+      }
+      if (initProd.driveLink && !p.driveLink) {
+        p.driveLink = initProd.driveLink;
+      }
     }
   });
   saveProducts();
@@ -439,6 +444,7 @@ async function syncFromSupabase() {
         prices: typeof p.prices === 'object' && p.prices !== null ? p.prices : {},
         description: p.description,
         features: Array.isArray(p.features) ? p.features : [],
+        driveLink: p.drive_link || p.driveLink || '',
         inStock: p.in_stock !== false
       }));
 
@@ -554,6 +560,7 @@ async function syncProductToSupabase(p) {
       prices: p.prices,
       description: p.description,
       features: p.features,
+      drive_link: p.driveLink || '',
       in_stock: p.inStock !== false
     });
   } catch (err) {
@@ -1486,6 +1493,7 @@ function addToCart(productId, variant = null, platform = null, qty = 1, showNoti
       variant: finalVariant,
       platform: targetPlatform,
       unitPrice: unitPrice,
+      driveLink: product.driveLink || '',
       qty: qty
     });
   }
@@ -2361,8 +2369,30 @@ function renderFulfillmentBox(fulfillment, order) {
   const customerEmail = fulfillment.customer_email || (order ? order.customerEmail : '') || '-';
   if (gdriveEmail) gdriveEmail.textContent = customerEmail;
 
-  // Render Google Drive Links
-  const driveLinks = fulfillment.drive_links || fulfillment.driveLinks || [];
+  // Resolve Google Drive Links
+  let driveLinks = fulfillment.drive_links || fulfillment.driveLinks || [];
+  if ((!driveLinks || driveLinks.length === 0) && order && Array.isArray(order.items)) {
+    driveLinks = order.items.map(item => {
+      const prodId = item.productId || item.id;
+      const prod = (state.products || []).find(p => p.id === prodId || p.title === item.title);
+      const url = (prod && prod.driveLink) ? prod.driveLink : (item.driveLink || 'https://drive.google.com/drive/shared-with-me');
+      return {
+        title: item.title,
+        url: url
+      };
+    });
+  } else if (driveLinks && driveLinks.length > 0) {
+    driveLinks = driveLinks.map(link => {
+      if (!link.url || link.url === 'https://drive.google.com/drive/shared-with-me') {
+        const prod = (state.products || []).find(p => p.id === link.gameId || p.title === link.title);
+        if (prod && prod.driveLink) {
+          return { ...link, url: prod.driveLink };
+        }
+      }
+      return link;
+    });
+  }
+
   if (gdriveList) {
     if (driveLinks && driveLinks.length > 0) {
       gdriveList.innerHTML = driveLinks.map(link => `
@@ -2371,7 +2401,7 @@ function renderFulfillmentBox(fulfillment, order) {
             <div class="font-bold text-white text-xs">${link.title}</div>
             <div class="text-[10px] text-emerald-400 font-mono mt-0.5">Google Drive Ready • Viewer Granted</div>
           </div>
-          <a href="${link.url}" target="_blank" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow-lg shadow-emerald-600/30 shrink-0 flex items-center gap-1.5 transition-all">
+          <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow-lg shadow-emerald-600/30 shrink-0 flex items-center gap-1.5 transition-all">
             <i data-lucide="folder-down" class="w-3.5 h-3.5"></i> Buka Folder
           </a>
         </div>
@@ -2382,7 +2412,7 @@ function renderFulfillmentBox(fulfillment, order) {
         <div class="p-3.5 rounded-2xl bg-[#060a16] border border-emerald-500/40">
           <div class="font-bold text-white text-xs mb-1">🎮 Game: ${games.map(g => g.title).join(', ')}</div>
           <p class="text-[11px] text-slate-400 mb-3">Akses folder download telah otomatis dibagikan ke email <b>${customerEmail}</b>. Anda juga dapat memeriksa kotak masuk email Anda.</p>
-          <a href="https://drive.google.com/drive/shared-with-me" target="_blank" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow-lg transition-all">
+          <a href="https://drive.google.com/drive/shared-with-me" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow-lg transition-all">
             <i data-lucide="folder-check" class="w-3.5 h-3.5"></i> Buka Google Drive (Dibagikan dengan Saya)
           </a>
         </div>
@@ -2437,12 +2467,17 @@ function simulateCustomerPaid(orderId) {
   order.fulfillment.shared_at = new Date().toISOString();
   order.fulfillment.customer_email = order.customerEmail;
   if (!order.fulfillment.drive_links || order.fulfillment.drive_links.length === 0) {
-    order.fulfillment.drive_links = (order.items || []).map(item => ({
-      gameId: item.id,
-      title: item.title,
-      folderId: 'sample-folder-id',
-      url: 'https://drive.google.com/drive/shared-with-me'
-    }));
+    order.fulfillment.drive_links = (order.items || []).map(item => {
+      const prodId = item.productId || item.id;
+      const prod = (state.products || []).find(p => p.id === prodId || p.title === item.title);
+      const url = (prod && prod.driveLink) ? prod.driveLink : (item.driveLink || 'https://drive.google.com/drive/shared-with-me');
+      return {
+        gameId: item.id || prodId,
+        title: item.title,
+        folderId: 'sample-folder-id',
+        url: url
+      };
+    });
   }
 
   saveOrders();
@@ -3709,7 +3744,18 @@ function renderAdminProductsTable() {
         <div class="flex items-center gap-2.5">
           <img src="${getProductPoster(p)}" class="w-8 h-10 object-cover rounded-lg bg-slate-800" onerror="this.onerror=null; this.src='assets/covers/service-1tb.jpg'" alt="" />
           <div>
-            <div class="font-bold text-white">${p.title}</div>
+            <div class="font-bold text-white flex items-center gap-1.5 flex-wrap">
+              <span>${p.title}</span>
+              ${p.driveLink ? `
+                <a href="${p.driveLink}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-950/80 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-900/80 transition-colors" title="Google Drive Link Siap - Klik untuk tes link">
+                  <i data-lucide="folder-check" class="w-2.5 h-2.5"></i> Drive Siap
+                </a>
+              ` : `
+                <span class="inline-flex items-center gap-1 text-[9px] font-medium px-1.5 py-0.5 rounded bg-slate-800 text-slate-500 border border-slate-700" title="Belum ada link Google Drive">
+                  <i data-lucide="folder-x" class="w-2.5 h-2.5"></i> No Drive
+                </span>
+              `}
+            </div>
             <div class="text-[10px] text-slate-400 font-mono">${p.platform.join(', ')} • <span class="text-sky-400 font-bold">${getCategoryLabel(p.category)}</span></div>
           </div>
         </div>
@@ -3780,6 +3826,8 @@ function openAddProductModal() {
   document.getElementById('new-game-price-primary').value = '';
   const newRateEl = document.getElementById('new-game-discount-rate');
   if (newRateEl) newRateEl.value = '';
+  const newDriveEl = document.getElementById('new-game-drive-link');
+  if (newDriveEl) newDriveEl.value = '';
   document.getElementById('new-game-poster').value = '';
   document.getElementById('new-game-desc').value = '';
   const preview = document.getElementById('new-game-discount-preview');
@@ -3903,6 +3951,7 @@ function submitNewProduct() {
   const pricePrimary = parseInt(document.getElementById('new-game-price-primary').value, 10) || 0;
   const priceOriginalInput = parseInt(document.getElementById('new-game-price-original').value, 10) || 0;
   const priceOriginal = priceOriginalInput > pricePrimary ? priceOriginalInput : 0;
+  const driveLink = document.getElementById('new-game-drive-link') ? document.getElementById('new-game-drive-link').value.trim() : '';
   const posterUrl = document.getElementById('new-game-poster').value.trim();
   const desc = document.getElementById('new-game-desc').value.trim();
 
@@ -3917,6 +3966,7 @@ function submitNewProduct() {
     slug: title.toLowerCase().replace(/[^a-z0-9]/g, '-'),
     platform: platformChecked,
     category: category,
+    driveLink: driveLink,
     type: 'digital',
     badge: 'NEW ARRIVAL',
     rating: 5.0,
@@ -3983,6 +4033,8 @@ function openEditProductModal(productId) {
       editRateEl.value = '';
     }
   }
+  const editDriveEl = document.getElementById('edit-game-drive-link');
+  if (editDriveEl) editDriveEl.value = p.driveLink || '';
   document.getElementById('edit-game-poster').value = p.images.poster || p.images.cover || '';
   document.getElementById('edit-game-desc').value = p.description;
 
@@ -4005,6 +4057,8 @@ function submitEditProduct() {
   p.prices.secondary = p.prices.primary;
   const editOriginal = parseInt(document.getElementById('edit-game-price-original').value, 10) || 0;
   p.prices.original = editOriginal > p.prices.primary ? editOriginal : 0;
+  const editDriveEl = document.getElementById('edit-game-drive-link');
+  if (editDriveEl) p.driveLink = editDriveEl.value.trim();
   const poster = document.getElementById('edit-game-poster').value.trim();
   if (poster) {
     p.images.poster = poster;

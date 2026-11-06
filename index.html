@@ -2807,6 +2807,16 @@
           <input type="url" id="new-game-poster" placeholder="https://..." class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" />
         </div>
         <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
+            <span class="flex items-center gap-1.5 text-emerald-400">
+              <i data-lucide="folder-git-2" class="w-3.5 h-3.5"></i> Link Google Drive Game (Folder / File PKG)
+            </span>
+            <span class="text-[9px] text-emerald-400 font-bold bg-emerald-950/70 px-1.5 py-0.2 rounded border border-emerald-500/30">Auto-Share</span>
+          </label>
+          <input type="url" id="new-game-drive-link" placeholder="https://drive.google.com/drive/folders/..." class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:border-emerald-500 font-mono text-[11px]" />
+          <p class="text-[10px] text-slate-400 mt-1">Link folder/file Google Drive ini yang akan dibagikan secara otomatis ke email pembeli saat pesanan sukses.</p>
+        </div>
+        <div>
           <label class="block text-xs font-bold text-slate-300 mb-1">Deskripsi Singkat</label>
           <textarea id="new-game-desc" rows="3" placeholder="Deskripsi game, gameplay & fitur..." class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500"></textarea>
         </div>
@@ -2891,6 +2901,16 @@
           <input type="url" id="edit-game-poster" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" />
         </div>
         <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
+            <span class="flex items-center gap-1.5 text-emerald-400">
+              <i data-lucide="folder-git-2" class="w-3.5 h-3.5"></i> Link Google Drive Game (Folder / File PKG)
+            </span>
+            <span class="text-[9px] text-emerald-400 font-bold bg-emerald-950/70 px-1.5 py-0.2 rounded border border-emerald-500/30">Auto-Share</span>
+          </label>
+          <input type="url" id="edit-game-drive-link" placeholder="https://drive.google.com/drive/folders/..." class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:border-emerald-500 font-mono text-[11px]" />
+          <p class="text-[10px] text-slate-400 mt-1">Link folder/file Google Drive ini yang akan dibagikan secara otomatis ke email pembeli saat pesanan sukses.</p>
+        </div>
+        <div>
           <label class="block text-xs font-bold text-slate-300 mb-1">Deskripsi</label>
           <textarea id="edit-game-desc" rows="3" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500"></textarea>
         </div>
@@ -2966,7 +2986,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261107_invoice_v1"></script>
-  <script src="assets/app.js?v=20261107_invoice_v1"></script>
+  <script src="assets/products-data.js?v=20261107_drive_v1"></script>
+  <script src="assets/app.js?v=20261107_drive_v1"></script>
 </body>
 </html>
