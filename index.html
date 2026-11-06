@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id" class="dark scroll-smooth">
 <head>
   <meta charset="UTF-8" />
@@ -2675,6 +2675,17 @@
               <i data-lucide="eye" id="eye-login-icon" class="w-4 h-4"></i>
             </button>
           </div>
+          <div class="flex items-center justify-between text-[11px] pt-1.5">
+            <span class="text-slate-400">Login Admin & Member</span>
+            <button 
+              type="button" 
+              onclick="openAdminForgotPasswordModal()" 
+              class="text-sky-400 hover:text-sky-300 hover:underline font-bold transition-colors cursor-pointer flex items-center gap-1"
+            >
+              <i data-lucide="key-round" class="w-3.5 h-3.5 text-sky-400"></i>
+              <span>Lupa Password Admin?</span>
+            </button>
+          </div>
         </div>
 
         <button 
@@ -3253,6 +3264,32 @@
           <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-1">Email ini digunakan pada kontak footer toko dan dokumen invoice pesanan.</p>
         </div>
 
+        <!-- Ganti Password / PIN Admin -->
+        <div class="pt-2 border-t border-slate-200 dark:border-slate-800">
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+              <i data-lucide="key-round" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span>Ganti Password / PIN Login Admin</span>
+            </label>
+            <span class="text-[10px] text-slate-400">Kosongkan bila tidak diubah</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div class="relative">
+              <input type="password" id="setting-admin-new-pin" placeholder="Password / PIN baru..." class="w-full pl-3 pr-8 py-2 text-xs rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-amber-500 font-mono" />
+              <button type="button" onclick="toggleAuthPasswordVisibility('setting-admin-new-pin', 'eye-setting-new-pin')" class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-white cursor-pointer">
+                <i data-lucide="eye" id="eye-setting-new-pin" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+            <div class="relative">
+              <input type="password" id="setting-admin-confirm-pin" placeholder="Ulangi password baru..." class="w-full pl-3 pr-8 py-2 text-xs rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-amber-500 font-mono" />
+              <button type="button" onclick="toggleAuthPasswordVisibility('setting-admin-confirm-pin', 'eye-setting-confirm-pin')" class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-white cursor-pointer">
+                <i data-lucide="eye" id="eye-setting-confirm-pin" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+          <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-1">Minimal 4 karakter (angka atau kombinasi huruf & angka).</p>
+        </div>
+
         <!-- Info Card -->
         <div class="p-3 rounded-2xl bg-sky-950/40 border border-sky-500/20 flex items-start gap-2.5 text-[11px] text-sky-200">
           <i data-lucide="info" class="w-4 h-4 text-sky-400 shrink-0 mt-0.5"></i>
@@ -3265,6 +3302,168 @@
         <button onclick="saveAdminSettings()" class="py-2.5 px-4 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white shadow-md flex items-center justify-center gap-1.5 transition-colors">
           <i data-lucide="save" class="w-3.5 h-3.5"></i> Simpan Pengaturan
         </button>
+      </div>
+    </div>
+  </div>
+
+    <!-- MODAL: Lupa Password Admin (Reset via Email OTP) -->
+  <div id="modal-admin-forgot-password" class="app-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+    <div class="bg-[#080f24] border border-slate-700/80 rounded-3xl p-6 sm:p-7 max-w-md w-full max-h-[92vh] overflow-y-auto modal-custom-scroll shadow-2xl relative text-white" onclick="event.stopPropagation()">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-inner">
+            <i data-lucide="shield-alert" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-black font-display text-white">Reset Password Admin</h3>
+            <p class="text-[11px] text-slate-400">Verifikasi email & buat password baru</p>
+          </div>
+        </div>
+        <button onclick="closeModals()" class="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- STEP 1: Request OTP -->
+      <div id="forgot-admin-step-1" class="pt-4 space-y-4">
+        <div class="p-3.5 rounded-2xl bg-sky-950/40 border border-sky-500/25 flex items-start gap-3 text-xs text-sky-200">
+          <i data-lucide="info" class="w-4 h-4 text-sky-400 shrink-0 mt-0.5"></i>
+          <p class="leading-relaxed">
+            Untuk menjaga keamanan toko, sistem akan mengirimkan <strong>Kode Verifikasi (OTP) 6 Digit</strong> ke email resmi administrator yang terdaftar.
+          </p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1.5 flex items-center gap-1.5">
+            <i data-lucide="mail" class="w-3.5 h-3.5 text-sky-400"></i>
+            <span>Email Terdaftar Admin:</span>
+          </label>
+          <div class="relative">
+            <input 
+              type="email" 
+              id="forgot-admin-email-input" 
+              readonly
+              class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-900/90 border border-slate-700 text-sky-300 font-mono font-bold outline-none cursor-not-allowed select-all" 
+            />
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-emerald-400 font-bold bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/30">
+              Terverifikasi
+            </span>
+          </div>
+          <p class="text-[10px] text-slate-400 mt-1">Kode OTP berlaku selama 15 menit sejak dikirimkan.</p>
+        </div>
+
+        <button 
+          type="button" 
+          id="btn-request-admin-otp"
+          onclick="requestAdminResetCode()" 
+          class="w-full py-2.5 rounded-xl cyber-button text-xs font-black shadow-lg shadow-sky-500/20 flex items-center justify-center gap-2 cursor-pointer transition-all"
+        >
+          <i data-lucide="send" class="w-4 h-4"></i>
+          <span>Kirim Kode OTP ke Email Admin</span>
+        </button>
+
+        <div class="text-center pt-1">
+          <button 
+            type="button" 
+            onclick="openLoginModalFromForgot()" 
+            class="text-xs text-slate-400 hover:text-slate-200 hover:underline cursor-pointer transition-colors"
+          >
+            â† Kembali ke Menu Login
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 2: Verify OTP & Input New Password -->
+      <div id="forgot-admin-step-2" class="pt-4 space-y-4 hidden">
+        <div class="p-3 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 flex items-start gap-2.5 text-xs text-emerald-200">
+          <i data-lucide="mail-check" class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5"></i>
+          <div>
+            <p class="font-bold">Kode OTP Berhasil Dikirim!</p>
+            <p class="text-[11px] text-emerald-300/90 mt-0.5">Silakan cek inbox/spam di <span id="forgot-otp-sent-target" class="font-mono font-bold text-white"></span>.</p>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between">
+            <span class="flex items-center gap-1.5">
+              <i data-lucide="shield-check" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span>Masukkan 6 Digit Kode OTP *</span>
+            </span>
+            <span class="text-[10px] text-slate-400">Masa berlaku 15 menit</span>
+          </label>
+          <input 
+            type="text" 
+            id="forgot-admin-otp-input" 
+            placeholder="Contoh: 849201" 
+            maxlength="6"
+            class="w-full px-3.5 py-3 text-center text-lg rounded-xl bg-slate-900 border border-amber-500/50 text-amber-300 font-mono font-black tracking-widest outline-none focus:border-amber-400 shadow-inner" 
+          />
+        </div>
+
+        <div class="space-y-2.5 pt-1">
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1 flex items-center gap-1.5">
+              <i data-lucide="lock" class="w-3.5 h-3.5 text-sky-400"></i>
+              <span>Password Admin Baru *</span>
+            </label>
+            <div class="relative">
+              <input 
+                type="password" 
+                id="forgot-admin-new-password" 
+                placeholder="Minimal 4 karakter" 
+                class="w-full pl-3 pr-8 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:border-sky-500 font-mono" 
+              />
+              <button type="button" onclick="toggleAuthPasswordVisibility('forgot-admin-new-password', 'eye-forgot-new')" class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-white cursor-pointer">
+                <i data-lucide="eye" id="eye-forgot-new" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1 flex items-center gap-1.5">
+              <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span>Konfirmasi Password Baru *</span>
+            </label>
+            <div class="relative">
+              <input 
+                type="password" 
+                id="forgot-admin-confirm-password" 
+                placeholder="Ulangi password baru" 
+                class="w-full pl-3 pr-8 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:border-sky-500 font-mono" 
+              />
+              <button type="button" onclick="toggleAuthPasswordVisibility('forgot-admin-confirm-password', 'eye-forgot-confirm')" class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-white cursor-pointer">
+                <i data-lucide="eye" id="eye-forgot-confirm" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <button 
+          type="button" 
+          id="btn-submit-reset-password"
+          onclick="submitAdminPasswordReset()" 
+          class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-sky-600 hover:from-emerald-500 hover:to-sky-500 text-xs font-black text-white shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 cursor-pointer transition-all"
+        >
+          <i data-lucide="check" class="w-4 h-4"></i>
+          <span>Simpan Password Baru & Selesai</span>
+        </button>
+
+        <div class="flex items-center justify-between text-xs pt-1">
+          <button 
+            type="button" 
+            onclick="backToForgotStep1()" 
+            class="text-slate-400 hover:text-slate-200 hover:underline cursor-pointer transition-colors"
+          >
+            â† Kirim Ulang OTP
+          </button>
+          <button 
+            type="button" 
+            onclick="openLoginModalFromForgot()" 
+            class="text-sky-400 hover:text-sky-300 hover:underline cursor-pointer transition-colors"
+          >
+            Kembali ke Login
+          </button>
+        </div>
       </div>
     </div>
   </div>

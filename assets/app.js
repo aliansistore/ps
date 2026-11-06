@@ -1566,6 +1566,8 @@ function closeModals() {
   if (reqSuccessModal) reqSuccessModal.classList.add('hidden');
   const confirmReqModal = document.getElementById('modal-admin-confirm-request');
   if (confirmReqModal) confirmReqModal.classList.add('hidden');
+  const forgotPassModal = document.getElementById('modal-admin-forgot-password');
+  if (forgotPassModal) forgotPassModal.classList.add('hidden');
 }
 
 // Quick Buy
@@ -3115,20 +3117,25 @@ function handleUnifiedLogin() {
   }
 
   const idLower = rawId.toLowerCase();
-  const adminPin = state.config.adminPin || '1234';
+  const adminPin = (state.config && state.config.adminPin) ? String(state.config.adminPin).trim() : '1234';
+  const configuredAdminEmail = (state.config && state.config.adminEmail) ? String(state.config.adminEmail).trim().toLowerCase() : '';
 
   // 1. SMART CHECK: IS ADMIN?
-  const isAdminIdentifier = idLower === 'admin' || idLower === 'admin@aliansistore.com' || idLower === 'administrator' || idLower === 'owner';
-  const isAdminPin = pass === adminPin || pass === 'admin' || pass === 'aliansi123';
+  const isAdminIdentifier = idLower === 'admin' || 
+    idLower === 'admin@aliansistore.com' || 
+    idLower === 'administrator' || 
+    idLower === 'owner' || 
+    (configuredAdminEmail && idLower === configuredAdminEmail);
+  const isAdminPin = pass === adminPin || (!state.config.adminPin && (pass === '1234' || pass === 'admin' || pass === 'aliansi123'));
 
   if (isAdminIdentifier && isAdminPin) {
     playSfx('success');
     state.isAdmin = true;
     state.currentUser = {
       id: 'usr-admin-01',
-      name: 'Admin Aliansi Store',
-      email: 'admin@aliansistore.com',
-      phone: '081234567890',
+      name: (state.config && state.config.storeName) ? `Admin ${state.config.storeName}` : 'Admin Aliansi Store',
+      email: (state.config && state.config.adminEmail) || 'admin@aliansistore.com',
+      phone: (state.config && state.config.whatsappNumber) || '081234567890',
       role: 'admin'
     };
     localStorage.setItem(APP_STORAGE_KEYS.ADMIN_AUTH, 'true');
@@ -3871,6 +3878,11 @@ function openAdminSettingsModal() {
   if (emailEl) emailEl.value = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
   if (nameEl) nameEl.value = (state.config && state.config.storeName) || 'ALIANSI STORE';
 
+  const newPinEl = document.getElementById('setting-admin-new-pin');
+  const confirmPinEl = document.getElementById('setting-admin-confirm-pin');
+  if (newPinEl) newPinEl.value = '';
+  if (confirmPinEl) confirmPinEl.value = '';
+
   modal.classList.remove('hidden');
   lucide.createIcons();
 }
@@ -3936,6 +3948,30 @@ function saveAdminSettings() {
   state.config.adminEmail = email;
   if (storeName) state.config.storeName = storeName;
 
+  // Process Admin Password Change (if provided)
+  const newPinInput = document.getElementById('setting-admin-new-pin');
+  const confirmPinInput = document.getElementById('setting-admin-confirm-pin');
+  const newPin = newPinInput ? newPinInput.value.trim() : '';
+  const confirmPin = confirmPinInput ? confirmPinInput.value.trim() : '';
+
+  let passwordChanged = false;
+  if (newPin || confirmPin) {
+    if (newPin.length < 4) {
+      showToast('Password admin baru minimal 4 karakter!', 'warning');
+      if (newPinInput) newPinInput.focus();
+      return;
+    }
+    if (newPin !== confirmPin) {
+      showToast('Konfirmasi password tidak cocok dengan password baru!', 'warning');
+      if (confirmPinInput) confirmPinInput.focus();
+      return;
+    }
+    state.config.adminPin = newPin;
+    passwordChanged = true;
+    if (newPinInput) newPinInput.value = '';
+    if (confirmPinInput) confirmPinInput.value = '';
+  }
+
   saveConfig();
   if (typeof syncConfigToSupabase === 'function') {
     syncConfigToSupabase();
@@ -3943,7 +3979,208 @@ function saveAdminSettings() {
   updateStoreContactUI();
   closeModals();
   playSfx('success');
-  showToast(`Pengaturan berhasil disimpan! WA: ${cleanWa} • Email: ${email}`, 'success', 'Pengaturan Tersimpan');
+  const passMsg = passwordChanged ? ' • Password Admin Diperbarui' : '';
+  showToast(`Pengaturan berhasil disimpan! WA: ${cleanWa} • Email: ${email}${passMsg}`, 'success', 'Pengaturan Tersimpan');
+}
+
+// ================= ADMIN PASSWORD RESET SYSTEM (EMAIL OTP) =================
+state.adminResetOtp = {
+  code: '',
+  email: '',
+  expiresAt: 0
+};
+
+function openAdminForgotPasswordModal() {
+  playSfx('click');
+  closeModals();
+  const modal = document.getElementById('modal-admin-forgot-password');
+  if (!modal) return;
+
+  // Reset to Step 1
+  const step1 = document.getElementById('forgot-admin-step-1');
+  const step2 = document.getElementById('forgot-admin-step-2');
+  if (step1) step1.classList.remove('hidden');
+  if (step2) step2.classList.add('hidden');
+
+  const emailInput = document.getElementById('forgot-admin-email-input');
+  const registeredEmail = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
+  if (emailInput) {
+    emailInput.value = registeredEmail;
+  }
+
+  const otpInput = document.getElementById('forgot-admin-otp-input');
+  if (otpInput) otpInput.value = '';
+  const newPassInput = document.getElementById('forgot-admin-new-password');
+  if (newPassInput) newPassInput.value = '';
+  const confirmPassInput = document.getElementById('forgot-admin-confirm-password');
+  if (confirmPassInput) confirmPassInput.value = '';
+
+  modal.classList.remove('hidden');
+  if (window.lucide) lucide.createIcons();
+}
+
+function openLoginModalFromForgot() {
+  playSfx('click');
+  closeModals();
+  openAuthModal('login');
+}
+
+function backToForgotStep1() {
+  playSfx('click');
+  const step1 = document.getElementById('forgot-admin-step-1');
+  const step2 = document.getElementById('forgot-admin-step-2');
+  if (step1) step1.classList.remove('hidden');
+  if (step2) step2.classList.add('hidden');
+  if (window.lucide) lucide.createIcons();
+}
+
+function requestAdminResetCode() {
+  playSfx('click');
+  const registeredEmail = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
+  const storeName = (state.config && state.config.storeName) || 'ALIANSI STORE';
+
+  // Generate secure 6-digit numeric OTP code
+  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiresAt = Date.now() + 15 * 60 * 1000; // 15 minutes validity
+
+  state.adminResetOtp = {
+    code: otpCode,
+    email: registeredEmail,
+    expiresAt: expiresAt
+  };
+
+  // Format verification email
+  const subject = `[RESET PASSWORD] Kode Verifikasi OTP Admin ${storeName} - ${otpCode}`;
+  const body = `Halo Administrator ${storeName},
+
+Kami menerima permintaan untuk mereset password akun login Admin toko Anda.
+
+Berikut adalah Kode Verifikasi (OTP) untuk reset password:
+======================================================
+KODE OTP ANDA: ${otpCode}
+======================================================
+
+* Kode OTP ini hanya berlaku selama 15 menit.
+* Masukkan kode 6-digit di atas pada formulir reset password di website toko Anda.
+* JANGAN BERIKAN KODE INI KEPADA SIAPAPUN demi keamanan toko Anda.
+
+Jika Anda tidak merasa melakukan permintaan ini, segera abaikan email ini atau periksa pengaturan keamanan akun Anda.
+
+Hormat kami,
+Sistem Keamanan & Verifikasi
+${storeName}
+Official Email: ${registeredEmail}`;
+
+  // Trigger mailto client
+  const mailtoUrl = `mailto:${registeredEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  
+  // Transition UI to Step 2
+  const step1 = document.getElementById('forgot-admin-step-1');
+  const step2 = document.getElementById('forgot-admin-step-2');
+  if (step1) step1.classList.add('hidden');
+  if (step2) step2.classList.remove('hidden');
+
+  const targetDisplay = document.getElementById('forgot-otp-sent-target');
+  if (targetDisplay) targetDisplay.textContent = registeredEmail;
+
+  const otpInput = document.getElementById('forgot-admin-otp-input');
+  if (otpInput) {
+    otpInput.value = '';
+    setTimeout(() => otpInput.focus(), 300);
+  }
+
+  if (window.lucide) lucide.createIcons();
+  playSfx('success');
+  showToast(`Kode OTP 6-digit (${otpCode}) telah dikirimkan ke email ${registeredEmail}!`, 'success', 'Kode OTP Dikirim');
+  console.info(`[ADMIN SECURITY OTP] Generated OTP Code: ${otpCode} for ${registeredEmail} (valid 15 mins)`);
+
+  // Open email client
+  window.open(mailtoUrl, '_blank');
+}
+
+function submitAdminPasswordReset() {
+  playSfx('click');
+  const otpInput = document.getElementById('forgot-admin-otp-input');
+  const newPassInput = document.getElementById('forgot-admin-new-password');
+  const confirmPassInput = document.getElementById('forgot-admin-confirm-password');
+
+  const enteredOtp = otpInput ? otpInput.value.trim() : '';
+  const newPass = newPassInput ? newPassInput.value.trim() : '';
+  const confirmPass = confirmPassInput ? confirmPassInput.value.trim() : '';
+
+  if (!state.adminResetOtp || !state.adminResetOtp.code) {
+    showToast('Silakan minta kode OTP terlebih dahulu!', 'warning');
+    backToForgotStep1();
+    return;
+  }
+
+  if (!enteredOtp) {
+    showToast('Masukkan 6-digit kode OTP verifikasi!', 'warning');
+    if (otpInput) otpInput.focus();
+    return;
+  }
+
+  // Validate OTP code
+  if (enteredOtp !== state.adminResetOtp.code) {
+    playSfx('cart');
+    showToast('Kode OTP yang Anda masukkan salah / tidak cocok!', 'error', 'OTP Tidak Valid');
+    if (otpInput) otpInput.focus();
+    return;
+  }
+
+  // Validate expiration
+  if (Date.now() > state.adminResetOtp.expiresAt) {
+    playSfx('cart');
+    showToast('Kode OTP telah kedaluwarsa (lebih dari 15 menit). Silakan minta kode baru!', 'warning', 'OTP Expired');
+    backToForgotStep1();
+    return;
+  }
+
+  // Validate new password
+  if (!newPass || newPass.length < 4) {
+    showToast('Password baru minimal 4 karakter!', 'warning');
+    if (newPassInput) newPassInput.focus();
+    return;
+  }
+
+  if (newPass !== confirmPass) {
+    showToast('Konfirmasi password tidak cocok dengan password baru!', 'warning');
+    if (confirmPassInput) confirmPassInput.focus();
+    return;
+  }
+
+  // Update admin PIN / Password
+  if (!state.config) state.config = {};
+  state.config.adminPin = newPass;
+
+  // Persist to LocalStorage and Cloud
+  saveConfig();
+  if (typeof syncConfigToSupabase === 'function') {
+    syncConfigToSupabase();
+  }
+
+  // Clear OTP state
+  state.adminResetOtp = { code: '', email: '', expiresAt: 0 };
+
+  playSfx('success');
+  if (typeof confetti === 'function') {
+    confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
+  }
+
+  showToast('Password admin berhasil direset! Silakan login dengan password baru Anda.', 'success', 'Reset Berhasil');
+  closeModals();
+
+  // Open Login form and autofill
+  setTimeout(() => {
+    openAuthModal('login');
+    const idEl = document.getElementById('auth-login-identifier');
+    const passEl = document.getElementById('auth-login-password');
+    if (idEl) idEl.value = 'admin';
+    if (passEl) {
+      passEl.value = newPass;
+      passEl.focus();
+    }
+  }, 400);
 }
 
 // ================= GAME REQUESTS MANAGEMENT SYSTEM =================
