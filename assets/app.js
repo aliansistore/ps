@@ -925,14 +925,29 @@ function getFilteredProducts() {
   }
 
   // Search Query
-  if (state.searchQuery.trim()) {
+  if (state.searchQuery && state.searchQuery.trim()) {
     const q = state.searchQuery.toLowerCase().trim();
-    list = list.filter(p => 
-      p.title.toLowerCase().includes(q) ||
-      p.description.toLowerCase().includes(q) ||
-      p.platform.some(pl => pl.toLowerCase().includes(q)) ||
-      (p.badge && p.badge.toLowerCase().includes(q))
-    );
+    list = list.filter(p => {
+      // 1. Direct text fields match
+      const titleMatch = (p.title || '').toLowerCase().includes(q);
+      const descMatch = (p.description || '').toLowerCase().includes(q);
+      const tagMatch = (p.tagline || '').toLowerCase().includes(q);
+      const pubMatch = (p.publisher || '').toLowerCase().includes(q);
+      const badgeMatch = (p.badge || '').toLowerCase().includes(q);
+      const platformMatch = Array.isArray(p.platform) && p.platform.some(pl => pl.toLowerCase().includes(q));
+      const catMatch = (p.category || '').toLowerCase().includes(q);
+      const catLabel = (typeof getCategoryLabel === 'function' ? getCategoryLabel(p.category || '') : '').toLowerCase();
+      const catLabelMatch = catLabel.includes(q);
+
+      // 2. Smart aliases & keywords
+      const subIndoMatch = (q.includes('sub') || q.includes('indo') || q.includes('indonesia')) && (p.isSubIndo || p.category === 'subindo');
+      const henMatch = (q.includes('hen') || q.includes('pkg')) && (p.isHen || (Array.isArray(p.platform) && p.platform.some(pl => pl.includes('HEN'))));
+      const digitalMatch = q.includes('digital') && (p.type === 'digital' || (Array.isArray(p.platform) && p.platform.some(pl => pl.includes('PS5') || pl.includes('PS4'))));
+      const coopMatch = (q.includes('coop') || q.includes('co-op') || q.includes('mabar') || q.includes('family')) && (p.category === 'family' || p.category === 'coop');
+      const sportsMatch = (q.includes('bola') || q.includes('soccer') || q.includes('fifa') || q.includes('pes') || q.includes('balap')) && (p.category === 'sports' || p.category === 'racing');
+
+      return titleMatch || descMatch || tagMatch || pubMatch || badgeMatch || platformMatch || catMatch || catLabelMatch || subIndoMatch || henMatch || digitalMatch || coopMatch || sportsMatch;
+    });
   }
 
   // Sorting
@@ -991,18 +1006,47 @@ function renderProducts() {
   const container = document.getElementById('products-grid');
   const emptyState = document.getElementById('products-empty');
   const countBadge = document.getElementById('products-count');
+  const feedbackBar = document.getElementById('catalog-search-feedback');
+  const feedbackQuery = document.getElementById('catalog-search-feedback-query');
+  const feedbackCount = document.getElementById('catalog-search-feedback-count');
+  const clearBtn = document.getElementById('catalog-search-clear');
+  const emptyMsg = document.getElementById('products-empty-msg');
   
   if (!container) return;
 
   const items = getFilteredProducts();
+  const isSearching = Boolean(state.searchQuery && state.searchQuery.trim());
 
   if (countBadge) {
-    countBadge.textContent = `${items.length} Game Tersedia`;
+    countBadge.textContent = isSearching ? `${items.length} Game Ditemukan` : `${items.length} Game Tersedia`;
+  }
+
+  // Update live search feedback bar & clear button
+  if (isSearching) {
+    if (feedbackBar) {
+      feedbackBar.classList.remove('hidden');
+      if (feedbackQuery) feedbackQuery.textContent = `"${state.searchQuery.trim()}"`;
+      if (feedbackCount) feedbackCount.textContent = `${items.length} game`;
+    }
+    if (clearBtn) clearBtn.classList.remove('hidden');
+  } else {
+    if (feedbackBar) feedbackBar.classList.add('hidden');
+    if (clearBtn) clearBtn.classList.add('hidden');
   }
 
   if (items.length === 0) {
     container.innerHTML = '';
-    if (emptyState) emptyState.classList.remove('hidden');
+    if (emptyState) {
+      emptyState.classList.remove('hidden');
+      if (emptyMsg) {
+        if (isSearching) {
+          emptyMsg.textContent = `Tidak ada game yang cocok dengan pencarian "${state.searchQuery.trim()}". Coba kata kunci lain atau reset pencarian.`;
+        } else {
+          emptyMsg.textContent = 'Tidak ada game dalam kategori ini. Silakan pilih tab kategori lain atau tampilkan semua koleksi.';
+        }
+      }
+    }
+    if (window.lucide) lucide.createIcons();
     return;
   }
 
@@ -3611,7 +3655,25 @@ function renderAdminProductsTable() {
   const container = document.getElementById('admin-products-table-body');
   if (!container) return;
 
-  container.innerHTML = state.products.map(p => `
+  const searchInput = document.getElementById('admin-product-search-input');
+  const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+  let list = state.products || [];
+  if (query) {
+    list = list.filter(p => 
+      (p.title || '').toLowerCase().includes(query) ||
+      (Array.isArray(p.platform) && p.platform.some(pl => pl.toLowerCase().includes(query))) ||
+      (p.category || '').toLowerCase().includes(query) ||
+      (typeof getCategoryLabel === 'function' ? getCategoryLabel(p.category || '') : '').toLowerCase().includes(query)
+    );
+  }
+
+  if (list.length === 0) {
+    container.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-xs text-slate-500">Tidak ada game di katalog admin yang cocok dengan "${query}".</td></tr>`;
+    return;
+  }
+
+  container.innerHTML = list.map(p => `
     <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 text-xs text-slate-300">
       <td class="py-2.5 px-3">
         <div class="flex items-center gap-2.5">
@@ -3951,6 +4013,37 @@ function resetDemoData() {
   }
 }
 
+// Search Helpers
+function clearCatalogSearch() {
+  playSfx('click');
+  state.searchQuery = '';
+  const catalogInput = document.getElementById('catalog-search-input');
+  const mainInput = document.getElementById('main-search-input');
+  if (catalogInput) {
+    catalogInput.value = '';
+    catalogInput.focus();
+  }
+  if (mainInput) {
+    mainInput.value = '';
+  }
+  renderProducts();
+}
+
+function focusCatalogSearch() {
+  playSfx('click');
+  const catalogEl = document.getElementById('katalog');
+  if (catalogEl) {
+    catalogEl.scrollIntoView({ behavior: 'smooth' });
+  }
+  const input = document.getElementById('catalog-search-input') || document.getElementById('main-search-input');
+  if (input) {
+    setTimeout(() => {
+      input.focus();
+      input.select();
+    }, 250);
+  }
+}
+
 // Setup Event Listeners
 function setupEventListeners() {
   // Filter tabs
@@ -3970,14 +4063,35 @@ function setupEventListeners() {
     });
   });
 
-  // Search input live
-  const searchInput = document.getElementById('main-search-input');
-  if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
-      state.searchQuery = e.target.value;
-      renderProducts();
-    });
+  // Live Instant Search Inputs (Catalog and Top Header sync)
+  const catalogSearchInput = document.getElementById('catalog-search-input');
+  const mainSearchInput = document.getElementById('main-search-input');
+
+  const handleLiveSearch = (val) => {
+    state.searchQuery = val;
+    if (catalogSearchInput && catalogSearchInput.value !== val) {
+      catalogSearchInput.value = val;
+    }
+    if (mainSearchInput && mainSearchInput.value !== val) {
+      mainSearchInput.value = val;
+    }
+    renderProducts();
+  };
+
+  if (catalogSearchInput) {
+    catalogSearchInput.addEventListener('input', (e) => handleLiveSearch(e.target.value));
   }
+  if (mainSearchInput) {
+    mainSearchInput.addEventListener('input', (e) => handleLiveSearch(e.target.value));
+  }
+
+  // Global Ctrl+K Keyboard Shortcut to focus search
+  window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      focusCatalogSearch();
+    }
+  });
 
   // Sort select
   const sortSelect = document.getElementById('catalog-sort-select');

@@ -46,7 +46,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <!-- Custom Next-Gen Stylesheet (with cache buster query) -->
-  <link rel="stylesheet" href="assets/style.css?v=20261107_scroll_v1" />
+  <link rel="stylesheet" href="assets/style.css?v=20261107_search_v1" />
 
   <!-- Critical Inline Styles to Guarantee Immediate High-Contrast Rendering (Dark & Light Mode) -->
   <style>
@@ -311,6 +311,38 @@
       background-color: #ffffff !important;
       border-color: #cbd5e1 !important;
       color: #0f172a !important;
+    }
+    html:not(.dark) #catalog-search-input {
+      background-color: #ffffff !important;
+      border-color: #cbd5e1 !important;
+      color: #0f172a !important;
+    }
+    html:not(.dark) #catalog-search-input::placeholder {
+      color: #94a3b8 !important;
+    }
+    html:not(.dark) #catalog-search-clear {
+      background-color: #f1f5f9 !important;
+      color: #64748b !important;
+    }
+    html:not(.dark) #catalog-search-clear:hover {
+      background-color: #e2e8f0 !important;
+      color: #0f172a !important;
+    }
+    html:not(.dark) #catalog-search-feedback {
+      background-color: #f0f9ff !important;
+      border-color: #bae6fd !important;
+      color: #1e293b !important;
+    }
+    html:not(.dark) #catalog-search-feedback strong {
+      color: #0070d1 !important;
+    }
+    html:not(.dark) #admin-product-search-input {
+      background-color: #ffffff !important;
+      border-color: #cbd5e1 !important;
+      color: #0f172a !important;
+    }
+    html:not(.dark) #admin-product-search-input::placeholder {
+      color: #94a3b8 !important;
     }
     html:not(.dark) .filter-tab-btn:not(.bg-sky-600) { 
       background-color: #ffffff !important; 
@@ -1395,7 +1427,7 @@
     <!-- Main Catalog Section -->
     <main id="katalog" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
       
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
         <div>
           <div class="flex items-center gap-2.5 mb-1">
             <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight font-display">Semua Koleksi Game</h2>
@@ -1403,20 +1435,41 @@
               14 Game Tersedia
             </span>
           </div>
-          <p class="text-xs text-slate-400">Pilih tab kategori di bawah untuk memfilter Game Sub Indo, Game PS4 HEN, Olahraga / Bola, atau Game Digital.</p>
+          <p class="text-xs text-slate-400">Pilih tab kategori atau cari judul game, genre, dan format yang Anda inginkan.</p>
         </div>
 
-        <div class="flex items-center gap-2 self-start md:self-auto">
-          <span class="text-xs text-slate-400 shrink-0 font-medium">Urutkan:</span>
-          <select 
-            id="catalog-sort-select" 
-            class="px-3.5 py-2 text-xs font-semibold rounded-xl bg-slate-900 border border-slate-800 text-white focus:border-sky-500 outline-none cursor-pointer"
-          >
-            <option value="popular">Paling Populer</option>
-            <option value="price-low">Harga Terendah</option>
-            <option value="price-high">Harga Tertinggi</option>
-            <option value="newest">Tahun Rilis Terbaru</option>
-          </select>
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+          <!-- Live Interactive Search Bar in Catalog -->
+          <div class="relative flex-1 sm:w-72 lg:w-80 group">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 group-focus-within:text-sky-400 absolute left-3.5 top-1/2 -translate-y-1/2 transition-colors pointer-events-none"></i>
+            <input 
+              type="text" 
+              id="catalog-search-input"
+              placeholder="Cari judul game, genre, PS4 HEN..."
+              class="w-full pl-10 pr-9 py-2.5 text-xs rounded-xl bg-slate-900/90 border border-slate-700/80 text-white placeholder-slate-400 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none transition-all shadow-inner"
+            />
+            <button 
+              id="catalog-search-clear" 
+              onclick="clearCatalogSearch()" 
+              class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer"
+              title="Hapus pencarian"
+            >
+              <i data-lucide="x" class="w-3 h-3"></i>
+            </button>
+          </div>
+
+          <div class="flex items-center gap-2 self-start sm:self-auto shrink-0">
+            <span class="text-xs text-slate-400 shrink-0 font-medium hidden sm:inline">Urutkan:</span>
+            <select 
+              id="catalog-sort-select" 
+              class="w-full sm:w-auto px-3.5 py-2.5 text-xs font-semibold rounded-xl bg-slate-900 border border-slate-700/80 text-white focus:border-sky-500 outline-none cursor-pointer shadow-inner"
+            >
+              <option value="popular">Paling Populer</option>
+              <option value="price-low">Harga Terendah</option>
+              <option value="price-high">Harga Tertinggi</option>
+              <option value="newest">Tahun Rilis Terbaru</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -1457,25 +1510,37 @@
         </button>
       </div>
 
+      <!-- Live Search Query Active Feedback Bar -->
+      <div id="catalog-search-feedback" class="hidden mb-6 p-3 rounded-2xl bg-sky-950/40 border border-sky-500/30 flex items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-2 text-slate-300 flex-wrap">
+          <i data-lucide="search" class="w-4 h-4 text-sky-400"></i>
+          <span>Menampilkan hasil pencarian untuk: <strong id="catalog-search-feedback-query" class="text-white font-mono">""</strong></span>
+          <span id="catalog-search-feedback-count" class="text-[10px] px-2 py-0.5 rounded-full bg-sky-900/60 text-sky-300 border border-sky-500/30 font-bold">0 game</span>
+        </div>
+        <button onclick="clearCatalogSearch()" class="px-3 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[11px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0">
+          <i data-lucide="x" class="w-3 h-3"></i> Hapus Pencarian
+        </button>
+      </div>
+
       <!-- Products Grid -->
       <div id="products-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6"></div>
 
       <!-- Empty State -->
       <div id="products-empty" class="hidden py-16 text-center">
-        <div class="w-16 h-16 rounded-2xl bg-slate-900 text-slate-500 flex items-center justify-center mx-auto mb-4 border border-slate-800">
+        <div class="w-16 h-16 rounded-2xl bg-slate-900 text-rose-400 flex items-center justify-center mx-auto mb-4 border border-slate-800 shadow-lg shadow-rose-950/20">
           <i data-lucide="search-x" class="w-8 h-8"></i>
         </div>
         <h3 class="text-base font-bold text-white mb-1">Game Tidak Ditemukan</h3>
-        <p class="text-xs text-slate-400 max-w-sm mx-auto mb-4">Coba cari dengan kata kunci lain atau hubungi admin via WhatsApp untuk request game khusus.</p>
-        <button onclick="state.searchQuery=''; state.activeFilter='all'; document.getElementById('main-search-input').value=''; renderProducts();" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-xs font-bold text-white">
-          Reset Pencarian
+        <p id="products-empty-msg" class="text-xs text-slate-400 max-w-sm mx-auto mb-4">Coba cari dengan kata kunci lain (misal: "Sub Indo", "RPG", "Resident Evil") atau reset pencarian.</p>
+        <button onclick="clearCatalogSearch()" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-xs font-bold text-white shadow-lg shadow-sky-600/30 cursor-pointer transition-all">
+          Reset Pencarian & Tampilkan Semua Game
         </button>
       </div>
     </main>
 
     <!-- Floating Gamepad Quick HUD -->
     <div class="gamepad-hud hidden md:flex items-center gap-4">
-      <button onclick="document.getElementById('main-search-input').focus()" class="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white">
+      <button onclick="focusCatalogSearch()" class="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white cursor-pointer">
         <span class="ps-triangle font-bold">△</span> <span>Cari</span>
       </button>
       <div class="h-4 w-px bg-slate-700"></div>
@@ -1665,7 +1730,7 @@
 
       <!-- Products Section -->
       <section class="p-5 sm:p-6 rounded-2xl bg-[#081024] border border-slate-800 mb-8">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <div>
             <h3 class="text-lg font-bold text-white font-display flex items-center gap-2">
               <i data-lucide="layers" class="w-5 h-5 text-purple-400"></i>
@@ -1674,9 +1739,21 @@
             <p class="text-xs text-slate-400">Tambah game baru, ubah harga, atau nonaktifkan stok.</p>
           </div>
 
-          <button onclick="openAddProductModal()" class="px-4 py-2 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white shadow-md shadow-sky-600/30 flex items-center gap-1.5">
-            <i data-lucide="plus" class="w-4 h-4"></i> Tambah Game Baru
-          </button>
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <div class="relative w-full sm:w-60">
+              <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+              <input 
+                type="text" 
+                id="admin-product-search-input" 
+                oninput="renderAdminProductsTable()" 
+                placeholder="Cari game di admin..." 
+                class="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-400 focus:border-sky-500 outline-none"
+              />
+            </div>
+            <button onclick="openAddProductModal()" class="px-4 py-2 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white shadow-md shadow-sky-600/30 flex items-center gap-1.5 shrink-0">
+              <i data-lucide="plus" class="w-4 h-4"></i> Tambah Game Baru
+            </button>
+          </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -2654,7 +2731,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261107_scroll_v1"></script>
-  <script src="assets/app.js?v=20261107_scroll_v1"></script>
+  <script src="assets/products-data.js?v=20261107_search_v1"></script>
+  <script src="assets/app.js?v=20261107_search_v1"></script>
 </body>
 </html>

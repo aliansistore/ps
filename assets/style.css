@@ -333,6 +333,38 @@ html:not(.dark) #catalog-sort-select {
   border-color: #cbd5e1 !important;
   color: #0f172a !important;
 }
+html:not(.dark) #catalog-search-input {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+html:not(.dark) #catalog-search-input::placeholder {
+  color: #94a3b8 !important;
+}
+html:not(.dark) #catalog-search-clear {
+  background-color: #f1f5f9 !important;
+  color: #64748b !important;
+}
+html:not(.dark) #catalog-search-clear:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+html:not(.dark) #catalog-search-feedback {
+  background-color: #f0f9ff !important;
+  border-color: #bae6fd !important;
+  color: #1e293b !important;
+}
+html:not(.dark) #catalog-search-feedback strong {
+  color: #0070d1 !important;
+}
+html:not(.dark) #admin-product-search-input {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+html:not(.dark) #admin-product-search-input::placeholder {
+  color: #94a3b8 !important;
+}
 html:not(.dark) .filter-tab-btn:not(.bg-sky-600) {
   background-color: #ffffff !important;
   color: #334155 !important;
