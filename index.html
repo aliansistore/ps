@@ -1802,6 +1802,94 @@
       </button>
     </div>
 
+    <!-- Floating Customer Live Chat Widget Launcher -->
+    <div id="customer-live-chat-launcher" class="fixed bottom-6 right-6 z-40 flex items-center">
+      <button 
+        onclick="toggleCustomerChat()" 
+        class="relative flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-cyan-600 via-sky-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs shadow-xl shadow-cyan-500/30 hover:shadow-cyan-500/50 border border-cyan-400/40 hover:scale-105 active:scale-95 transition-all cursor-pointer group"
+        title="Live Chat Dua Arah dengan Admin Toko (Notifikasi Email Otomatis)"
+      >
+        <span class="relative flex h-3 w-3">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+        </span>
+        <i data-lucide="message-circle" class="w-4 h-4 text-white group-hover:rotate-12 transition-transform"></i>
+        <span class="font-display tracking-wide font-extrabold hidden sm:inline">Live Chat Admin</span>
+        <span id="cust-chat-unread-badge" class="hidden px-1.5 py-0.5 rounded-full text-[10px] font-black bg-rose-500 text-white shadow-md animate-bounce">0</span>
+      </button>
+    </div>
+
+    <!-- Floating Customer Live Chat Box -->
+    <div id="customer-live-chat-box" class="hidden fixed bottom-20 right-4 sm:bottom-24 sm:right-6 z-50 w-[92vw] sm:w-[390px] h-[540px] max-h-[85vh] rounded-3xl bg-[#080f24]/95 backdrop-blur-2xl border border-sky-500/40 shadow-2xl flex flex-col overflow-hidden text-white transition-all duration-300">
+      <!-- Chat Header -->
+      <div class="p-4 bg-gradient-to-r from-slate-900/90 via-[#0a1535]/90 to-sky-950/90 border-b border-slate-800 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="relative">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-cyan-500 to-sky-600 p-0.5 shadow-lg shadow-cyan-500/30 flex items-center justify-center">
+              <i data-lucide="headset" class="w-5 h-5 text-white"></i>
+            </div>
+            <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-[#080f24] animate-pulse"></span>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <h4 class="text-xs font-black font-display text-white">Customer Support</h4>
+              <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30">ALIANSI</span>
+            </div>
+            <p class="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Admin Online • Respons Cepat
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1">
+          <button onclick="toggleCustomerChat()" class="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer" title="Tutup Chat">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Identity Strip -->
+      <div id="cust-chat-identity-strip" class="px-4 py-2 bg-slate-950/80 border-b border-slate-800/80 text-[11px] flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-1.5 truncate">
+          <i data-lucide="user" class="w-3.5 h-3.5 text-sky-400 shrink-0"></i>
+          <span id="cust-chat-identity-text" class="text-slate-300 truncate">Memuat akun...</span>
+        </div>
+        <button onclick="promptChangeCustomerChatIdentity()" class="text-[10px] text-sky-400 hover:text-sky-300 font-bold underline shrink-0 cursor-pointer">
+          Ubah
+        </button>
+      </div>
+
+      <!-- Email Notification Alert Pill -->
+      <div class="px-4 py-1.5 bg-sky-950/40 border-b border-sky-500/20 text-[10px] text-sky-300 flex items-center gap-1.5 shrink-0">
+        <i data-lucide="bell" class="w-3 h-3 text-sky-400 shrink-0"></i>
+        <span class="truncate">Setiap pesan otomatis memicu notifikasi email</span>
+      </div>
+
+      <!-- Messages Feed -->
+      <div id="cust-chat-messages-container" class="flex-1 p-4 overflow-y-auto modal-custom-scroll space-y-3">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Chat Footer / Input -->
+      <div class="p-3 bg-slate-900/90 border-t border-slate-800 shrink-0">
+        <form onsubmit="event.preventDefault(); sendCustomerChatMessage();" class="flex items-center gap-2">
+          <input 
+            type="text" 
+            id="cust-chat-input" 
+            placeholder="Ketik pesan Anda untuk Admin..." 
+            class="flex-1 px-3.5 py-2.5 text-xs rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-400 outline-none focus:border-cyan-500 transition-colors"
+            autocomplete="off"
+          />
+          <button 
+            type="submit" 
+            class="w-10 h-10 rounded-xl bg-gradient-to-r from-cyan-600 to-sky-600 hover:from-cyan-500 hover:to-sky-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-cyan-600/30 transition-transform active:scale-95 cursor-pointer"
+            title="Kirim Pesan"
+          >
+            <i data-lucide="send" class="w-4 h-4"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+
     <!-- Main Footer -->
     <footer class="bg-[#030611] border-t border-slate-800/80 mt-16 py-12 text-slate-400 text-xs">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
