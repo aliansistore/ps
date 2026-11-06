@@ -3938,6 +3938,149 @@
     </div>
   </div>
 
+    <!-- MODAL: Admin Live Chat Dua Arah & Email Dispatch -->
+  <div id="modal-admin-live-chat" class="app-modal hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/80 backdrop-blur-md">
+    <div class="bg-[#080f24] border border-slate-700 rounded-3xl max-w-4xl w-full h-[640px] max-h-[92vh] flex flex-col shadow-2xl relative text-white overflow-hidden" onclick="event.stopPropagation()">
+      
+      <!-- Top Modal Header -->
+      <div class="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between bg-slate-900/70 shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-inner">
+            <i data-lucide="message-square" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-sm sm:text-base font-black font-display text-white">Live Chat Dua Arah ke Customer</h3>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> NOTIFIKASI EMAIL AKTIF
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-400">Kirim balasan chat langsung ke customer & kirim notifikasi otomatis ke inbox email customer</p>
+          </div>
+        </div>
+        <button onclick="closeModals()" class="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Main Body: Two Columns (Left: Conversations List, Right: Chat Area) -->
+      <div class="flex-1 flex overflow-hidden">
+        
+        <!-- Left Column: Customer Conversations List -->
+        <div class="w-64 sm:w-72 border-r border-slate-800/90 flex flex-col bg-slate-950/60 shrink-0">
+          <div class="p-3 border-b border-slate-800/70">
+            <div class="relative">
+              <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+              <input 
+                type="text" 
+                id="admin-chat-search" 
+                oninput="renderAdminChatConversationsList()" 
+                placeholder="Cari customer / email..." 
+                class="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-slate-900 border border-slate-700/80 text-white placeholder-slate-500 outline-none focus:border-cyan-500" 
+              />
+            </div>
+          </div>
+          <div id="admin-chat-conversations-list" class="flex-1 overflow-y-auto modal-custom-scroll divide-y divide-slate-800/40">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Right Column: Active Chat Feed & Send Box -->
+        <div class="flex-1 flex flex-col bg-[#070e22] min-w-0">
+          
+          <!-- Selected Customer Info Header -->
+          <div id="admin-chat-selected-header" class="px-4 py-3 bg-slate-900/80 border-b border-slate-800 flex items-center justify-between gap-3 shrink-0">
+            <div class="flex items-center gap-3 min-w-0">
+              <div id="admin-chat-header-avatar" class="w-9 h-9 rounded-full bg-cyan-600/20 text-cyan-400 border border-cyan-500/30 font-bold flex items-center justify-center text-xs shrink-0">
+                C
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <h4 id="admin-chat-header-name" class="text-xs sm:text-sm font-bold text-white truncate">-</h4>
+                  <span id="admin-chat-header-badge" class="px-1.5 py-0.2 rounded text-[9px] font-black bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">MEMBER</span>
+                </div>
+                <div class="flex items-center gap-3 text-[11px] text-slate-400 font-mono mt-0.5">
+                  <span id="admin-chat-header-email" class="text-sky-400 truncate">-</span>
+                  <span id="admin-chat-header-phone" class="text-slate-400 hidden sm:inline">-</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0">
+              <a id="admin-chat-wa-btn" href="#" target="_blank" class="px-2.5 py-1.5 rounded-xl bg-emerald-950/70 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/30 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer" title="Buka Chat WhatsApp">
+                <i data-lucide="message-square" class="w-3.5 h-3.5 text-emerald-400"></i>
+                <span class="hidden sm:inline">WhatsApp</span>
+              </a>
+              <a id="admin-chat-mailto-btn" href="#" class="px-2.5 py-1.5 rounded-xl bg-sky-950/70 hover:bg-sky-900 text-sky-300 border border-sky-500/30 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer" title="Buka Client Email">
+                <i data-lucide="mail" class="w-3.5 h-3.5 text-sky-400"></i>
+                <span class="hidden sm:inline">Kirim Email</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Context Strip (If opened from Game Request, e.g. REQ-9012) -->
+          <div id="admin-chat-context-strip" class="hidden px-4 py-1.5 bg-purple-950/40 border-b border-purple-500/30 text-[11px] text-purple-200 flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-1.5 truncate">
+              <i data-lucide="gamepad-2" class="w-3.5 h-3.5 text-purple-400 shrink-0"></i>
+              <span id="admin-chat-context-text" class="font-medium truncate">Terkait Game Request</span>
+            </div>
+            <button onclick="clearAdminChatContext()" class="text-[10px] text-purple-400 hover:text-white underline shrink-0 cursor-pointer">Lepas</button>
+          </div>
+
+          <!-- Messages Feed -->
+          <div id="admin-chat-feed" class="flex-1 p-4 overflow-y-auto modal-custom-scroll space-y-3">
+            <!-- Messages rendered by JS -->
+          </div>
+
+          <!-- Quick Templates Bar -->
+          <div class="px-4 py-1.5 bg-slate-900/60 border-t border-slate-800/80 flex items-center gap-1.5 overflow-x-auto shrink-0 text-[10px]">
+            <span class="text-slate-400 font-bold shrink-0">Template Cepat:</span>
+            <button type="button" onclick="insertAdminChatTemplate('Halo! Permintaan game Anda saat ini sudah resmi tersedia di katalog toko dan siap diorder ya kak.')" class="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 shrink-0 transition-colors cursor-pointer">
+              Game Sudah Tersedia
+            </button>
+            <button type="button" onclick="insertAdminChatTemplate('Halo kak, permintaan game Anda sedang dalam proses penyiapan update patch dan upload ke Google Drive server kami.')" class="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-purple-300 border border-slate-700 shrink-0 transition-colors cursor-pointer">
+              Sedang Disiapkan
+            </button>
+            <button type="button" onclick="insertAdminChatTemplate('Halo kak! Ada yang bisa kami bantu seputar game PlayStation atau panduan instalasi?')" class="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700 shrink-0 transition-colors cursor-pointer">
+              Bantuan Toko
+            </button>
+          </div>
+
+          <!-- Send Area -->
+          <div class="p-3 bg-slate-900/90 border-t border-slate-800 shrink-0">
+            <form onsubmit="event.preventDefault(); sendAdminChatMessage();" class="space-y-2">
+              <div class="flex items-center gap-2">
+                <input 
+                  type="text" 
+                  id="admin-chat-input" 
+                  placeholder="Ketik balasan pesan ke customer..." 
+                  class="flex-1 px-3.5 py-2.5 text-xs rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-400 outline-none focus:border-cyan-500 transition-colors"
+                  autocomplete="off"
+                />
+                <button 
+                  type="submit" 
+                  class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-sky-600 hover:from-cyan-500 hover:to-sky-500 text-white font-bold text-xs flex items-center gap-1.5 shrink-0 shadow-lg shadow-cyan-600/30 transition-transform active:scale-95 cursor-pointer"
+                >
+                  <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                  <span>Kirim Pesan</span>
+                </button>
+              </div>
+
+              <!-- Options Bar: Email Notification Checkbox -->
+              <div class="flex items-center justify-between text-[11px] text-slate-400 pt-0.5">
+                <label class="flex items-center gap-2 cursor-pointer hover:text-slate-300">
+                  <input type="checkbox" id="admin-chat-notify-email" class="rounded accent-cyan-500 cursor-pointer" checked />
+                  <span>Kirim notifikasi email otomatis ke customer saat pesan dikirim</span>
+                </label>
+                <span class="text-[10px] text-slate-500 font-mono hidden sm:inline">Tekan Enter untuk kirim</span>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: Image Lightbox Preview (Full Size View) -->
   <div id="modal-image-lightbox" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md transition-opacity duration-300" onclick="closeImageLightbox()">
     <div class="relative max-w-4xl w-full max-h-[92vh] flex flex-col items-center justify-center" onclick="event.stopPropagation()">
@@ -4034,7 +4177,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261107_custmgmt_v11"></script>
-  <script src="assets/app.js?v=20261107_custmgmt_v11"></script>
+  <script src="assets/products-data.js?v=20261107_livechat_v12"></script>
+  <script src="assets/app.js?v=20261107_livechat_v12"></script>
 </body>
 </html>

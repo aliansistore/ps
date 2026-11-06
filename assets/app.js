@@ -11,7 +11,8 @@ const APP_STORAGE_KEYS = {
   AUDIO_MUTED: 'aliansi_store_audio_muted',
   THEME: 'aliansi_theme',
   USERS_DB: 'aliansi_store_users_v3',
-  GAME_REQUESTS: 'aliansi_store_game_requests_v1'
+  GAME_REQUESTS: 'aliansi_store_game_requests_v1',
+  CHATS: 'aliansi_store_chats_v1'
 };
 
 // Permanent High-Resolution Local & Fallback Poster Map (14 Official Sub Indo Titles)
@@ -101,7 +102,11 @@ const state = {
   gameRequests: [],
   adminRequestFilter: 'all',
   selectedRequestForConfirm: null,
-  lastCreatedRequest: null
+  lastCreatedRequest: null,
+  chatMessages: [],
+  activeAdminChatEmail: null,
+  activeAdminChatContext: null,
+  isCustomerChatOpen: false
 };
 
 // ================= SUPABASE CLOUD DATABASE ADAPTER =================
@@ -178,6 +183,21 @@ function playSfx(type = 'click') {
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
       osc.start(now);
       osc.stop(now + 0.12);
+    } else if (type === 'chat') {
+      // Friendly marimba notification chime
+      const tones = [587.33, 880];
+      tones.forEach((freq, idx) => {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.connect(g);
+        g.connect(ctx.destination);
+        o.type = 'sine';
+        o.frequency.setValueAtTime(freq, now + idx * 0.08);
+        g.gain.setValueAtTime(0.06, now + idx * 0.08);
+        g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.18);
+        o.start(now + idx * 0.08);
+        o.stop(now + idx * 0.08 + 0.18);
+      });
     } else if (type === 'success') {
       // Triumphant cyber chime
       const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
@@ -279,6 +299,7 @@ function initApp() {
   updateStoreContactUI();
   lucide.createIcons();
   syncFromSupabase();
+  initLiveChatUI();
   checkUrlForActions();
 }
 
@@ -359,6 +380,19 @@ function loadStoredData() {
     state.config.adminEmail = (typeof INITIAL_CONFIG !== 'undefined' && INITIAL_CONFIG.adminEmail) || 'aliansistore.id@gmail.com';
   }
   updateStoreContactUI();
+
+  // Live Chat Messages (Two-Way Chat)
+  const storedChats = localStorage.getItem(APP_STORAGE_KEYS.CHATS);
+  if (storedChats) {
+    try {
+      state.chatMessages = JSON.parse(storedChats);
+    } catch (e) {
+      state.chatMessages = typeof INITIAL_CHATS !== 'undefined' ? [...INITIAL_CHATS] : [];
+    }
+  } else {
+    state.chatMessages = typeof INITIAL_CHATS !== 'undefined' ? [...INITIAL_CHATS] : [];
+    saveChatMessages();
+  }
 
   // Users Database (Admin & Customer Profiles)
   const storedUsers = localStorage.getItem(APP_STORAGE_KEYS.USERS_DB);
@@ -4546,11 +4580,9 @@ function renderAdminRequestsTable() {
               <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
             </button>
 
-            ${req.customerPhone ? `
-              <button onclick="sendConfirmationWaToCustomer('${req.id}')" class="p-1.5 rounded-lg bg-emerald-950/70 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/30 transition-colors cursor-pointer" title="Kirim Konfirmasi via WhatsApp">
-                <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
-              </button>
-            ` : ''}
+            <button onclick="openAdminChatForRequest('${req.id}')" class="p-1.5 rounded-lg bg-emerald-950/70 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/30 transition-colors cursor-pointer shadow-sm" title="Live Chat Dua Arah dengan ${escapeHtml(req.customerName)} (${req.customerEmail})">
+              <i data-lucide="message-square" class="w-3.5 h-3.5 text-emerald-400"></i>
+            </button>
 
             <button onclick="deleteGameRequest('${req.id}')" class="p-1.5 rounded-lg bg-rose-950/50 hover:bg-rose-900 text-rose-300 border border-rose-800/40 transition-colors cursor-pointer" title="Hapus Tiket Request">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
@@ -5024,14 +5056,24 @@ function renderAdminCustomersTable() {
           </div>
         </td>
         <td class="py-3 px-3 text-right">
-          <button 
-            onclick="promptResetCustomerPassword('${u.id}')" 
-            class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center gap-1.5 ml-auto transition-all cursor-pointer shadow-sm hover:scale-[1.02]"
-            title="Kirim tautan pembuatan password baru ke email customer"
-          >
-            <i data-lucide="key-round" class="w-3.5 h-3.5"></i>
-            <span>Reset Password</span>
-          </button>
+          <div class="flex items-center justify-end gap-1.5 flex-wrap">
+            <button 
+              onclick="openAdminChatForCustomer('${u.id}')" 
+              class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center gap-1.5 transition-all cursor-pointer shadow-sm hover:scale-[1.02]"
+              title="Buka Chat Dua Arah dengan ${escapeHtml(u.name)}"
+            >
+              <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+              <span>Chat</span>
+            </button>
+            <button 
+              onclick="promptResetCustomerPassword('${u.id}')" 
+              class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center gap-1.5 transition-all cursor-pointer shadow-sm hover:scale-[1.02]"
+              title="Kirim tautan pembuatan password baru ke email customer"
+            >
+              <i data-lucide="key-round" class="w-3.5 h-3.5"></i>
+              <span>Reset Password</span>
+            </button>
+          </div>
         </td>
       </tr>
     `;
@@ -5222,6 +5264,21 @@ function openCustomerHistoryModal(userId) {
 function checkUrlForActions() {
   const urlParams = new URLSearchParams(window.location.search);
   const action = urlParams.get('action');
+
+  if (action === 'open-chat') {
+    const email = urlParams.get('email');
+    if (email) {
+      const decodedEmail = decodeURIComponent(email).toLowerCase().trim();
+      localStorage.setItem('aliansi_guest_chat_email', decodedEmail);
+      const matchedUser = (state.users || []).find(u => u.email && u.email.toLowerCase().trim() === decodedEmail);
+      if (matchedUser) {
+        localStorage.setItem('aliansi_guest_chat_name', matchedUser.name);
+      }
+    }
+    setTimeout(() => {
+      toggleCustomerChat();
+    }, 600);
+  }
 
   if (action === 'reset-password') {
     const token = urlParams.get('token');
@@ -6670,6 +6727,761 @@ function setupEventListeners() {
 }
 
 // DOM Ready
+// ================= TWO-WAY LIVE CHAT & EMAIL NOTIFICATION ENGINE =================
+
+function initLiveChatUI() {
+  updateChatBadges();
+  renderCustomerChatIdentity();
+}
+
+function saveChatMessages() {
+  try {
+    localStorage.setItem(APP_STORAGE_KEYS.CHATS, JSON.stringify(state.chatMessages));
+  } catch (e) {
+    // LocalStorage quota fallback
+  }
+  updateChatBadges();
+}
+
+function updateChatBadges() {
+  const messages = state.chatMessages || [];
+
+  // 1. Admin badge (messages from customers unread by admin)
+  const unreadForAdmin = messages.filter(m => m.senderRole === 'customer' && !m.readByAdmin).length;
+  const adminBadge = document.getElementById('admin-header-chat-badge');
+  if (adminBadge) {
+    if (unreadForAdmin > 0) {
+      adminBadge.textContent = unreadForAdmin;
+      adminBadge.classList.remove('hidden');
+    } else {
+      adminBadge.classList.add('hidden');
+    }
+  }
+
+  // 2. Customer badge (messages from admin unread by current customer)
+  const custEmail = getCurrentCustomerChatEmail();
+  if (custEmail) {
+    const unreadForCust = messages.filter(m => 
+      m.conversationId === custEmail && 
+      m.senderRole === 'admin' && 
+      !m.readByCustomer
+    ).length;
+    const custBadge = document.getElementById('cust-chat-unread-badge');
+    if (custBadge) {
+      if (unreadForCust > 0) {
+        custBadge.textContent = unreadForCust;
+        custBadge.classList.remove('hidden');
+      } else {
+        custBadge.classList.add('hidden');
+      }
+    }
+  }
+}
+
+function getCurrentCustomerChatEmail() {
+  if (state.currentUser && state.currentUser.email && state.currentUser.role !== 'admin') {
+    return state.currentUser.email.toLowerCase().trim();
+  }
+  const guestEmail = localStorage.getItem('aliansi_guest_chat_email');
+  if (guestEmail) return guestEmail.toLowerCase().trim();
+  return '';
+}
+
+function getCurrentCustomerChatName() {
+  if (state.currentUser && state.currentUser.name && state.currentUser.role !== 'admin') {
+    return state.currentUser.name;
+  }
+  const guestName = localStorage.getItem('aliansi_guest_chat_name');
+  if (guestName) return guestName;
+  return 'Customer';
+}
+
+function renderCustomerChatIdentity() {
+  const strip = document.getElementById('cust-chat-identity-text');
+  if (!strip) return;
+
+  const email = getCurrentCustomerChatEmail();
+  const name = getCurrentCustomerChatName();
+
+  if (email) {
+    strip.innerHTML = `Chat sebagai: <strong class="text-white">${escapeHtml(name)}</strong> <span class="text-sky-400 font-mono text-[10px]">(${escapeHtml(email)})</span>`;
+  } else {
+    strip.innerHTML = `<span class="text-amber-300 font-bold">Belum ada email</span> • <span class="text-slate-400">Klik "Ubah" untuk isi identitas</span>`;
+  }
+}
+
+function promptChangeCustomerChatIdentity() {
+  playSfx('click');
+  const currentName = getCurrentCustomerChatName();
+  const currentEmail = getCurrentCustomerChatEmail();
+
+  const newName = prompt('Masukkan Nama Lengkap Anda:', currentName !== 'Customer' ? currentName : '');
+  if (newName === null) return;
+  if (!newName.trim()) {
+    showToast('Nama tidak boleh kosong.', 'warning');
+    return;
+  }
+
+  const newEmail = prompt('Masukkan Alamat Email Anda (untuk menerima notifikasi balasan Admin):', currentEmail || '');
+  if (newEmail === null) return;
+  if (!newEmail.trim() || !newEmail.includes('@')) {
+    showToast('Alamat email tidak valid!', 'warning');
+    return;
+  }
+
+  localStorage.setItem('aliansi_guest_chat_name', newName.trim());
+  localStorage.setItem('aliansi_guest_chat_email', newEmail.trim().toLowerCase());
+
+  renderCustomerChatIdentity();
+  renderCustomerChatMessages();
+  updateChatBadges();
+  showToast(`Identitas chat disimpan sebagai ${newName.trim()} (${newEmail.trim()})`, 'success');
+}
+
+function toggleCustomerChat() {
+  const box = document.getElementById('customer-live-chat-box');
+  if (!box) return;
+
+  const isHidden = box.classList.contains('hidden');
+
+  if (isHidden) {
+    playSfx('switch');
+    box.classList.remove('hidden');
+    state.isCustomerChatOpen = true;
+
+    // Ensure customer has identity or prompt gently
+    if (!getCurrentCustomerChatEmail()) {
+      // Check if there is a customer in state.currentUser or default to Bayu Perkasa demo or prompt
+      if (state.currentUser && state.currentUser.email) {
+        localStorage.setItem('aliansi_guest_chat_email', state.currentUser.email);
+        localStorage.setItem('aliansi_guest_chat_name', state.currentUser.name);
+      }
+    }
+
+    renderCustomerChatIdentity();
+    renderCustomerChatMessages();
+
+    // Mark messages as read by customer
+    const custEmail = getCurrentCustomerChatEmail();
+    if (custEmail) {
+      let marked = false;
+      (state.chatMessages || []).forEach(m => {
+        if (m.conversationId === custEmail && m.senderRole === 'admin' && !m.readByCustomer) {
+          m.readByCustomer = true;
+          marked = true;
+        }
+      });
+      if (marked) saveChatMessages();
+    }
+
+    lucide.createIcons();
+    const input = document.getElementById('cust-chat-input');
+    if (input) input.focus();
+  } else {
+    playSfx('click');
+    box.classList.add('hidden');
+    state.isCustomerChatOpen = false;
+  }
+}
+
+function renderCustomerChatMessages() {
+  const container = document.getElementById('cust-chat-messages-container');
+  if (!container) return;
+
+  let custEmail = getCurrentCustomerChatEmail();
+
+  // If no email set yet, show friendly onboard card
+  if (!custEmail) {
+    container.innerHTML = `
+      <div class="p-4 rounded-2xl bg-sky-950/40 border border-sky-500/30 text-center space-y-3">
+        <div class="w-12 h-12 rounded-2xl bg-sky-500/20 text-sky-400 mx-auto flex items-center justify-center">
+          <i data-lucide="message-square" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h4 class="text-xs font-bold text-white">Selamat Datang di Live Chat Aliansi!</h4>
+          <p class="text-[11px] text-slate-300 mt-1">Masukkan nama & email Anda agar riwayat chat tersimpan dan Admin dapat mengirim notifikasi balasan langsung ke email Anda.</p>
+        </div>
+        <button 
+          onclick="promptChangeCustomerChatIdentity()" 
+          class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-sky-600 hover:from-cyan-500 hover:to-sky-500 text-white font-bold text-xs shadow-md shadow-sky-600/30 transition-all cursor-pointer"
+        >
+          Isi Nama & Email Saya
+        </button>
+      </div>
+    `;
+    lucide.createIcons();
+    return;
+  }
+
+  const messages = (state.chatMessages || []).filter(m => m.conversationId === custEmail);
+
+  if (messages.length === 0) {
+    container.innerHTML = `
+      <div class="p-6 text-center text-xs text-slate-400 space-y-3">
+        <div class="w-10 h-10 rounded-full bg-slate-800 text-slate-500 mx-auto flex items-center justify-center">
+          <i data-lucide="bot" class="w-5 h-5 text-sky-400"></i>
+        </div>
+        <div>
+          <div class="font-bold text-white">Halo ${escapeHtml(getCurrentCustomerChatName())}!</div>
+          <div class="text-[11px] text-slate-400 mt-1">Ada yang bisa kami bantu? Silakan tulis pertanyaan, konfirmasi pesanan, atau request game PS4 impian Anda di bawah.</div>
+        </div>
+      </div>
+    `;
+    lucide.createIcons();
+    return;
+  }
+
+  container.innerHTML = messages.map(m => {
+    const isMe = m.senderRole === 'customer';
+    const timeFormatted = new Date(m.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+
+    if (isMe) {
+      return `
+        <div class="flex flex-col items-end">
+          <div class="max-w-[82%] px-3.5 py-2.5 rounded-2xl rounded-tr-xs bg-gradient-to-r from-sky-600 to-cyan-600 text-white text-xs shadow-md break-words">
+            ${escapeHtml(m.text)}
+          </div>
+          <div class="text-[10px] text-slate-400 mt-1 flex items-center gap-1 font-mono">
+            <span>${timeFormatted}</span>
+            <i data-lucide="check-check" class="w-3 h-3 text-cyan-400"></i>
+          </div>
+        </div>
+      `;
+    } else {
+      return `
+        <div class="flex flex-col items-start">
+          <div class="flex items-center gap-1.5 mb-1">
+            <span class="w-4 h-4 rounded-full bg-cyan-500/20 text-cyan-300 text-[9px] font-black flex items-center justify-center border border-cyan-500/30">A</span>
+            <span class="text-[10px] font-bold text-cyan-400">Admin Aliansi Store</span>
+            <span class="text-[9px] px-1 py-0.2 rounded bg-sky-500/20 text-sky-300 font-mono">VERIFIED</span>
+          </div>
+          <div class="max-w-[85%] px-3.5 py-2.5 rounded-2xl rounded-tl-xs bg-slate-900 border border-slate-700/80 text-white text-xs shadow-md break-words">
+            ${escapeHtml(m.text)}
+          </div>
+          <span class="text-[10px] text-slate-500 mt-1 font-mono">${timeFormatted}</span>
+        </div>
+      `;
+    }
+  }).join('');
+
+  lucide.createIcons();
+  container.scrollTop = container.scrollHeight;
+}
+
+function sendCustomerChatMessage() {
+  const input = document.getElementById('cust-chat-input');
+  if (!input) return;
+
+  const text = input.value.trim();
+  if (!text) return;
+
+  let custEmail = getCurrentCustomerChatEmail();
+  let custName = getCurrentCustomerChatName();
+
+  if (!custEmail) {
+    promptChangeCustomerChatIdentity();
+    custEmail = getCurrentCustomerChatEmail();
+    custName = getCurrentCustomerChatName();
+    if (!custEmail) return;
+  }
+
+  const adminEmail = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
+  const custPhone = (state.currentUser && state.currentUser.phone) || localStorage.getItem('aliansi_guest_chat_phone') || '';
+
+  const newMsg = {
+    id: 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+    conversationId: custEmail.toLowerCase(),
+    senderRole: 'customer',
+    senderName: custName,
+    senderEmail: custEmail,
+    senderPhone: custPhone,
+    recipientEmail: adminEmail,
+    customerName: custName,
+    customerEmail: custEmail,
+    customerPhone: custPhone,
+    text: text,
+    createdAt: new Date().toISOString(),
+    readByCustomer: true,
+    readByAdmin: false
+  };
+
+  if (!state.chatMessages) state.chatMessages = [];
+  state.chatMessages.push(newMsg);
+  saveChatMessages();
+
+  input.value = '';
+  renderCustomerChatMessages();
+  playSfx('switch');
+
+  // Trigger Email Notification to Admin ("atas chat muncul notifikasi ke email penerima")
+  const subject = `[ALIANSI STORE - CHAT BARU] Pesan Masuk dari ${custName}`;
+  const body = `Halo Admin ALIANSI STORE,
+
+Ada pesan obrolan (Live Chat) baru dari pelanggan di website:
+
+- Nama Customer  : ${custName}
+- Email Customer : ${custEmail}
+- No. WhatsApp   : ${custPhone || '-'}
+- Waktu Masuk    : ${new Date().toLocaleString('id-ID')} WIB
+
+Isi Pesan:
+------------------------------------------------------------
+"${text}"
+------------------------------------------------------------
+
+Silakan buka Dashboard Admin untuk melihat riwayat dan membalas pesan ini:
+${window.location.origin}${window.location.pathname}`;
+
+  const mailtoUrl = `mailto:${encodeURIComponent(adminEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+  // Open notification draft to admin's inbox
+  window.open(mailtoUrl, '_blank');
+
+  showToast(`Pesan terkirim ke Admin & notifikasi email diteruskan ke ${adminEmail}!`, 'success', 'Pesan Terkirim');
+
+  // If Admin is currently open, refresh admin view
+  renderAdminChatFeed();
+  renderAdminChatConversationsList();
+}
+
+// ================= ADMIN CHAT MODAL LOGIC =================
+
+function openAdminChatModal(selectedEmail = null, context = null) {
+  playSfx('click');
+
+  const modal = document.getElementById('modal-admin-live-chat');
+  if (!modal) return;
+
+  if (selectedEmail) {
+    state.activeAdminChatEmail = selectedEmail.toLowerCase().trim();
+  }
+  if (context) {
+    state.activeAdminChatContext = context;
+  }
+
+  // If no email selected yet, fallback to first available conversation
+  if (!state.activeAdminChatEmail) {
+    const list = getDistinctChatConversations();
+    if (list.length > 0) {
+      state.activeAdminChatEmail = list[0].email;
+    } else {
+      state.activeAdminChatEmail = 'bayu.perkasa@gmail.com';
+    }
+  }
+
+  // Mark messages in active conversation as read by admin
+  if (state.activeAdminChatEmail) {
+    (state.chatMessages || []).forEach(m => {
+      if (m.conversationId === state.activeAdminChatEmail && m.senderRole === 'customer') {
+        m.readByAdmin = true;
+      }
+    });
+    saveChatMessages();
+  }
+
+  modal.classList.remove('hidden');
+  renderAdminChatConversationsList();
+  renderAdminChatFeed();
+  lucide.createIcons();
+
+  const input = document.getElementById('admin-chat-input');
+  if (input) input.focus();
+}
+
+function openAdminChatForRequest(reqId) {
+  const req = (state.gameRequests || []).find(r => r.id === reqId);
+  if (!req) {
+    showToast('Permintaan game tidak ditemukan.', 'warning');
+    return;
+  }
+
+  const contextText = `REQ-${req.id}: ${req.gameTitle} (${Array.isArray(req.platform) ? req.platform.join(', ') : req.platform})`;
+  openAdminChatModal(req.customerEmail, contextText);
+}
+
+function openAdminChatForCustomer(userId) {
+  const user = (state.users || []).find(u => u.id === userId);
+  if (!user) {
+    showToast('Customer tidak ditemukan.', 'warning');
+    return;
+  }
+
+  const targetEmail = user.email || user.identifier;
+  openAdminChatModal(targetEmail, `Member Toko: ${user.name} (ID: ${user.id})`);
+}
+
+function getDistinctChatConversations() {
+  const map = new Map();
+  const messages = state.chatMessages || [];
+
+  // 1. Collect from messages
+  messages.forEach(m => {
+    const key = (m.conversationId || m.customerEmail || '').toLowerCase();
+    if (!key) return;
+
+    if (!map.has(key)) {
+      map.set(key, {
+        email: key,
+        name: m.customerName || (m.senderRole === 'customer' ? m.senderName : 'Customer'),
+        phone: m.customerPhone || '',
+        lastMessage: m.text,
+        lastTime: m.createdAt,
+        unread: (m.senderRole === 'customer' && !m.readByAdmin) ? 1 : 0
+      });
+    } else {
+      const existing = map.get(key);
+      if (new Date(m.createdAt) > new Date(existing.lastTime)) {
+        existing.lastMessage = m.text;
+        existing.lastTime = m.createdAt;
+      }
+      if (m.senderRole === 'customer' && !m.readByAdmin) {
+        existing.unread += 1;
+      }
+      if (m.customerName) existing.name = m.customerName;
+      if (m.customerPhone) existing.phone = m.customerPhone;
+    }
+  });
+
+  // 2. Also ensure customers from game requests and users are discoverable
+  (state.gameRequests || []).forEach(r => {
+    if (r.customerEmail) {
+      const key = r.customerEmail.toLowerCase();
+      if (!map.has(key)) {
+        map.set(key, {
+          email: key,
+          name: r.customerName || 'Customer',
+          phone: r.customerPhone || '',
+          lastMessage: `Permintaan: ${r.gameTitle}`,
+          lastTime: r.createdAt || new Date().toISOString(),
+          unread: 0
+        });
+      }
+    }
+  });
+
+  (state.users || []).filter(u => u.role !== 'admin' && u.email).forEach(u => {
+    const key = u.email.toLowerCase();
+    if (!map.has(key)) {
+      map.set(key, {
+        email: key,
+        name: u.name,
+        phone: u.phone || '',
+        lastMessage: 'Belum ada pesan sebelumnya',
+        lastTime: u.registeredAt || new Date().toISOString(),
+        unread: 0
+      });
+    }
+  });
+
+  return Array.from(map.values()).sort((a, b) => new Date(b.lastTime) - new Date(a.lastTime));
+}
+
+function selectAdminChatConversation(email) {
+  playSfx('hover');
+  state.activeAdminChatEmail = email.toLowerCase().trim();
+
+  // Mark read
+  (state.chatMessages || []).forEach(m => {
+    if (m.conversationId === state.activeAdminChatEmail && m.senderRole === 'customer') {
+      m.readByAdmin = true;
+    }
+  });
+  saveChatMessages();
+
+  renderAdminChatConversationsList();
+  renderAdminChatFeed();
+  lucide.createIcons();
+
+  const input = document.getElementById('admin-chat-input');
+  if (input) input.focus();
+}
+
+function clearAdminChatContext() {
+  state.activeAdminChatContext = null;
+  const strip = document.getElementById('admin-chat-context-strip');
+  if (strip) strip.classList.add('hidden');
+}
+
+function renderAdminChatConversationsList() {
+  const container = document.getElementById('admin-chat-conversations-list');
+  if (!container) return;
+
+  const searchInput = document.getElementById('admin-chat-search');
+  const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+  let list = getDistinctChatConversations();
+
+  if (query) {
+    list = list.filter(c => 
+      c.name.toLowerCase().includes(query) || 
+      c.email.toLowerCase().includes(query) ||
+      c.lastMessage.toLowerCase().includes(query)
+    );
+  }
+
+  if (list.length === 0) {
+    container.innerHTML = `
+      <div class="p-6 text-center text-xs text-slate-500">
+        <i data-lucide="message-square-off" class="w-6 h-6 mx-auto mb-1.5 opacity-50"></i>
+        <div>Tidak ada percakapan.</div>
+      </div>
+    `;
+    lucide.createIcons();
+    return;
+  }
+
+  container.innerHTML = list.map(c => {
+    const isActive = state.activeAdminChatEmail === c.email;
+    const initial = (c.name || 'C').substring(0, 2).toUpperCase();
+    const timeFormatted = new Date(c.lastTime).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+
+    return `
+      <div 
+        onclick="selectAdminChatConversation('${c.email}')" 
+        class="p-3 transition-colors cursor-pointer flex items-center gap-2.5 ${isActive ? 'bg-sky-950/80 border-l-4 border-sky-400' : 'hover:bg-slate-900/60'}"
+      >
+        <div class="relative shrink-0">
+          <div class="w-9 h-9 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-500/30 font-bold flex items-center justify-center text-xs">
+            ${initial}
+          </div>
+          ${c.unread > 0 ? `
+            <span class="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full text-[9px] font-black bg-rose-500 text-white animate-pulse">
+              ${c.unread}
+            </span>
+          ` : ''}
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center justify-between gap-1">
+            <span class="text-xs font-bold ${isActive ? 'text-white' : 'text-slate-200'} truncate">${escapeHtml(c.name)}</span>
+            <span class="text-[9px] text-slate-500 shrink-0 font-mono">${timeFormatted}</span>
+          </div>
+          <div class="text-[11px] text-slate-400 truncate mt-0.5">${escapeHtml(c.lastMessage)}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  lucide.createIcons();
+}
+
+function renderAdminChatFeed() {
+  const feed = document.getElementById('admin-chat-feed');
+  if (!feed) return;
+
+  const targetEmail = state.activeAdminChatEmail;
+  if (!targetEmail) {
+    feed.innerHTML = `
+      <div class="h-full flex flex-col items-center justify-center text-center text-slate-500 text-xs p-8">
+        <i data-lucide="message-square" class="w-10 h-10 text-slate-600 mb-2 opacity-50"></i>
+        <div>Pilih percakapan customer di sebelah kiri untuk mulai chat dua arah.</div>
+      </div>
+    `;
+    lucide.createIcons();
+    return;
+  }
+
+  // Update Header details
+  const conversations = getDistinctChatConversations();
+  const conv = conversations.find(c => c.email === targetEmail) || {
+    name: 'Customer',
+    email: targetEmail,
+    phone: ''
+  };
+
+  const nameEl = document.getElementById('admin-chat-header-name');
+  const emailEl = document.getElementById('admin-chat-header-email');
+  const phoneEl = document.getElementById('admin-chat-header-phone');
+  const avatarEl = document.getElementById('admin-chat-header-avatar');
+  const waBtn = document.getElementById('admin-chat-wa-btn');
+  const mailBtn = document.getElementById('admin-chat-mailto-btn');
+
+  if (nameEl) nameEl.textContent = conv.name;
+  if (emailEl) emailEl.textContent = conv.email;
+  if (phoneEl) phoneEl.textContent = conv.phone || '';
+  if (avatarEl) avatarEl.textContent = (conv.name || 'C').substring(0, 2).toUpperCase();
+
+  if (waBtn) {
+    if (conv.phone) {
+      const cleanPhone = conv.phone.replace(/^0/, '62').replace(/[\s-]/g, '');
+      waBtn.href = `https://wa.me/${cleanPhone}?text=${encodeURIComponent('Halo Kak ' + conv.name + ', perkenalkan saya Admin Aliansi Store.')}`;
+      waBtn.classList.remove('hidden');
+    } else {
+      waBtn.classList.add('hidden');
+    }
+  }
+
+  if (mailBtn) {
+    mailBtn.href = `mailto:${conv.email}?subject=${encodeURIComponent('[ALIANSI STORE] Pemberitahuan Layanan untuk ' + conv.name)}`;
+  }
+
+  // Context strip
+  const contextStrip = document.getElementById('admin-chat-context-strip');
+  const contextText = document.getElementById('admin-chat-context-text');
+  if (state.activeAdminChatContext) {
+    if (contextStrip) contextStrip.classList.remove('hidden');
+    if (contextText) contextText.textContent = state.activeAdminChatContext;
+  } else {
+    if (contextStrip) contextStrip.classList.add('hidden');
+  }
+
+  // Filter messages
+  const messages = (state.chatMessages || []).filter(m => m.conversationId === targetEmail);
+
+  if (messages.length === 0) {
+    feed.innerHTML = `
+      <div class="h-full flex flex-col items-center justify-center text-center text-slate-500 text-xs p-8 space-y-2">
+        <i data-lucide="sparkles" class="w-8 h-8 text-sky-400 opacity-60"></i>
+        <div class="font-bold text-slate-300">Belum ada percakapan dengan ${escapeHtml(conv.name)}.</div>
+        <div class="text-[11px] text-slate-500 max-w-sm">Ketik pesan di bawah untuk memulai obrolan. Notifikasi email resmi akan langsung disiapkan ke alamat ${conv.email}.</div>
+      </div>
+    `;
+    lucide.createIcons();
+    return;
+  }
+
+  feed.innerHTML = messages.map(m => {
+    const isAdmin = m.senderRole === 'admin';
+    const timeFormatted = new Date(m.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+
+    if (isAdmin) {
+      return `
+        <div class="flex flex-col items-end">
+          <div class="flex items-center gap-1.5 mb-1">
+            <span class="text-[10px] font-bold text-cyan-400">Anda (Admin Toko)</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          </div>
+          <div class="max-w-[80%] px-4 py-2.5 rounded-2xl rounded-tr-xs bg-gradient-to-r from-cyan-600 to-sky-600 text-white text-xs shadow-md break-words">
+            ${escapeHtml(m.text)}
+          </div>
+          <div class="text-[10px] text-slate-400 mt-1 flex items-center gap-1.5 font-mono">
+            <span>${timeFormatted}</span>
+            <i data-lucide="check-check" class="w-3 h-3 text-cyan-400"></i>
+          </div>
+        </div>
+      `;
+    } else {
+      return `
+        <div class="flex flex-col items-start">
+          <div class="flex items-center gap-1.5 mb-1">
+            <span class="text-[10px] font-bold text-slate-300">${escapeHtml(m.senderName || conv.name)}</span>
+            <span class="text-[9px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 font-mono">CUSTOMER</span>
+          </div>
+          <div class="max-w-[85%] px-4 py-2.5 rounded-2xl rounded-tl-xs bg-slate-900 border border-slate-700/80 text-white text-xs shadow-md break-words">
+            ${escapeHtml(m.text)}
+          </div>
+          <span class="text-[10px] text-slate-500 mt-1 font-mono">${timeFormatted}</span>
+        </div>
+      `;
+    }
+  }).join('');
+
+  lucide.createIcons();
+  feed.scrollTop = feed.scrollHeight;
+}
+
+function insertAdminChatTemplate(text) {
+  playSfx('hover');
+  const input = document.getElementById('admin-chat-input');
+  if (input) {
+    input.value = text;
+    input.focus();
+  }
+}
+
+function sendAdminChatMessage() {
+  const input = document.getElementById('admin-chat-input');
+  if (!input) return;
+
+  const text = input.value.trim();
+  if (!text) return;
+
+  const targetEmail = state.activeAdminChatEmail;
+  if (!targetEmail) {
+    showToast('Pilih customer tujuan chat terlebih dahulu.', 'warning');
+    return;
+  }
+
+  const conversations = getDistinctChatConversations();
+  const conv = conversations.find(c => c.email === targetEmail) || {
+    name: 'Customer',
+    email: targetEmail,
+    phone: ''
+  };
+
+  const adminEmail = (state.config && state.config.adminEmail) || 'admin@aliansistore.com';
+
+  const newMsg = {
+    id: 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+    conversationId: targetEmail.toLowerCase(),
+    senderRole: 'admin',
+    senderName: 'Admin Aliansi Store',
+    senderEmail: adminEmail,
+    recipientEmail: targetEmail,
+    customerName: conv.name,
+    customerEmail: targetEmail,
+    customerPhone: conv.phone,
+    text: text,
+    context: state.activeAdminChatContext || '',
+    createdAt: new Date().toISOString(),
+    readByAdmin: true,
+    readByCustomer: false
+  };
+
+  if (!state.chatMessages) state.chatMessages = [];
+  state.chatMessages.push(newMsg);
+  saveChatMessages();
+
+  input.value = '';
+  renderAdminChatFeed();
+  renderAdminChatConversationsList();
+  playSfx('success');
+
+  // Trigger Email Notification to Customer ("atas chat muncul notifikasi ke email penerima")
+  const notifyCheckbox = document.getElementById('admin-chat-notify-email');
+  const shouldNotifyEmail = notifyCheckbox ? notifyCheckbox.checked : true;
+
+  if (shouldNotifyEmail) {
+    const storeName = (state.config && state.config.storeName) || 'ALIANSI STORE';
+    const currentUrl = new URL(window.location.href);
+    const chatUrl = `${currentUrl.origin}${currentUrl.pathname}?action=open-chat&email=${encodeURIComponent(targetEmail)}`;
+
+    const subject = `[${storeName}] Balasan Pesan dari Admin Toko untuk ${conv.name}`;
+    const body = `Halo ${conv.name},
+
+Admin ${storeName} baru saja mengirimkan balasan pesan obrolan untuk Anda:
+
+------------------------------------------------------------
+"${text}"
+------------------------------------------------------------
+Waktu: ${new Date().toLocaleString('id-ID')} WIB
+
+Untuk membalas pesan ini atau melanjutkan obrolan secara langsung, silakan klik tautan berikut:
+${chatUrl}
+
+Jika Anda membutuhkan bantuan lainnya mengenai pesanan game PlayStation, tim kami siap melayani.
+
+Salam hangat,
+Customer Care ${storeName}
+Website: ${currentUrl.origin}${currentUrl.pathname}`;
+
+    const mailtoUrl = `mailto:${encodeURIComponent(targetEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+    // Open mailto draft to customer's email
+    window.open(mailtoUrl, '_blank');
+
+    showToast(`Pesan chat terkirim & draft email notifikasi ke ${targetEmail} telah disiapkan!`, 'success', 'Balasan Terkirim');
+  } else {
+    showToast(`Pesan chat berhasil dikirim ke ${conv.name}.`, 'success');
+  }
+
+  // If customer chat box is open on same screen (testing), refresh it
+  if (state.isCustomerChatOpen) {
+    renderCustomerChatMessages();
+    playSfx('chat');
+  }
+}
+
+
 document.addEventListener('DOMContentLoaded', () => {
   initApp();
 });

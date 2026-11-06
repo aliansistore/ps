@@ -789,3 +789,61 @@ const INITIAL_GAME_REQUESTS = [
     adminNotes: "Sudah diupload ke Google Drive & tersedia di katalog."
   }
 ];
+
+// Initial Two-Way Live Chat Messages between Admin & Customers
+const INITIAL_CHATS = [
+  {
+    id: "msg-001",
+    conversationId: "bayu.perkasa@gmail.com",
+    senderRole: "customer",
+    senderName: "Bayu Perkasa",
+    senderEmail: "bayu.perkasa@gmail.com",
+    senderPhone: "081298765432",
+    recipientEmail: "aliansistore.id@gmail.com",
+    text: "Halo Admin Aliansi Store, saya mau tanya apakah game Red Dead Redemption 2 Subtitle Indonesia sudah ready ya? Terima kasih!",
+    context: "REQ-9012 - Red Dead Redemption 2 (Sub Indo)",
+    createdAt: "2026-11-06T10:16:00.000Z",
+    readByAdmin: true,
+    readByCustomer: true
+  },
+  {
+    id: "msg-002",
+    conversationId: "bayu.perkasa@gmail.com",
+    senderRole: "admin",
+    senderName: "Admin Aliansi Store",
+    senderEmail: "admin@aliansistore.com",
+    recipientEmail: "bayu.perkasa@gmail.com",
+    text: "Halo Kak Bayu! Tim Aliansi Store sedang menyiapkan update patch terbaru dan file Google Drive-nya. Mohon ditunggu ya kak, nanti kami kirim notifikasi jika sudah rilis!",
+    context: "REQ-9012 - Red Dead Redemption 2 (Sub Indo)",
+    createdAt: "2026-11-06T11:20:00.000Z",
+    readByAdmin: true,
+    readByCustomer: true
+  },
+  {
+    id: "msg-003",
+    conversationId: "derry.pratama@yahoo.com",
+    senderRole: "customer",
+    senderName: "Derry Pratama",
+    senderEmail: "derry.pratama@yahoo.com",
+    senderPhone: "085712348899",
+    recipientEmail: "aliansistore.id@gmail.com",
+    text: "Mau request yang include DLC Shadow of the Erdtree siap pasang min. Butuh base game versi berapa ya di PS4 HEN?",
+    context: "REQ-8845 - Elden Ring + DLC Shadow of the Erdtree",
+    createdAt: "2026-11-05T14:32:00.000Z",
+    readByAdmin: true,
+    readByCustomer: true
+  },
+  {
+    id: "msg-004",
+    conversationId: "derry.pratama@yahoo.com",
+    senderRole: "admin",
+    senderName: "Admin Aliansi Store",
+    senderEmail: "admin@aliansistore.com",
+    recipientEmail: "derry.pratama@yahoo.com",
+    text: "Halo Kak Derry! Sudah include base game dan DLC lengkap, sudah kami upload ke Google Drive server Aliansi dan tersedia di katalog. Siap install via Package Installer PS4 HEN!",
+    context: "REQ-8845 - Elden Ring + DLC Shadow of the Erdtree",
+    createdAt: "2026-11-05T15:05:00.000Z",
+    readByAdmin: true,
+    readByCustomer: true
+  }
+];
