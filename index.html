@@ -46,7 +46,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <!-- Custom Next-Gen Stylesheet (with cache buster query) -->
-  <link rel="stylesheet" href="assets/style.css?v=20261106_kategori_v2" />
+  <link rel="stylesheet" href="assets/style.css?v=20261107_scroll_v1" />
 
   <!-- Critical Inline Styles to Guarantee Immediate High-Contrast Rendering (Dark & Light Mode) -->
   <style>
@@ -882,6 +882,137 @@
     html.dark .logo-light-theme { display: none !important; }
     html:not(.dark) .logo-dark-theme { display: none !important; }
     html:not(.dark) .logo-light-theme { display: inline-block !important; }
+
+    /* ==========================================================================
+       AESTHETIC CUSTOM SCROLLBAR (PLAYSTATION CYBER / SMOOTH GLASS ENGINE)
+       ========================================================================== */
+    html,
+    body,
+    .app-modal > div,
+    .modal-custom-scroll,
+    .custom-scrollbar,
+    #modal-admin-add-product > div,
+    #modal-admin-edit-product > div,
+    .overflow-y-auto {
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .app-modal > div,
+    .modal-custom-scroll,
+    #modal-admin-add-product > div,
+    #modal-admin-edit-product > div {
+      overscroll-behavior: contain;
+    }
+
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+
+    .app-modal > div::-webkit-scrollbar,
+    .modal-custom-scroll::-webkit-scrollbar,
+    #modal-admin-add-product > div::-webkit-scrollbar,
+    #modal-admin-edit-product > div::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(5, 10, 24, 0.45);
+      border-radius: 9999px;
+      margin: 6px 0;
+    }
+
+    .app-modal > div::-webkit-scrollbar-track,
+    .modal-custom-scroll::-webkit-scrollbar-track,
+    #modal-admin-add-product > div::-webkit-scrollbar-track,
+    #modal-admin-edit-product > div::-webkit-scrollbar-track {
+      background: rgba(8, 15, 36, 0.65);
+      border-radius: 9999px;
+      margin: 10px 4px;
+      border: 1px solid rgba(56, 189, 248, 0.1);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #0284c7 0%, #38bdf8 100%);
+      border-radius: 9999px;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.4), inset 0 0 3px rgba(255, 255, 255, 0.3);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      transition: all 0.25s ease-in-out;
+    }
+
+    .app-modal > div::-webkit-scrollbar-thumb,
+    .modal-custom-scroll::-webkit-scrollbar-thumb,
+    #modal-admin-add-product > div::-webkit-scrollbar-thumb,
+    #modal-admin-edit-product > div::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #0284c7 0%, #38bdf8 100%);
+      border-radius: 9999px;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.55), inset 0 0 4px rgba(255, 255, 255, 0.35);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+    }
+
+    ::-webkit-scrollbar-thumb:hover,
+    .app-modal > div::-webkit-scrollbar-thumb:hover,
+    .modal-custom-scroll::-webkit-scrollbar-thumb:hover,
+    #modal-admin-add-product > div::-webkit-scrollbar-thumb:hover,
+    #modal-admin-edit-product > div::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, #38bdf8 0%, #7dd3fc 100%);
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.85), inset 0 0 6px rgba(255, 255, 255, 0.6);
+      border-color: rgba(125, 211, 252, 0.8);
+    }
+
+    ::-webkit-scrollbar-thumb:active,
+    .app-modal > div::-webkit-scrollbar-thumb:active,
+    .modal-custom-scroll::-webkit-scrollbar-thumb:active,
+    #modal-admin-add-product > div::-webkit-scrollbar-thumb:active,
+    #modal-admin-edit-product > div::-webkit-scrollbar-thumb:active {
+      background: linear-gradient(180deg, #0ea5e9 0%, #0284c7 100%);
+      box-shadow: 0 0 18px rgba(14, 165, 233, 0.95);
+    }
+
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: #38bdf8 rgba(8, 15, 36, 0.65);
+    }
+
+    html:not(.dark) ::-webkit-scrollbar-track {
+      background: rgba(241, 245, 249, 0.7);
+    }
+
+    html:not(.dark) .app-modal > div::-webkit-scrollbar-track,
+    html:not(.dark) .modal-custom-scroll::-webkit-scrollbar-track,
+    html:not(.dark) #modal-admin-add-product > div::-webkit-scrollbar-track,
+    html:not(.dark) #modal-admin-edit-product > div::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+    }
+
+    html:not(.dark) ::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #0284c7 0%, #0070d1 100%);
+      box-shadow: 0 2px 6px rgba(0, 112, 209, 0.25);
+      border: 1px solid rgba(0, 112, 209, 0.25);
+    }
+
+    html:not(.dark) .app-modal > div::-webkit-scrollbar-thumb,
+    html:not(.dark) .modal-custom-scroll::-webkit-scrollbar-thumb,
+    html:not(.dark) #modal-admin-add-product > div::-webkit-scrollbar-thumb,
+    html:not(.dark) #modal-admin-edit-product > div::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #0284c7 0%, #0070d1 100%);
+      box-shadow: 0 2px 8px rgba(0, 112, 209, 0.3);
+      border: 1px solid rgba(0, 112, 209, 0.3);
+    }
+
+    html:not(.dark) .app-modal > div::-webkit-scrollbar-thumb:hover,
+    html:not(.dark) .modal-custom-scroll::-webkit-scrollbar-thumb:hover,
+    html:not(.dark) #modal-admin-add-product > div::-webkit-scrollbar-thumb:hover,
+    html:not(.dark) #modal-admin-edit-product > div::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, #0070d1 0%, #0369a1 100%);
+      box-shadow: 0 2px 10px rgba(0, 112, 209, 0.5);
+    }
+
+    html:not(.dark) * {
+      scrollbar-color: #0070d1 #f1f5f9;
+    }
   </style>
 </head>
 <body class="bg-oled-grid text-slate-100 min-h-screen flex flex-col antialiased selection:bg-sky-500 selection:text-white pb-20">
@@ -1579,7 +1710,7 @@
 
   <!-- MODALS -->
   <div id="modal-product-detail" class="app-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop-blur">
-    <div class="bg-[#080f24] border border-slate-700/80 rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto shadow-2xl relative" onclick="event.stopPropagation()">
+    <div class="bg-[#080f24] border border-slate-700/80 rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto modal-custom-scroll shadow-2xl relative" onclick="event.stopPropagation()">
       <button onclick="closeModals()" class="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-slate-800/80 text-slate-400 hover:text-white flex items-center justify-center transition-colors">
         <i data-lucide="x" class="w-4 h-4"></i>
       </button>
@@ -1658,7 +1789,7 @@
 
   <!-- MODAL: Panduan Akun -->
   <div id="modal-account-guide" class="app-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop-blur">
-    <div class="bg-[#080f24] border border-slate-700 rounded-3xl max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative p-6" onclick="event.stopPropagation()">
+    <div class="bg-[#080f24] border border-slate-700 rounded-3xl max-w-xl w-full max-h-[90vh] overflow-y-auto modal-custom-scroll shadow-2xl relative p-6" onclick="event.stopPropagation()">
       <button onclick="document.getElementById('modal-account-guide').classList.add('hidden')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
         <i data-lucide="x" class="w-4 h-4"></i>
       </button>
@@ -1705,7 +1836,7 @@
 
   <!-- MODAL: Checkout -->
   <div id="modal-checkout" class="app-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop-blur">
-    <div class="bg-[#080f24] border border-slate-700 rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto shadow-2xl relative p-6" onclick="event.stopPropagation()">
+    <div class="bg-[#080f24] border border-slate-700 rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto modal-custom-scroll shadow-2xl relative p-6" onclick="event.stopPropagation()">
       <button onclick="closeModals()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
         <i data-lucide="x" class="w-4 h-4"></i>
       </button>
@@ -1802,7 +1933,7 @@
 
   <!-- MODAL: Invoice -->
   <div id="modal-invoice" class="app-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop-blur">
-    <div class="bg-[#080f24] border border-sky-500/40 rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto shadow-2xl relative p-6 sm:p-8" onclick="event.stopPropagation()">
+    <div class="bg-[#080f24] border border-sky-500/40 rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto modal-custom-scroll shadow-2xl relative p-6 sm:p-8" onclick="event.stopPropagation()">
       <button onclick="closeModals()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center no-print">
         <i data-lucide="x" class="w-4 h-4"></i>
       </button>
@@ -2242,7 +2373,7 @@
 
   <!-- MODAL: Admin Order Fulfillment -->
   <div id="modal-admin-fulfill" class="app-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop-blur">
-    <div class="bg-[#080f24] border border-slate-700 rounded-3xl max-w-xl w-full max-h-[92vh] overflow-y-auto shadow-2xl relative p-6" onclick="event.stopPropagation()">
+    <div class="bg-[#080f24] border border-slate-700 rounded-3xl max-w-xl w-full max-h-[92vh] overflow-y-auto modal-custom-scroll shadow-2xl relative p-6" onclick="event.stopPropagation()">
       <button onclick="closeModals()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
         <i data-lucide="x" class="w-4 h-4"></i>
       </button>
@@ -2293,7 +2424,7 @@
 
   <!-- MODAL: Tambah Game Baru -->
   <div id="modal-admin-add-product" class="app-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop-blur">
-    <div class="bg-[#080f24] border border-slate-700 rounded-3xl max-w-lg w-full max-h-[92vh] overflow-y-auto shadow-2xl relative p-6" onclick="event.stopPropagation()">
+    <div class="bg-[#080f24] border border-slate-700 rounded-3xl max-w-lg w-full max-h-[92vh] overflow-y-auto modal-custom-scroll shadow-2xl relative p-6" onclick="event.stopPropagation()">
       <button onclick="closeModals()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center"><i data-lucide="x" class="w-4 h-4"></i></button>
       <h3 class="text-lg font-black text-white font-display mb-1">Tambah Game Baru ke Katalog</h3>
       <p class="text-xs text-slate-400 mb-5">Lengkapi data game untuk dipublikasikan di ALIANSI STORE</p>
@@ -2377,7 +2508,7 @@
 
   <!-- MODAL: Edit Game -->
   <div id="modal-admin-edit-product" class="app-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop-blur">
-    <div class="bg-[#080f24] border border-slate-700 rounded-3xl max-w-lg w-full max-h-[92vh] overflow-y-auto shadow-2xl relative p-6" onclick="event.stopPropagation()">
+    <div class="bg-[#080f24] border border-slate-700 rounded-3xl max-w-lg w-full max-h-[92vh] overflow-y-auto modal-custom-scroll shadow-2xl relative p-6" onclick="event.stopPropagation()">
       <button onclick="closeModals()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center"><i data-lucide="x" class="w-4 h-4"></i></button>
       <h3 class="text-lg font-black text-white font-display mb-1">Edit Game</h3>
       <p class="text-xs text-slate-400 mb-5">Ubah data game di katalog ALIANSI STORE</p>
@@ -2523,7 +2654,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261106_kategori_v2"></script>
-  <script src="assets/app.js?v=20261106_kategori_v2"></script>
+  <script src="assets/products-data.js?v=20261107_scroll_v1"></script>
+  <script src="assets/app.js?v=20261107_scroll_v1"></script>
 </body>
 </html>
