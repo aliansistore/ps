@@ -1208,7 +1208,221 @@ html:not(.dark) #mobile-bottom-nav button:active {
   }
 }
 
+/* ==========================================================================
+   OFFICIAL HIGH-END INVOICE PRINT STYLESHEET (@media print)
+   ========================================================================== */
 @media print {
-  body { background: #ffffff !important; color: #000000 !important; }
-  .no-print { display: none !important; }
+  @page {
+    size: A4 portrait;
+    margin: 12mm 12mm 12mm 12mm;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #0f172a !important;
+    font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+    font-size: 10pt !important;
+    line-height: 1.4 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide absolutely everything outside the invoice modal */
+  header,
+  footer,
+  #top-hud-bar,
+  .top-hud-bar,
+  .nav-capsule,
+  .spotlight-container,
+  #store-view,
+  #katalog,
+  #mobile-bottom-nav,
+  .gamepad-hud,
+  #toast-container,
+  #cart-drawer,
+  #cart-drawer-backdrop,
+  #admin-dashboard-view,
+  .no-print,
+  button.no-print,
+  a.no-print,
+  .app-modal:not(#modal-invoice) {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Reset modal positioning to clean document flow */
+  #modal-invoice {
+    position: static !important;
+    display: block !important;
+    visibility: visible !important;
+    background: #ffffff !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    border: none !important;
+    box-shadow: none !important;
+    inset: auto !important;
+  }
+
+  #modal-invoice > div {
+    position: static !important;
+    display: block !important;
+    visibility: visible !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    max-height: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+
+  /* Reveal print-only elements */
+  .print-only {
+    display: block !important;
+    visibility: visible !important;
+  }
+
+  /* Force high-contrast light logo */
+  #modal-invoice .logo-dark-theme {
+    display: none !important;
+  }
+  #modal-invoice .logo-light-theme {
+    display: inline-block !important;
+    height: 44px !important;
+    max-height: 48px !important;
+    width: auto !important;
+  }
+
+  /* Header card styling */
+  #modal-invoice .invoice-header-card {
+    border-bottom: 2px solid #0f172a !important;
+    padding-bottom: 12px !important;
+    margin-bottom: 14px !important;
+  }
+
+  /* Customer Details */
+  #modal-invoice .customer-details-card {
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 10px !important;
+    padding: 10px 14px !important;
+    margin-bottom: 14px !important;
+  }
+
+  /* Stepper */
+  #modal-invoice .stepper-box {
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 10px !important;
+    padding: 10px 14px !important;
+    margin-bottom: 14px !important;
+  }
+
+  #modal-invoice .stepper-box div[id^="step-line-"] {
+    background-color: #cbd5e1 !important;
+  }
+
+  /* Fulfillment Box */
+  #modal-invoice #inv-fulfillment-box {
+    background: #f0fdf4 !important;
+    border: 2px solid #059669 !important;
+    border-radius: 12px !important;
+    padding: 14px !important;
+    margin-bottom: 14px !important;
+    box-shadow: none !important;
+    page-break-inside: avoid !important;
+  }
+
+  #modal-invoice #inv-fulfillment-box * {
+    color: #0f172a !important;
+  }
+
+  #modal-invoice #inv-fulfillment-box strong,
+  #modal-invoice #inv-fulfillment-box .text-emerald-400,
+  #modal-invoice #inv-fulfillment-box .text-sky-300,
+  #modal-invoice #inv-fulfillment-box .text-sky-400 {
+    color: #047857 !important;
+    font-weight: 700 !important;
+  }
+
+  #modal-invoice #inv-fulfillment-box .bg-\[\#060a16\],
+  #modal-invoice #inv-fulfillment-box .bg-slate-900 {
+    background: #ffffff !important;
+    border: 1px solid #a7f3d0 !important;
+    padding: 10px 12px !important;
+  }
+
+  #modal-invoice #inv-fulfillment-box button {
+    display: none !important;
+  }
+
+  /* Items Table */
+  #modal-invoice .items-section {
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 10px !important;
+    padding: 12px 14px !important;
+    margin-bottom: 14px !important;
+    background: #ffffff !important;
+  }
+
+  #modal-invoice #inv-items > div {
+    border-bottom: 1px solid #e2e8f0 !important;
+    padding: 6px 0 !important;
+  }
+
+  #modal-invoice #inv-items .text-white {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+  }
+
+  #modal-invoice #inv-items .text-sky-400 {
+    color: #0070d1 !important;
+    font-weight: 600 !important;
+  }
+
+  #modal-invoice #inv-items .text-slate-100 {
+    color: #0f172a !important;
+  }
+
+  /* Summary */
+  #modal-invoice .summary-box {
+    border-top: 1.5px solid #0f172a !important;
+    padding-top: 8px !important;
+    margin-top: 6px !important;
+  }
+
+  #modal-invoice #inv-total {
+    color: #0070d1 !important;
+    font-size: 13pt !important;
+    font-weight: 900 !important;
+  }
+
+  /* Payment Badge */
+  #modal-invoice #inv-payment-badge {
+    border-width: 1.5px !important;
+    font-weight: 800 !important;
+    padding: 4px 12px !important;
+  }
+
+  /* Avoid page breaks inside important sections */
+  #modal-invoice .items-section,
+  #modal-invoice #inv-fulfillment-box,
+  #modal-invoice .customer-details-card,
+  #modal-invoice .stepper-box,
+  #modal-invoice .print-only {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
 }

@@ -2203,6 +2203,36 @@ function renderInvoiceDetails(order) {
   }
 }
 
+// Dedicated High-End Invoice Print Function
+function printInvoice() {
+  playSfx('click');
+  
+  // Unmask password temporarily on print so customer has physical credential record
+  const passEl = document.getElementById('fulfill-password');
+  let originalPasswordText = null;
+  if (passEl && state.currentInvoice && state.currentInvoice.fulfillment && state.currentInvoice.fulfillment.psnPassword) {
+    originalPasswordText = passEl.textContent;
+    passEl.textContent = state.currentInvoice.fulfillment.psnPassword;
+  }
+
+  // Set system verification code
+  const verifyCodeEl = document.getElementById('print-verify-code');
+  if (verifyCodeEl && state.currentInvoice) {
+    const timeHash = (new Date(state.currentInvoice.createdAt || Date.now()).getTime()).toString(36).toUpperCase();
+    verifyCodeEl.textContent = `AUTH-${state.currentInvoice.id}-${timeHash}`;
+  }
+
+  // Trigger browser native print / PDF export
+  window.print();
+
+  // Restore password mask after print dialog finishes
+  if (passEl && originalPasswordText !== null) {
+    setTimeout(() => {
+      passEl.textContent = originalPasswordText;
+    }, 500);
+  }
+}
+
 function updateStepper(status) {
   const steps = [
     { key: 'PENDING_PAYMENT', id: 'step-1', line: 'step-line-1' },
