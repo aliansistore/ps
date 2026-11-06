@@ -46,7 +46,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <!-- Custom Next-Gen Stylesheet (with cache buster query) -->
-  <link rel="stylesheet" href="assets/style.css?v=20261105_diskon_v1" />
+  <link rel="stylesheet" href="assets/style.css?v=20261106_diskon_v2" />
 
   <!-- Critical Inline Styles to Guarantee Immediate High-Contrast Rendering (Dark & Light Mode) -->
   <style>
@@ -489,6 +489,21 @@
     html:not(.dark) .app-modal button.bg-slate-800\/80:hover {
       background-color: #e2e8f0 !important;
       color: #0f172a !important;
+    }
+
+    /* Dedicated Price Bar in Product Detail */
+    html:not(.dark) #modal-product-price-bar {
+      background-color: #f1f5f9 !important;
+      border-color: #cbd5e1 !important;
+    }
+    html:not(.dark) #modal-product-price {
+      color: #0062ff !important;
+    }
+    html:not(.dark) #modal-product-original-price {
+      color: #64748b !important;
+    }
+    html:not(.dark) #modal-product-save-text {
+      color: #059669 !important;
     }
 
     /* Variant Cards in Product Detail Modal */
@@ -1043,7 +1058,10 @@
               </div>
               <div class="h-6 sm:h-8 w-px bg-slate-700"></div>
               <div class="hidden sm:block pl-1">
-                <span class="text-[10px] text-slate-400 block font-bold">Harga Asli PS Store:</span>
+                <div class="flex items-center gap-1.5 mb-0.5">
+                  <span class="text-[10px] text-slate-400 font-bold">Harga Asli:</span>
+                  <span id="hero-discount-badge" class="px-1.5 py-0.5 rounded text-[9px] font-black bg-rose-600 text-white shadow-sm">-75%</span>
+                </div>
                 <span id="hero-price-original" class="text-xs text-slate-400 line-through font-mono">Rp 829.000</span>
               </div>
               <div class="pl-2 border-l border-slate-800 flex items-center gap-1.5">
@@ -1551,10 +1569,24 @@
               <span>•</span>
               <span id="modal-product-size"></span>
             </div>
-            <div class="flex items-center gap-1.5 text-xs text-amber-400 font-bold mb-4">
+            <div class="flex items-center gap-1.5 text-xs text-amber-400 font-bold mb-3">
               <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
               <span id="modal-product-rating"></span>
             </div>
+
+            <!-- Dedicated Price & Discount Header Bar -->
+            <div id="modal-product-price-bar" class="flex items-center gap-2.5 p-2.5 rounded-2xl bg-slate-900/90 border border-slate-800 mb-3 flex-wrap">
+              <div class="flex items-baseline gap-2">
+                <span class="text-[11px] text-slate-400 font-mono">Harga:</span>
+                <span id="modal-product-price" class="text-xl sm:text-2xl font-black text-sky-400 font-display"></span>
+              </div>
+              <div id="modal-product-discount-wrap" class="flex items-center gap-2">
+                <span id="modal-product-original-price" class="text-xs text-slate-400 line-through font-mono"></span>
+                <span id="modal-product-discount-badge" class="px-2 py-0.5 rounded-md text-[10px] font-black bg-rose-600 text-white shadow-md flex items-center gap-1"></span>
+                <span id="modal-product-save-text" class="text-xs text-emerald-400 font-bold hidden sm:inline"></span>
+              </div>
+            </div>
+
             <p id="modal-product-desc" class="text-xs text-slate-300 leading-relaxed line-clamp-3 mb-2"></p>
           </div>
         </div>
@@ -2394,7 +2426,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261105_diskon_v1"></script>
-  <script src="assets/app.js?v=20261105_diskon_v1"></script>
+  <script src="assets/products-data.js?v=20261106_diskon_v2"></script>
+  <script src="assets/app.js?v=20261106_diskon_v2"></script>
 </body>
 </html>

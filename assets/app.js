@@ -576,6 +576,11 @@ function formatRupiah(num) {
   }).format(num);
 }
 
+function getDiscountPercent(original, discounted) {
+  if (!original || !discounted || discounted >= original) return 0;
+  return Math.round((1 - discounted / original) * 100);
+}
+
 function formatDate(isoStr) {
   if (!isoStr) return '-';
   const d = new Date(isoStr);
@@ -716,7 +721,10 @@ function renderSpotlightThumbnails(games) {
 
         <div class="flex items-center gap-1.5 mt-0.5">
           <span class="text-xs font-black text-sky-400 font-display">${formatRupiah(game.prices.primary)}</span>
-          ${game.prices.original ? `<span class="text-[10px] text-slate-500 line-through font-mono">${formatRupiah(game.prices.original)}</span>` : ''}
+          ${game.prices.original && getDiscountPercent(game.prices.original, game.prices.primary) > 0 ? `
+            <span class="text-[10px] text-slate-500 line-through font-mono">${formatRupiah(game.prices.original)}</span>
+            <span class="text-[9px] px-1.5 py-0.2 rounded font-black bg-rose-600 text-white shadow-sm leading-tight">-${getDiscountPercent(game.prices.original, game.prices.primary)}%</span>
+          ` : (game.prices.original ? `<span class="text-[10px] text-slate-500 line-through font-mono">${formatRupiah(game.prices.original)}</span>` : '')}
         </div>
       </div>
 
@@ -791,8 +799,21 @@ function updateSpotlightDisplay(index) {
   }
 
   const pOriEl = document.getElementById('hero-price-original');
+  const heroDisBadge = document.getElementById('hero-discount-badge');
   if (pOriEl && game.prices.original) {
     pOriEl.textContent = formatRupiah(game.prices.original);
+    pOriEl.parentElement?.classList.remove('hidden');
+    if (heroDisBadge) {
+      const disc = getDiscountPercent(game.prices.original, game.prices.primary);
+      if (disc > 0) {
+        heroDisBadge.textContent = `-${disc}%`;
+        heroDisBadge.classList.remove('hidden');
+      } else {
+        heroDisBadge.classList.add('hidden');
+      }
+    }
+  } else if (pOriEl) {
+    pOriEl.parentElement?.classList.add('hidden');
   }
 
   // Action Buttons
@@ -989,9 +1010,9 @@ function renderProducts() {
             </div>
 
             <!-- Discount Percent if Original exists -->
-            ${product.prices.original ? `
-              <div class="absolute top-2 right-2 sm:top-2.5 sm:right-2.5 px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-black bg-rose-600 text-white shadow-md">
-                -${Math.round((1 - product.prices.primary / product.prices.original) * 100)}%
+            ${product.prices.original && getDiscountPercent(product.prices.original, activePrice) > 0 ? `
+              <div class="absolute top-2 right-2 sm:top-2.5 sm:right-2.5 px-2 py-0.5 rounded-lg text-[9px] sm:text-[10px] font-black bg-rose-600 text-white shadow-lg flex items-center gap-1 z-10 border border-rose-400/40">
+                <i data-lucide="tag" class="w-3 h-3"></i> -${getDiscountPercent(product.prices.original, activePrice)}%
               </div>
             ` : ''}
 
@@ -1061,11 +1082,20 @@ function renderProducts() {
                 ${formatRupiah(activePrice)}
               </span>
             </div>
-            ${product.prices.original ? `
+            ${product.prices.original && getDiscountPercent(product.prices.original, activePrice) > 0 ? `
+              <div class="text-right">
+                <span class="inline-block px-1.5 py-0.5 rounded text-[9px] font-black bg-rose-600 text-white mb-0.5 shadow-sm">
+                  Diskon ${getDiscountPercent(product.prices.original, activePrice)}%
+                </span>
+                <span class="text-[10px] sm:text-xs text-slate-500 line-through font-mono block">
+                  ${formatRupiah(product.prices.original)}
+                </span>
+              </div>
+            ` : (product.prices.original ? `
               <span class="text-[10px] sm:text-xs text-slate-500 line-through font-mono">
                 ${formatRupiah(product.prices.original)}
               </span>
-            ` : ''}
+            ` : '')}
           </div>
 
           <div class="grid grid-cols-2 gap-1.5 sm:gap-2">
@@ -1131,6 +1161,40 @@ function openProductDetail(productId) {
   document.getElementById('modal-product-size').textContent = product.size || 'Digital Download';
   document.getElementById('modal-product-rating').textContent = `${product.rating || '4.9'} (${product.soldCount || 100}+ terjual)`;
   document.getElementById('modal-product-desc').textContent = product.description;
+
+  // Update Price & Discount Bar in Modal Header
+  const priceEl = document.getElementById('modal-product-price');
+  const origPriceEl = document.getElementById('modal-product-original-price');
+  const discountBadgeEl = document.getElementById('modal-product-discount-badge');
+  const saveTextEl = document.getElementById('modal-product-save-text');
+  const discountWrap = document.getElementById('modal-product-discount-wrap');
+
+  const activePrice = product.prices.primary;
+  if (priceEl) priceEl.textContent = formatRupiah(activePrice);
+
+  if (product.prices.original && product.prices.original > activePrice) {
+    const discountPct = getDiscountPercent(product.prices.original, activePrice);
+    const saveAmount = product.prices.original - activePrice;
+    if (origPriceEl) {
+      origPriceEl.textContent = `PS Store: ${formatRupiah(product.prices.original)}`;
+      origPriceEl.classList.remove('hidden');
+    }
+    if (discountBadgeEl) {
+      discountBadgeEl.innerHTML = `<i data-lucide="tag" class="w-3 h-3"></i> Diskon ${discountPct}%`;
+      discountBadgeEl.classList.remove('hidden');
+    }
+    if (saveTextEl) {
+      saveTextEl.textContent = `(Hemat ${formatRupiah(saveAmount)})`;
+      saveTextEl.classList.remove('hidden');
+    }
+    if (discountWrap) discountWrap.classList.remove('hidden');
+  } else {
+    if (origPriceEl) origPriceEl.classList.add('hidden');
+    if (discountBadgeEl) discountBadgeEl.classList.add('hidden');
+    if (saveTextEl) saveTextEl.classList.add('hidden');
+    if (discountWrap) discountWrap.classList.add('hidden');
+  }
+
   const modalImg = document.getElementById('modal-product-img');
   if (modalImg) {
     modalImg.src = getProductPoster(product);
@@ -1175,7 +1239,13 @@ function openProductDetail(productId) {
           </div>
           <div class="text-left sm:text-right shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-purple-500/20 w-full sm:w-auto">
             <span class="text-lg sm:text-2xl font-black text-sky-400 font-display block">${formatRupiah(product.prices.primary)}</span>
-            ${product.prices.original ? `<div class="text-[11px] text-slate-400 line-through font-mono">PS Store: ${formatRupiah(product.prices.original)}</div>` : ''}
+            ${product.prices.original && getDiscountPercent(product.prices.original, product.prices.primary) > 0 ? `
+              <div class="flex items-center sm:justify-end gap-1.5 mt-0.5">
+                <span class="text-[11px] text-slate-400 line-through font-mono">${formatRupiah(product.prices.original)}</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-rose-600 text-white shadow-sm">-${getDiscountPercent(product.prices.original, product.prices.primary)}%</span>
+              </div>
+              <div class="text-[10px] text-emerald-400 font-bold mt-0.5">Hemat ${formatRupiah(product.prices.original - product.prices.primary)}</div>
+            ` : (product.prices.original ? `<div class="text-[11px] text-slate-400 line-through font-mono">PS Store: ${formatRupiah(product.prices.original)}</div>` : '')}
           </div>
         </div>
         <input type="hidden" id="selected-variant" value="PS4 HEN" />
