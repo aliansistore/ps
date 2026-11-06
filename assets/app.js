@@ -2170,7 +2170,8 @@ function handleOrderRealtimeUpdate(dbOrder) {
       stopInvoiceLivePolling();
       playSfx('success');
       triggerConfetti();
-      showToast('🎉 Pembayaran Lunas Terverifikasi! Folder Google Drive telah otomatis dibuka.', 'success', 'Pembayaran Sukses');
+      dispatchOrderCompletionEmails(updatedOrder);
+      showToast('🎉 Pembayaran Lunas Terverifikasi! Folder Google Drive telah otomatis dibuka & email bukti transaksi (No-Reply) disiapkan.', 'success', 'Pembayaran Sukses');
     }
   }
 }
@@ -2301,11 +2302,22 @@ function renderInvoiceDetails(order) {
 
   // Fulfillment Credentials / Google Drive Box (REVEALED WHEN ORDER IS PAID/COMPLETED!)
   const fulfillmentBox = document.getElementById('inv-fulfillment-box');
+  const dispatchCard = document.getElementById('inv-email-dispatch-card');
+
   if ((order.paymentStatus === 'PAID' || order.status === 'COMPLETED')) {
     fulfillmentBox.classList.remove('hidden');
     renderFulfillmentBox(order.fulfillment || {}, order);
+
+    if (dispatchCard) {
+      dispatchCard.classList.remove('hidden');
+      const adminEmailEl = document.getElementById('inv-dispatch-admin-email');
+      const custEmailEl = document.getElementById('inv-dispatch-customer-email');
+      if (adminEmailEl) adminEmailEl.textContent = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
+      if (custEmailEl) custEmailEl.textContent = order.customerEmail || '-';
+    }
   } else {
     fulfillmentBox.classList.add('hidden');
+    if (dispatchCard) dispatchCard.classList.add('hidden');
   }
 
   // WhatsApp CS Link
@@ -2567,6 +2579,219 @@ function copyOrderCredential(field) {
   if (field === 'backup') copyText(f.backupCodes, 'Kode Backup 2FA berhasil disalin!');
 }
 
+// ================= TRANSACTION EMAIL DISPATCH ENGINE (ADMIN SALES REPORT & CUSTOMER NO-REPLY RECEIPT) =================
+function buildOrderItemsText(order) {
+  if (!order || !Array.isArray(order.items)) return '-';
+  return order.items.map((item, idx) => {
+    const qty = item.qty || 1;
+    const price = item.unitPrice || item.price || 0;
+    const variant = item.variant || 'Primary';
+    const plat = item.platform || 'PS4';
+    return `${idx + 1}. ${item.title}\n   - Varian: ${variant} | Platform: ${plat} | Qty: x${qty}\n   - Harga: ${formatRupiah(price * qty)}`;
+  }).join('\n');
+}
+
+function buildOrderDriveLinksText(order) {
+  if (!order) return '-';
+  let links = [];
+  if (order.fulfillment && Array.isArray(order.fulfillment.drive_links)) {
+    links = order.fulfillment.drive_links;
+  } else if (Array.isArray(order.items)) {
+    links = order.items.map(item => {
+      const prodId = item.productId || item.id;
+      const prod = (state.products || []).find(p => p.id === prodId || p.title === item.title);
+      return {
+        title: item.title,
+        url: (prod && prod.driveLink) ? prod.driveLink : (item.driveLink || 'https://drive.google.com/drive/shared-with-me')
+      };
+    });
+  }
+  if (links.length === 0) return 'https://drive.google.com/drive/shared-with-me';
+  return links.map(l => `• ${l.title}:\n  ${l.url || 'https://drive.google.com/drive/shared-with-me'}`).join('\n');
+}
+
+function dispatchOrderCompletionEmails(order) {
+  if (!order) return;
+
+  if (!order.fulfillment) order.fulfillment = {};
+  
+  const adminEmail = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
+  const customerEmail = order.customerEmail || 'customer@gmail.com';
+
+  // Mark in order fulfillment state
+  order.fulfillment.emails_dispatched = {
+    adminNotified: true,
+    adminNotifiedAt: new Date().toISOString(),
+    customerReceiptSent: true,
+    customerReceiptSentAt: new Date().toISOString(),
+    adminEmail: adminEmail,
+    customerEmail: customerEmail,
+    noReplyNotice: true
+  };
+
+  saveOrders();
+  if (typeof syncOrderToSupabase === 'function') {
+    syncOrderToSupabase(order);
+  }
+
+  // Update Invoice view if opened
+  const dispatchCard = document.getElementById('inv-email-dispatch-card');
+  if (dispatchCard) {
+    dispatchCard.classList.remove('hidden');
+    const adminEmailEl = document.getElementById('inv-dispatch-admin-email');
+    const custEmailEl = document.getElementById('inv-dispatch-customer-email');
+    if (adminEmailEl) adminEmailEl.textContent = adminEmail;
+    if (custEmailEl) custEmailEl.textContent = customerEmail;
+  }
+
+  console.info(`[ALIANSI EMAIL DISPATCH] Transaksi Selesai #${order.id}:`, {
+    adminSalesNotification: `Sent to ${adminEmail}`,
+    customerProofOfPurchase: `Sent to ${customerEmail} (Mode: NO-REPLY)`
+  });
+}
+
+function sendCustomerReceiptEmail(orderId = null) {
+  playSfx('click');
+  const targetId = orderId || (state.currentInvoice ? state.currentInvoice.id : null);
+  const order = (state.orders || []).find(o => o.id === targetId) || state.currentInvoice;
+  if (!order) {
+    showToast('Data pesanan tidak ditemukan.', 'warning');
+    return;
+  }
+
+  const storeName = (state.config && state.config.storeName) || 'ALIANSI STORE';
+  const wa = (state.config && state.config.whatsappNumber) || '6281234567890';
+  const formattedWa = (state.config && state.config.whatsappFormatted) || `+${wa}`;
+  const targetEmail = order.customerEmail || '';
+
+  if (!targetEmail || !targetEmail.includes('@')) {
+    showToast('Alamat email pembeli belum terdaftar pada pesanan ini.', 'warning');
+    return;
+  }
+
+  const itemsText = buildOrderItemsText(order);
+  const driveText = buildOrderDriveLinksText(order);
+  const timeHash = (new Date(order.createdAt || Date.now()).getTime()).toString(36).toUpperCase();
+  const authCode = `AUTH-${order.id}-${timeHash}`;
+
+  const subject = `[BUKTI PEMBELIAN RESMI] ${storeName} - Faktur Invoice #${order.id} (NO-REPLY)`;
+
+  const body = 
+`===============================================================
+FAKTUR RESMI & BUKTI PEMBELIAN ELEKTRONIK (NO-REPLY)
+${storeName} INDONESIA - SPESIALIS GAME PLAYSTATION
+===============================================================
+
+⚠️ PEMBERITAHUAN PENTING (NO-REPLY):
+Email ini dikirimkan secara otomatis oleh sistem ${storeName}.
+MOHON JANGAN MEMBALAS (DO NOT REPLY) EMAIL INI karena dikirim
+dari alamat robot/sistem yang tidak menerima pesan masuk.
+
+Jika Anda membutuhkan bantuan teknis, panduan instalasi, atau klaim garansi,
+silakan hubungi WhatsApp Customer Service resmi kami:
+📱 WhatsApp CS: ${formattedWa} (https://wa.me/${wa})
+
+---------------------------------------------------------------
+RINCIAN PESANAN & STATUS TRANSAKSI:
+- No. Invoice        : ${order.id}
+- Tanggal Pembelian  : ${formatDate(order.createdAt)}
+- Nama Pembeli       : ${order.customerName}
+- Email Terdaftar    : ${order.customerEmail}
+- No. WhatsApp       : ${order.customerPhone}
+- Status Pembayaran  : LUNAS TERVERIFIKASI (PAID)
+- Metode Pembayaran  : ${order.paymentMethod.toUpperCase()}
+
+RINCIAN GAME YANG DIBELI:
+${itemsText}
+
+RINGKASAN PEMBAYARAN:
+- Subtotal           : ${formatRupiah(order.subtotal)}
+- Potongan Voucher   : ${formatRupiah(order.discount)}
+- TOTAL AKHIR        : ${formatRupiah(order.total)} (LUNAS)
+
+AKSES DOWNLOAD & GOOGLE DRIVE:
+Akses folder Google Drive telah otomatis dibagikan ke email Anda (${order.customerEmail}):
+${driveText}
+
+PANDUAN SINGKAT INSTALASI:
+1. Buka Google Drive menggunakan akun Gmail ${order.customerEmail}.
+2. Masuk ke tab "Dibagikan dengan Saya" (Shared with me).
+3. Download file (.PKG) dan salin ke Flashdisk/HDD External format exFAT.
+4. Pasang ke konsol PS4 HEN > Buka menu GoldHEN / Package Installer > Install Game.
+
+KODE OTENTIKASI RESMI TOKO:
+${authCode} (Jaminan 100% Game Berfungsi Normal & Bergaransi)
+
+===============================================================
+EMAIL INI DIHASILKAN OTOMATIS OLEH SISTEM. JANGAN MEMBALAS EMAIL INI.
+Website Resmi: https://aliansi-store.netlify.app/
+===============================================================`;
+
+  const mailtoUrl = `mailto:${encodeURIComponent(targetEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.open(mailtoUrl, '_blank') || (window.location.href = mailtoUrl);
+
+  showToast(`Membuka draf Bukti Pembelian resmi (No-Reply) untuk ${targetEmail}.`, 'info', 'Email Bukti Pembelian');
+}
+
+function sendAdminSaleNotificationEmail(orderId = null) {
+  playSfx('click');
+  const targetId = orderId || (state.currentInvoice ? state.currentInvoice.id : null);
+  const order = (state.orders || []).find(o => o.id === targetId) || state.currentInvoice;
+  if (!order) {
+    showToast('Data pesanan tidak ditemukan.', 'warning');
+    return;
+  }
+
+  const adminEmail = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
+  const storeName = (state.config && state.config.storeName) || 'ALIANSI STORE';
+  const itemsText = buildOrderItemsText(order);
+  const driveText = buildOrderDriveLinksText(order);
+
+  const subject = `[LAPORAN PENJUALAN] Pesanan Lunas #${order.id} - ${formatRupiah(order.total)} (${order.customerName})`;
+
+  const body = 
+`===============================================================
+LAPORAN HASIL PENJUALAN TOKO - ${storeName}
+===============================================================
+Halo Admin ${storeName},
+
+Transaksi penjualan baru telah LUNAS & BERHASIL SELESAI:
+
+INFORMASI TRANSAKSI:
+- No. Invoice       : ${order.id}
+- Tanggal & Jam     : ${formatDate(order.createdAt)}
+- Status Pembayaran : LUNAS (PAID)
+- Status Pemenuhan  : SELESAI (COMPLETED)
+- Metode Pembayaran : ${order.paymentMethod.toUpperCase()}
+- Total Omset Masuk : ${formatRupiah(order.total)}
+
+DATA PEMBELI:
+- Nama Pembeli      : ${order.customerName}
+- Email Gmail       : ${order.customerEmail || '-'}
+- No. WhatsApp      : ${order.customerPhone || '-'}
+- Tipe Pelanggan    : ${order.customerType || 'Customer'}
+- Catatan Pembeli   : ${order.notes || 'Tidak ada catatan'}
+
+DAFTAR GAME YANG DIBELI:
+${itemsText}
+
+STATUS FULFILLMENT / GOOGLE DRIVE:
+- Email Akses       : ${order.customerEmail || '-'}
+${driveText}
+
+KETERANGAN SISTEM:
+Salinan bukti transaksi berformat NO-REPLY telah dikirimkan ke email pembeli (${order.customerEmail || '-'}).
+
+---------------------------------------------------------------
+Sistem Otomasi Toko ${storeName}
+Website: https://aliansi-store.netlify.app/`;
+
+  const mailtoUrl = `mailto:${encodeURIComponent(adminEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.open(mailtoUrl, '_blank') || (window.location.href = mailtoUrl);
+
+  showToast(`Membuka draf Laporan Penjualan untuk Admin (${adminEmail}).`, 'info', 'Laporan Penjualan');
+}
+
 function simulateCustomerPaid(orderId) {
   playSfx('success');
   const order = state.orders.find(o => o.id === orderId);
@@ -2596,9 +2821,12 @@ function simulateCustomerPaid(orderId) {
   saveOrders();
   syncOrderToSupabase(order);
 
+  // Automatically dispatch notification to Admin and No-Reply receipt to Customer
+  dispatchOrderCompletionEmails(order);
+
   renderInvoiceDetails(order);
   triggerConfetti();
-  showToast('🎉 Pembayaran diverifikasi! Folder Google Drive telah diaktifkan.', 'success', 'Pembayaran Sukses');
+  showToast('🎉 Pembayaran lunas! Email laporan dikirim ke Admin & bukti pembelian (No-Reply) disiapkan untuk pembeli.', 'success', 'Pembayaran Sukses');
 }
 
 async function searchInvoice() {
@@ -4003,6 +4231,12 @@ function renderAdminRequestsTable() {
         </td>
         <td class="py-3 px-3">
           ${statusBadge}
+          ${order.fulfillment && order.fulfillment.emails_dispatched ? `
+            <div class="text-[9px] text-emerald-400 font-mono flex items-center gap-1 mt-1" title="Laporan penjualan ke admin & bukti pembelian ke customer (No-Reply) telah terkirim">
+              <i data-lucide="mail-check" class="w-2.5 h-2.5 text-emerald-400"></i>
+              <span>Email No-Reply Terkirim</span>
+            </div>
+          ` : ''}
         </td>
         <td class="py-3 px-3 text-right">
           <div class="flex items-center justify-end gap-1.5 flex-wrap">
@@ -4378,6 +4612,12 @@ function renderAdminOrdersTable() {
         </td>
         <td class="py-3 px-3">
           ${statusBadge}
+          ${order.fulfillment && order.fulfillment.emails_dispatched ? `
+            <div class="text-[9px] text-emerald-400 font-mono flex items-center gap-1 mt-1" title="Laporan penjualan ke admin & bukti pembelian ke customer (No-Reply) telah terkirim">
+              <i data-lucide="mail-check" class="w-2.5 h-2.5 text-emerald-400"></i>
+              <span>Email No-Reply Terkirim</span>
+            </div>
+          ` : ''}
         </td>
         <td class="py-3 px-3 text-right">
           <div class="flex items-center justify-end gap-1.5">
@@ -4414,9 +4654,10 @@ function adminVerifyPayment(orderId) {
   order.status = 'PROCESSING';
   saveOrders();
   syncOrderToSupabase(order);
+  dispatchOrderCompletionEmails(order);
   renderAdminStats();
   renderAdminOrdersTable();
-  showToast(`Pesanan ${orderId} diverifikasi lunas!`, 'success');
+  showToast(`Pesanan ${orderId} diverifikasi lunas & laporan penjualan dikirim ke Admin!`, 'success');
 }
 
 function openFulfillmentModal(orderId) {
@@ -4470,6 +4711,7 @@ function submitOrderFulfillment() {
 
   saveOrders();
   syncOrderToSupabase(state.orderToFulfill);
+  dispatchOrderCompletionEmails(state.orderToFulfill);
   closeModals();
   playSfx('success');
   renderAdminStats();

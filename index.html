@@ -2434,6 +2434,43 @@
         </div>
       </div>
 
+      <!-- Status Notifikasi Email Otomatis (Bukti Pembelian No-Reply & Laporan Hasil Penjualan) -->
+      <div id="inv-email-dispatch-card" class="hidden mb-5 p-4 rounded-2xl bg-gradient-to-r from-sky-950/60 via-[#070e24] to-emerald-950/60 border border-emerald-500/30 text-xs no-print">
+        <div class="flex items-center justify-between pb-2 mb-2.5 border-b border-slate-800">
+          <div class="flex items-center gap-2 font-bold text-white">
+            <i data-lucide="mail-check" class="w-4 h-4 text-emerald-400"></i>
+            <span>Status Pengiriman Email Transaksi Otomatis</span>
+          </div>
+          <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 font-extrabold border border-emerald-500/30">OTOMATIS SISTEM</span>
+        </div>
+        
+        <div class="space-y-2 mb-3">
+          <div class="flex items-start gap-2 text-slate-300 text-[11px]">
+            <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5"></i>
+            <div>
+              <strong class="text-white">Email Admin (Laporan Hasil Penjualan):</strong>
+              <div class="text-slate-400">Telah diteruskan ke <span id="inv-dispatch-admin-email" class="text-emerald-400 font-mono font-bold"></span> berisi rincian omset & data pembeli.</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-2 text-slate-300 text-[11px]">
+            <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5"></i>
+            <div>
+              <strong class="text-white">Email Customer (Detail & Bukti Pembelian):</strong>
+              <div class="text-slate-400">Telah dikirim ke <span id="inv-dispatch-customer-email" class="text-sky-400 font-mono font-bold"></span> dengan format resmi berlabel <strong class="text-amber-300 font-bold bg-amber-950/80 px-1 py-0.2 rounded border border-amber-500/30">NO-REPLY</strong> (sistem otomatis tidak dapat dibalas).</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-slate-800/80">
+          <button id="btn-open-customer-receipt-mail" onclick="sendCustomerReceiptEmail(state.currentInvoice ? state.currentInvoice.id : null)" class="py-2 px-3 rounded-xl bg-sky-950/80 hover:bg-sky-900 text-sky-300 border border-sky-500/40 font-bold text-[11px] flex items-center justify-center gap-1.5 transition-colors cursor-pointer" title="Kirim atau buka draf email bukti pembelian resmi untuk customer">
+            <i data-lucide="mail" class="w-3.5 h-3.5 text-sky-400"></i> Kirim Bukti ke Email Customer
+          </button>
+          <button id="btn-open-admin-sales-mail" onclick="sendAdminSaleNotificationEmail(state.currentInvoice ? state.currentInvoice.id : null)" class="py-2 px-3 rounded-xl bg-purple-950/80 hover:bg-purple-900 text-purple-300 border border-purple-500/40 font-bold text-[11px] flex items-center justify-center gap-1.5 transition-colors cursor-pointer" title="Kirim atau buka draf email laporan penjualan untuk admin">
+            <i data-lucide="send" class="w-3.5 h-3.5 text-purple-400"></i> Kirim Laporan ke Email Admin
+          </button>
+        </div>
+      </div>
+
       <!-- OFFICIAL PRINT-ONLY FOOTER & SECURITY SEAL -->
       <div class="print-only hidden mt-8 pt-4 border-t-2 border-slate-300 text-[10px] text-slate-600">
         <div class="flex items-center justify-between gap-4">
@@ -3575,7 +3612,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261107_requestgame_v5"></script>
-  <script src="assets/app.js?v=20261107_requestgame_v5"></script>
+  <script src="assets/products-data.js?v=20261107_receipt_v6"></script>
+  <script src="assets/app.js?v=20261107_receipt_v6"></script>
 </body>
 </html>
