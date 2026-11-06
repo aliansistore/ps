@@ -3991,27 +3991,6 @@ function submitEditProduct() {
   showToast(`Game "${p.title}" berhasil diperbarui!`, 'success');
 }
 
-function resetDemoData() {
-  playSfx('click');
-  if (confirm('PERINGATAN: Reset seluruh data kembali ke demo awal ALIANSI STORE?')) {
-    localStorage.clear();
-    state.products = typeof INITIAL_PRODUCTS !== 'undefined' ? [...INITIAL_PRODUCTS] : [];
-    state.orders = typeof INITIAL_ORDERS !== 'undefined' ? [...INITIAL_ORDERS] : [];
-    state.config = typeof INITIAL_CONFIG !== 'undefined' ? { ...INITIAL_CONFIG } : {};
-    state.cart = [];
-    state.currentUser = null;
-    state.isAdmin = false;
-    saveProducts();
-    saveOrders();
-    saveConfig();
-    saveCart();
-    playSfx('success');
-    renderProducts();
-    initSpotlightHero();
-    showToast('Data berhasil direset ke pengaturan default!', 'success');
-    closeAdminDashboard();
-  }
-}
 
 // Search Helpers
 function clearCatalogSearch() {
