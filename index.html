@@ -1477,7 +1477,9 @@
                   <i data-lucide="flame" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
                   <span>GAME PILIHAN TERPOPULER</span>
                 </div>
-                <span class="text-[10px] text-slate-400 font-mono hidden sm:inline">Pilih untuk ganti</span>
+                <button onclick="openCurrentSpotlightBackdrop()" class="text-[10px] text-slate-400 hover:text-amber-400 flex items-center gap-1 font-mono transition-colors" title="Lihat Wallpaper Highlight Layar Penuh (Pop up)">
+                  <i data-lucide="maximize-2" class="w-3 h-3 text-amber-400"></i> Wallpaper Full
+                </button>
               </div>
 
               <div id="hero-spotlight-thumbs" class="flex flex-col gap-2 w-full"></div>
@@ -1992,8 +1994,12 @@
 
       <div class="p-6">
         <div class="flex flex-col sm:flex-row gap-6 mb-6">
-          <div class="w-full sm:w-44 aspect-[3/4] rounded-2xl overflow-hidden bg-slate-950 shrink-0 border border-slate-800 shadow-xl">
-            <img id="modal-product-img" src="" alt="" class="w-full h-full object-cover" />
+          <div onclick="openImageLightbox(document.getElementById('modal-product-img').src, document.getElementById('modal-product-title').textContent, 'Poster Game')" class="w-full sm:w-44 aspect-[3/4] rounded-2xl overflow-hidden bg-slate-950 shrink-0 border border-slate-800 shadow-xl cursor-pointer hover:border-sky-400 hover:ring-2 hover:ring-sky-400/30 transition-all group relative" title="Klik untuk melihat poster game lebih besar (Pop up)">
+            <img id="modal-product-img" src="" alt="" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+            <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity text-white pointer-events-none">
+              <i data-lucide="zoom-in" class="w-6 h-6 text-sky-400 mb-1"></i>
+              <span class="text-[10px] font-bold text-sky-300 uppercase tracking-wider">Perbesar</span>
+            </div>
           </div>
 
           <div class="flex-1">
@@ -2821,11 +2827,15 @@
           </div>
           <div class="flex items-center gap-2.5">
             <input type="url" id="new-game-poster" oninput="updateImagePreview('new', 'poster')" placeholder="https://... atau klik Upload / Generate" class="flex-1 px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:border-sky-500 font-mono text-[11px]" />
-            <div id="new-poster-preview-container" class="w-[52px] h-[70px] sm:w-[60px] sm:h-[80px] rounded-xl bg-slate-950 border border-slate-700/80 overflow-hidden flex items-center justify-center shrink-0 shadow-inner relative" title="Preview Poster">
+            <div id="new-poster-preview-container" onclick="previewImageEnlarged('new', 'poster')" class="w-[52px] h-[70px] sm:w-[60px] sm:h-[80px] rounded-xl bg-slate-950 border border-slate-700/80 overflow-hidden flex items-center justify-center shrink-0 shadow-inner relative cursor-pointer hover:border-sky-400 hover:ring-2 hover:ring-sky-400/30 transition-all group" title="Klik untuk melihat poster lebih besar (Pop up)">
               <img id="new-game-poster-preview" src="" alt="Poster" class="w-full h-full object-cover hidden" onload="this.classList.remove('hidden'); document.getElementById('new-poster-placeholder').classList.add('hidden')" onerror="this.classList.add('hidden'); document.getElementById('new-poster-placeholder').classList.remove('hidden')" />
               <div id="new-poster-placeholder" class="text-center p-1 text-slate-500 flex flex-col items-center">
                 <i data-lucide="image" class="w-4 h-4 mb-0.5 opacity-60"></i>
                 <span class="text-[8px] font-bold uppercase tracking-wider block scale-90">Cover</span>
+              </div>
+              <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity text-white pointer-events-none z-10">
+                <i data-lucide="zoom-in" class="w-4 h-4 text-sky-400 mb-0.5"></i>
+                <span class="text-[8px] font-bold uppercase tracking-wider text-sky-300 scale-90">Lihat</span>
               </div>
             </div>
           </div>
@@ -2850,11 +2860,15 @@
           </div>
           <div class="flex items-center gap-2.5">
             <input type="url" id="new-game-backdrop" oninput="updateImagePreview('new', 'backdrop')" placeholder="https://... atau klik Upload / Generate" class="flex-1 px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:border-amber-500 font-mono text-[11px]" />
-            <div id="new-backdrop-preview-container" class="w-[100px] h-[58px] sm:w-[115px] sm:h-[66px] rounded-xl bg-slate-950 border border-slate-700/80 overflow-hidden flex items-center justify-center shrink-0 shadow-inner relative" title="Preview Wallpaper 16:9">
+            <div id="new-backdrop-preview-container" onclick="previewImageEnlarged('new', 'backdrop')" class="w-[100px] h-[58px] sm:w-[115px] sm:h-[66px] rounded-xl bg-slate-950 border border-slate-700/80 overflow-hidden flex items-center justify-center shrink-0 shadow-inner relative cursor-pointer hover:border-amber-400 hover:ring-2 hover:ring-amber-400/30 transition-all group" title="Klik untuk melihat wallpaper 16:9 lebih besar (Pop up)">
               <img id="new-game-backdrop-preview" src="" alt="Backdrop" class="w-full h-full object-cover hidden" onload="this.classList.remove('hidden'); document.getElementById('new-backdrop-placeholder').classList.add('hidden')" onerror="this.classList.add('hidden'); document.getElementById('new-backdrop-placeholder').classList.remove('hidden')" />
               <div id="new-backdrop-placeholder" class="text-center p-1 text-slate-500 flex flex-col items-center">
                 <i data-lucide="tv" class="w-4 h-4 mb-0.5 opacity-60"></i>
                 <span class="text-[8px] font-bold uppercase tracking-wider block scale-90">16:9 Banner</span>
+              </div>
+              <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity text-white pointer-events-none z-10">
+                <i data-lucide="zoom-in" class="w-4 h-4 text-amber-400 mb-0.5"></i>
+                <span class="text-[8px] font-bold uppercase tracking-wider text-amber-300 scale-90">Lihat</span>
               </div>
             </div>
           </div>
@@ -2978,11 +2992,15 @@
           </div>
           <div class="flex items-center gap-2.5">
             <input type="url" id="edit-game-poster" oninput="updateImagePreview('edit', 'poster')" placeholder="https://... atau klik Upload / Generate" class="flex-1 px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:border-sky-500 font-mono text-[11px]" />
-            <div id="edit-poster-preview-container" class="w-[52px] h-[70px] sm:w-[60px] sm:h-[80px] rounded-xl bg-slate-950 border border-slate-700/80 overflow-hidden flex items-center justify-center shrink-0 shadow-inner relative" title="Preview Poster">
+            <div id="edit-poster-preview-container" onclick="previewImageEnlarged('edit', 'poster')" class="w-[52px] h-[70px] sm:w-[60px] sm:h-[80px] rounded-xl bg-slate-950 border border-slate-700/80 overflow-hidden flex items-center justify-center shrink-0 shadow-inner relative cursor-pointer hover:border-sky-400 hover:ring-2 hover:ring-sky-400/30 transition-all group" title="Klik untuk melihat poster lebih besar (Pop up)">
               <img id="edit-game-poster-preview" src="" alt="Poster" class="w-full h-full object-cover hidden" onload="this.classList.remove('hidden'); document.getElementById('edit-poster-placeholder').classList.add('hidden')" onerror="this.classList.add('hidden'); document.getElementById('edit-poster-placeholder').classList.remove('hidden')" />
               <div id="edit-poster-placeholder" class="text-center p-1 text-slate-500 flex flex-col items-center">
                 <i data-lucide="image" class="w-4 h-4 mb-0.5 opacity-60"></i>
                 <span class="text-[8px] font-bold uppercase tracking-wider block scale-90">Cover</span>
+              </div>
+              <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity text-white pointer-events-none z-10">
+                <i data-lucide="zoom-in" class="w-4 h-4 text-sky-400 mb-0.5"></i>
+                <span class="text-[8px] font-bold uppercase tracking-wider text-sky-300 scale-90">Lihat</span>
               </div>
             </div>
           </div>
@@ -3007,11 +3025,15 @@
           </div>
           <div class="flex items-center gap-2.5">
             <input type="url" id="edit-game-backdrop" oninput="updateImagePreview('edit', 'backdrop')" placeholder="https://... atau klik Upload / Generate" class="flex-1 px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:border-amber-500 font-mono text-[11px]" />
-            <div id="edit-backdrop-preview-container" class="w-[100px] h-[58px] sm:w-[115px] sm:h-[66px] rounded-xl bg-slate-950 border border-slate-700/80 overflow-hidden flex items-center justify-center shrink-0 shadow-inner relative" title="Preview Wallpaper 16:9">
+            <div id="edit-backdrop-preview-container" onclick="previewImageEnlarged('edit', 'backdrop')" class="w-[100px] h-[58px] sm:w-[115px] sm:h-[66px] rounded-xl bg-slate-950 border border-slate-700/80 overflow-hidden flex items-center justify-center shrink-0 shadow-inner relative cursor-pointer hover:border-amber-400 hover:ring-2 hover:ring-amber-400/30 transition-all group" title="Klik untuk melihat wallpaper 16:9 lebih besar (Pop up)">
               <img id="edit-game-backdrop-preview" src="" alt="Backdrop" class="w-full h-full object-cover hidden" onload="this.classList.remove('hidden'); document.getElementById('edit-backdrop-placeholder').classList.add('hidden')" onerror="this.classList.add('hidden'); document.getElementById('edit-backdrop-placeholder').classList.remove('hidden')" />
               <div id="edit-backdrop-placeholder" class="text-center p-1 text-slate-500 flex flex-col items-center">
                 <i data-lucide="tv" class="w-4 h-4 mb-0.5 opacity-60"></i>
                 <span class="text-[8px] font-bold uppercase tracking-wider block scale-90">16:9 Banner</span>
+              </div>
+              <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity text-white pointer-events-none z-10">
+                <i data-lucide="zoom-in" class="w-4 h-4 text-amber-400 mb-0.5"></i>
+                <span class="text-[8px] font-bold uppercase tracking-wider text-amber-300 scale-90">Lihat</span>
               </div>
             </div>
           </div>
@@ -3044,6 +3066,38 @@
       <div class="grid grid-cols-2 gap-3">
         <button onclick="closeModals()" class="py-2.5 px-4 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">Batal</button>
         <button onclick="submitEditProduct()" class="py-2.5 px-4 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white shadow-md">Simpan Perubahan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Image Lightbox Preview (Full Size View) -->
+  <div id="modal-image-lightbox" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md transition-opacity duration-300" onclick="closeImageLightbox()">
+    <div class="relative max-w-4xl w-full max-h-[92vh] flex flex-col items-center justify-center" onclick="event.stopPropagation()">
+      <!-- Close Button -->
+      <button onclick="closeImageLightbox()" class="absolute -top-3 -right-2 sm:-top-4 sm:-right-4 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-900/95 text-slate-300 hover:text-white hover:bg-rose-600 border border-slate-700 hover:border-rose-500 shadow-2xl flex items-center justify-center transition-all z-20 group" title="Tutup (Esc)">
+        <i data-lucide="x" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
+      </button>
+
+      <!-- Main Image Card Container -->
+      <div class="w-full bg-[#080f24] border border-slate-700/80 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+        <!-- Header Info -->
+        <div class="px-4 py-2.5 sm:px-5 sm:py-3 border-b border-slate-800 flex items-center justify-between bg-slate-900/80">
+          <div class="flex items-center gap-2">
+            <span id="lightbox-badge" class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider bg-sky-500/20 text-sky-400 border border-sky-500/30">Poster</span>
+            <h4 id="lightbox-title" class="text-xs sm:text-sm font-bold text-white truncate max-w-[200px] sm:max-w-md">Preview Gambar</h4>
+          </div>
+          <div class="flex items-center gap-2">
+            <a id="lightbox-open-tab" href="#" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-[11px] font-semibold flex items-center gap-1.5 transition-colors" title="Buka gambar ukuran asli di tab baru">
+              <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+              <span class="hidden sm:inline">Ukuran Asli</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Image Body -->
+        <div class="p-3 sm:p-5 flex items-center justify-center bg-black/70 min-h-[240px] max-h-[75vh] overflow-hidden">
+          <img id="lightbox-img" src="" alt="Full Preview" class="max-w-full max-h-[70vh] object-contain rounded-xl shadow-2xl border border-slate-800/80 transition-all duration-300" />
+        </div>
       </div>
     </div>
   </div>
@@ -3112,7 +3166,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261107_generator_v2"></script>
-  <script src="assets/app.js?v=20261107_generator_v2"></script>
+  <script src="assets/products-data.js?v=20261107_lightbox_v3"></script>
+  <script src="assets/app.js?v=20261107_lightbox_v3"></script>
 </body>
 </html>

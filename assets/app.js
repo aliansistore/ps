@@ -4351,6 +4351,84 @@ function generateGameDescription(prefix) {
   showToast(`✨ Deskripsi dibuat (Variasi ${nextIdx + 1}/5)! Klik lagi untuk variasi gaya lainnya.`, 'success', 'AI Copywriter');
 }
 
+// ==========================================
+// IMAGE LIGHTBOX PREVIEW (FULL SIZE POPUP)
+// ==========================================
+
+function previewImageEnlarged(prefix, type) {
+  playSfx('click');
+  const inputEl = document.getElementById(`${prefix}-game-${type}`);
+  const url = inputEl ? inputEl.value.trim() : '';
+  const titleEl = document.getElementById(`${prefix}-game-title`);
+  const title = (titleEl && titleEl.value.trim()) ? titleEl.value.trim() : 'Game PlayStation';
+
+  if (!url) {
+    showToast(`Belum ada ${type === 'poster' ? 'gambar poster' : 'wallpaper highlight'} untuk dilihat! Silakan upload atau generate terlebih dahulu.`, 'info');
+    return;
+  }
+
+  const badgeText = type === 'poster' ? 'Poster Cover' : 'Wallpaper Highlight 16:9';
+  const titleText = `${title} (${type === 'poster' ? 'Poster Game' : 'Wallpaper Highlight'})`;
+  openImageLightbox(url, titleText, badgeText);
+}
+
+function openImageLightbox(imageUrl, title, badge) {
+  if (!imageUrl) return;
+  const modal = document.getElementById('modal-image-lightbox');
+  const imgEl = document.getElementById('lightbox-img');
+  const titleEl = document.getElementById('lightbox-title');
+  const badgeEl = document.getElementById('lightbox-badge');
+  const linkEl = document.getElementById('lightbox-open-tab');
+  if (!modal || !imgEl) return;
+
+  imgEl.src = imageUrl;
+  if (titleEl) titleEl.textContent = title || 'Preview Gambar Game';
+  if (badgeEl) {
+    badgeEl.textContent = badge || 'Gambar Game';
+    if (badge && badge.toLowerCase().includes('wallpaper')) {
+      badgeEl.className = 'px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30';
+    } else {
+      badgeEl.className = 'px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider bg-sky-500/20 text-sky-400 border border-sky-500/30';
+    }
+  }
+  if (linkEl) {
+    linkEl.href = imageUrl;
+  }
+
+  modal.classList.remove('hidden');
+  playSfx('click');
+  lucide.createIcons();
+}
+
+function closeImageLightbox() {
+  const modal = document.getElementById('modal-image-lightbox');
+  if (!modal) return;
+  modal.classList.add('hidden');
+  const imgEl = document.getElementById('lightbox-img');
+  if (imgEl) imgEl.src = '';
+  playSfx('click');
+}
+
+function openCurrentSpotlightBackdrop() {
+  const spotlightGames = getSpotlightGames();
+  const game = spotlightGames[state.spotlightIndex || 0];
+  if (!game) return;
+  const bgUrl = getProductBackdrop(game);
+  openImageLightbox(bgUrl, `${game.title} - Wallpaper Highlight Hero`, 'Wallpaper Highlight 16:9');
+}
+
+// Global listener: Escape closes lightbox first before any background modal
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const lightbox = document.getElementById('modal-image-lightbox');
+    if (lightbox && !lightbox.classList.contains('hidden')) {
+      closeImageLightbox();
+      e.stopPropagation();
+      e.preventDefault();
+    }
+  }
+});
+
 function openAddProductModal() {
   playSfx('click');
   const modal = document.getElementById('modal-admin-add-product');
