@@ -1256,6 +1256,12 @@
 </head>
 <body class="bg-oled-grid text-slate-100 min-h-screen flex flex-col antialiased selection:bg-sky-500 selection:text-white pb-20">
 
+  <!-- Autofill Sink Trap: absorbs browser password managers so search bars are never targeted -->
+  <form class="sr-only" style="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;" aria-hidden="true" tabindex="-1">
+    <input type="text" name="autofill_sink_user" autocomplete="username" tabindex="-1" />
+    <input type="password" name="autofill_sink_pass" autocomplete="current-password" tabindex="-1" />
+  </form>
+
   <!-- Toast Container -->
   <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-auto"></div>
 
@@ -1338,12 +1344,17 @@
             <input 
               type="search" 
               id="main-search-input"
-              name="game_main_search_query"
-              autocomplete="off"
+              name="game_search_query_main"
+              readonly
+              onfocus="this.removeAttribute('readonly')"
+              onpointerdown="this.removeAttribute('readonly')"
+              ontouchstart="this.removeAttribute('readonly')"
+              autocomplete="new-password"
               autocorrect="off"
               autocapitalize="off"
               spellcheck="false"
               data-lpignore="true"
+              data-1p-ignore="true"
               data-form-type="other"
               placeholder="Cari judul game (FC 25, Wukong, Spider-Man)..." 
               class="w-full pl-10 pr-12 py-2 text-xs rounded-full bg-slate-950/80 border border-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 text-white placeholder-slate-500 transition-all outline-none"
@@ -1670,12 +1681,17 @@
             <input 
               type="search" 
               id="catalog-search-input"
-              name="game_catalog_search_query"
-              autocomplete="off"
+              name="game_search_query_catalog"
+              readonly
+              onfocus="this.removeAttribute('readonly')"
+              onpointerdown="this.removeAttribute('readonly')"
+              ontouchstart="this.removeAttribute('readonly')"
+              autocomplete="new-password"
               autocorrect="off"
               autocapitalize="off"
               spellcheck="false"
               data-lpignore="true"
+              data-1p-ignore="true"
               data-form-type="other"
               placeholder="Cari judul game, genre, PS4 HEN..."
               class="w-full pl-10 pr-9 py-2.5 text-xs rounded-xl bg-slate-900/90 border border-slate-700/80 text-white placeholder-slate-400 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none transition-all shadow-inner"
@@ -3717,7 +3733,7 @@
         <div class="p-3.5 rounded-2xl bg-sky-950/40 border border-sky-500/25 flex items-start gap-3 text-xs text-sky-200">
           <i data-lucide="info" class="w-4 h-4 text-sky-400 shrink-0 mt-0.5"></i>
           <p class="leading-relaxed">
-            Untuk menjaga keamanan toko, sistem akan mengirimkan <strong>Kode Verifikasi (OTP) 6 Digit</strong> ke email resmi administrator yang terdaftar.
+            Untuk menjaga keamanan toko, sistem akan mengirimkan <strong>Kode Verifikasi (OTP) 6 Digit</strong> ke email resmi yang terdaftar.
           </p>
         </div>
 
@@ -4446,7 +4462,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261107_livechat_v12"></script>
-  <script src="assets/app.js?v=20261107_livechat_v12"></script>
+  <script src="assets/products-data.js?v=20261108_cleansearch_v13"></script>
+  <script src="assets/app.js?v=20261108_cleansearch_v13"></script>
 </body>
 </html>

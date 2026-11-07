@@ -1271,7 +1271,11 @@ function getFilteredProducts() {
   // Search Query
   if (state.searchQuery && state.searchQuery.trim()) {
     const q = state.searchQuery.toLowerCase().trim();
-    list = list.filter(p => {
+    if (q === 'admin') {
+      // Ironclad emergency safeguard: 'admin' must never filter the catalog
+      state.searchQuery = '';
+    } else {
+      list = list.filter(p => {
       // 1. Direct text fields match
       const titleMatch = (p.title || '').toLowerCase().includes(q);
       const descMatch = (p.description || '').toLowerCase().includes(q);
@@ -1359,7 +1363,7 @@ function renderProducts() {
   if (!container) return;
 
   const items = getFilteredProducts();
-  const isSearching = Boolean(state.searchQuery && state.searchQuery.trim());
+  const isSearching = Boolean(state.searchQuery && state.searchQuery.trim() && state.searchQuery.trim().toLowerCase() !== 'admin');
 
   if (countBadge) {
     countBadge.textContent = isSearching ? `${items.length} Game Ditemukan` : `${items.length} Game Tersedia`;
@@ -4538,10 +4542,10 @@ function requestAdminResetCode() {
   };
 
   // Format verification email
-  const subject = `[RESET PASSWORD] Kode Verifikasi OTP Admin ${storeName} - ${otpCode}`;
-  const body = `Halo Administrator ${storeName},
+  const subject = `[RESET PASSWORD] Kode Verifikasi OTP ${storeName} - ${otpCode}`;
+  const body = `Halo Pengelola ${storeName},
 
-Kami menerima permintaan untuk mereset password akun login Admin toko Anda.
+Kami menerima permintaan untuk mereset password akun login toko Anda.
 
 Berikut adalah Kode Verifikasi (OTP) untuk reset password:
 ======================================================
@@ -7609,11 +7613,17 @@ function clearCatalogSearch() {
   const mainInput = document.getElementById('main-search-input');
   if (catalogInput) {
     catalogInput.value = '';
+    catalogInput.removeAttribute('readonly');
     catalogInput.focus();
   }
   if (mainInput) {
     mainInput.value = '';
+    mainInput.removeAttribute('readonly');
   }
+  const feedbackBar = document.getElementById('catalog-search-feedback');
+  const clearBtn = document.getElementById('catalog-search-clear');
+  if (feedbackBar) feedbackBar.classList.add('hidden');
+  if (clearBtn) clearBtn.classList.add('hidden');
   renderProducts();
 }
 
@@ -7625,7 +7635,9 @@ function focusCatalogSearch() {
   }
   const input = document.getElementById('catalog-search-input') || document.getElementById('main-search-input');
   if (input) {
+    input.removeAttribute('readonly');
     setTimeout(() => {
+      input.removeAttribute('readonly');
       input.focus();
       input.select();
     }, 250);
@@ -7655,12 +7667,32 @@ function setupEventListeners() {
   const catalogSearchInput = document.getElementById('catalog-search-input');
   const mainSearchInput = document.getElementById('main-search-input');
 
+  const unlockSearchInput = (el) => {
+    if (el && el.hasAttribute('readonly')) {
+      el.removeAttribute('readonly');
+    }
+  };
+
   // Explicitly ensure both search inputs start 100% empty on page load
   state.searchQuery = '';
   if (catalogSearchInput) catalogSearchInput.value = '';
   if (mainSearchInput) mainSearchInput.value = '';
 
   const handleLiveSearch = (val) => {
+    const cleanVal = (val || '').trim();
+    // Ironclad guard: if browser or extension tries to autofill 'admin', wipe it out immediately
+    if (cleanVal.toLowerCase() === 'admin') {
+      state.searchQuery = '';
+      if (catalogSearchInput) catalogSearchInput.value = '';
+      if (mainSearchInput) mainSearchInput.value = '';
+      const feedbackBar = document.getElementById('catalog-search-feedback');
+      const clearBtn = document.getElementById('catalog-search-clear');
+      if (feedbackBar) feedbackBar.classList.add('hidden');
+      if (clearBtn) clearBtn.classList.add('hidden');
+      renderProducts();
+      return;
+    }
+
     state.searchQuery = val;
     if (catalogSearchInput && catalogSearchInput.value !== val) {
       catalogSearchInput.value = val;
@@ -7672,26 +7704,55 @@ function setupEventListeners() {
   };
 
   if (catalogSearchInput) {
+    catalogSearchInput.addEventListener('focus', () => unlockSearchInput(catalogSearchInput));
+    catalogSearchInput.addEventListener('pointerdown', () => unlockSearchInput(catalogSearchInput));
+    catalogSearchInput.addEventListener('touchstart', () => unlockSearchInput(catalogSearchInput));
     catalogSearchInput.addEventListener('input', (e) => handleLiveSearch(e.target.value));
+    catalogSearchInput.addEventListener('change', (e) => handleLiveSearch(e.target.value));
   }
   if (mainSearchInput) {
+    mainSearchInput.addEventListener('focus', () => unlockSearchInput(mainSearchInput));
+    mainSearchInput.addEventListener('pointerdown', () => unlockSearchInput(mainSearchInput));
+    mainSearchInput.addEventListener('touchstart', () => unlockSearchInput(mainSearchInput));
     mainSearchInput.addEventListener('input', (e) => handleLiveSearch(e.target.value));
+    mainSearchInput.addEventListener('change', (e) => handleLiveSearch(e.target.value));
   }
 
-  // Prevent unwanted browser extension / password manager autofills (e.g. 'admin')
-  const preventSearchAutofill = () => {
+  // Bulletproof anti-autofill watchdog: continuously cleanses 'admin' from inputs and state
+  const purgeAdminAutofill = () => {
     const ci = document.getElementById('catalog-search-input');
     const mi = document.getElementById('main-search-input');
-    if (state.searchQuery === 'admin' || (ci && ci.value === 'admin') || (mi && mi.value === 'admin')) {
+    let dirty = false;
+
+    if (ci && (ci.value || '').toLowerCase().trim() === 'admin') {
+      ci.value = '';
+      dirty = true;
+    }
+    if (mi && (mi.value || '').toLowerCase().trim() === 'admin') {
+      mi.value = '';
+      dirty = true;
+    }
+    if (state.searchQuery && state.searchQuery.toLowerCase().trim() === 'admin') {
       state.searchQuery = '';
-      if (ci) ci.value = '';
-      if (mi) mi.value = '';
+      dirty = true;
+    }
+
+    if (dirty) {
+      const feedbackBar = document.getElementById('catalog-search-feedback');
+      const clearBtn = document.getElementById('catalog-search-clear');
+      if (feedbackBar) feedbackBar.classList.add('hidden');
+      if (clearBtn) clearBtn.classList.add('hidden');
       renderProducts();
     }
   };
-  setTimeout(preventSearchAutofill, 50);
-  setTimeout(preventSearchAutofill, 200);
-  setTimeout(preventSearchAutofill, 600);
+
+  // Run watchdog across all browser lifecycle events and timed increments
+  [30, 100, 250, 500, 1000, 1800, 3000, 4500].forEach(delay => setTimeout(purgeAdminAutofill, delay));
+  window.addEventListener('load', purgeAdminAutofill);
+  window.addEventListener('pageshow', purgeAdminAutofill);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) purgeAdminAutofill();
+  });
 
   // Global Ctrl+K Keyboard Shortcut to focus search
   window.addEventListener('keydown', (e) => {
