@@ -2181,11 +2181,24 @@ function selectPaymentMethod(element, method) {
 }
 
 // ================= DUITKU PAYMENT GATEWAY INTEGRATION =================
+const DUITKU_METHOD_MAP = {
+  'qris': 'SP',        // ShopeePay QRIS (Universal scan)
+  'bca': 'BC',         // BCA Virtual Account
+  'mandiri': 'M2',     // Mandiri Virtual Account
+  'bri': 'BR',         // BRI Virtual Account
+  'bni': 'I1',         // BNI Virtual Account
+  'dana': 'DA',        // DANA Direct
+  'ovo': 'OV',         // OVO
+  'shopeepay': 'SA'    // ShopeePay
+};
+
 async function requestDuitkuInquiry(order) {
+  const methodCode = DUITKU_METHOD_MAP[order.paymentMethod] || DUITKU_METHOD_MAP[state.selectedPayment] || 'SP';
+
   const payload = {
     merchantOrderId: order.id,
     paymentAmount: order.total,
-    paymentMethod: 'SP', // Default: SP (ShopeePay QRIS)
+    paymentMethod: methodCode,
     productDetails: (order.items && order.items.length > 0)
       ? order.items.map(i => i.title).join(', ').substring(0, 240)
       : 'Game PS4 Digital',
@@ -2195,32 +2208,28 @@ async function requestDuitkuInquiry(order) {
     returnUrl: window.location.origin + window.location.pathname
   };
 
-  // 1. Coba Netlify Serverless Function
-  try {
-    const res = await fetch('/.netlify/functions/duitku-inquiry', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if (res.ok) {
-      return await res.json();
-    }
-  } catch (err) {
-    console.warn('Netlify function not reachable, trying local fallback...', err);
-  }
+  const endpoints = [
+    'https://aliansistore-ps.netlify.app/.netlify/functions/duitku-inquiry',
+    '/.netlify/functions/duitku-inquiry',
+    '/api/duitku-inquiry'
+  ];
 
-  // 2. Coba endpoint lokal server.ps1 (/api/duitku-inquiry)
-  try {
-    const res2 = await fetch('/api/duitku-inquiry', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if (res2.ok) {
-      return await res2.json();
+  for (const ep of endpoints) {
+    try {
+      const res = await fetch(ep, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.statusCode === '00') {
+          return { ...data, paymentMethod: methodCode };
+        }
+      }
+    } catch (err) {
+      // Coba endpoint cadangan berikutnya
     }
-  } catch (err2) {
-    console.warn('Local proxy not reachable:', err2);
   }
 
   return null;
@@ -2314,23 +2323,23 @@ async function submitOrder() {
     fulfillment: null
   };
 
-  // Request Duitku QRIS jika metode pembayaran QRIS dipilih
-  if (state.selectedPayment === 'qris') {
-    try {
-      const duitkuRes = await requestDuitkuInquiry(newOrder);
-      if (duitkuRes && duitkuRes.statusCode === '00') {
-        newOrder.fulfillment = {
-          duitku: {
-            reference: duitkuRes.reference,
-            paymentUrl: duitkuRes.paymentUrl,
-            qrString: duitkuRes.qrString,
-            amount: duitkuRes.amount
-          }
-        };
-      }
-    } catch (e) {
-      console.warn('Gagal memanggil Duitku Inquiry:', e);
+  // Request Duitku Payment Gateway untuk SEMUA metode pembayaran (QRIS, BCA VA, Mandiri VA, DANA)
+  try {
+    const duitkuRes = await requestDuitkuInquiry(newOrder);
+    if (duitkuRes && duitkuRes.statusCode === '00') {
+      newOrder.fulfillment = {
+        duitku: {
+          reference: duitkuRes.reference,
+          paymentUrl: duitkuRes.paymentUrl,
+          qrString: duitkuRes.qrString || null,
+          vaNumber: duitkuRes.vaNumber || null,
+          paymentMethod: duitkuRes.paymentMethod || state.selectedPayment,
+          amount: duitkuRes.amount
+        }
+      };
     }
+  } catch (e) {
+    console.warn('Gagal memanggil Duitku Inquiry:', e);
   }
 
   state.orders.unshift(newOrder);
@@ -2713,11 +2722,88 @@ function renderPaymentBox(order) {
   const container = document.getElementById('inv-payment-instructions-content');
   if (!container) return;
 
-  if (order.paymentMethod === 'qris') {
-    const duitkuData = (order.fulfillment && order.fulfillment.duitku) ? order.fulfillment.duitku : null;
-    const qrString = duitkuData?.qrString || `00020101021226670016ID.CO.QRIS.WWW011893600002011234567802150000000000000010303UMI51440014ID.GO.BI.QRIS011893600002011234567802150000000000000010303UMI52045814530336054${order.total}5802ID5913ALIANSI_STORE6007JAKARTA61051234062070703A016304${order.id}`;
-    const paymentUrl = duitkuData?.paymentUrl;
+  const duitkuData = (order.fulfillment && order.fulfillment.duitku) ? order.fulfillment.duitku : null;
+  const paymentUrl = duitkuData?.paymentUrl;
+  const vaNumber = duitkuData?.vaNumber;
+  const qrString = duitkuData?.qrString || `00020101021226670016ID.CO.QRIS.WWW011893600002011234567802150000000000000010303UMI51440014ID.GO.BI.QRIS011893600002011234567802150000000000000010303UMI52045814530336054${order.total}5802ID5913ALIANSI_STORE6007JAKARTA61051234062070703A016304${order.id}`;
 
+  const isVA = (order.paymentMethod === 'bca' || order.paymentMethod === 'mandiri' || order.paymentMethod === 'bri' || order.paymentMethod === 'bni' || !!vaNumber);
+  const isDana = (order.paymentMethod === 'dana');
+
+  if (isVA) {
+    const bankLabel = order.paymentMethod === 'bca' ? 'BCA' : (order.paymentMethod === 'mandiri' ? 'Mandiri' : (order.paymentMethod === 'bri' ? 'BRI' : 'Bank'));
+    const displayVa = vaNumber || ('7007014' + String(order.id).replace(/[^0-9]/g, '').slice(-8));
+    container.innerHTML = `
+      <div class="p-5 rounded-2xl bg-[#070d1e] border border-sky-500/40 text-center">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-950 text-sky-400 border border-sky-500/30 text-[11px] font-bold mb-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> VIRTUAL ACCOUNT ${bankLabel.toUpperCase()} RESMI DUITKU (OTOMATIS)
+        </div>
+        <p class="text-xs text-slate-400 mb-3">Bayar via ${bankLabel} Mobile, Internet Banking, atau ATM. Diverifikasi otomatis tanpa kirim bukti transfer.</p>
+
+        <div class="p-4 rounded-2xl bg-sky-950/60 border border-sky-500/30 my-3">
+          <div class="text-[10px] text-sky-400 font-bold uppercase tracking-wider mb-1 font-mono">Nomor Virtual Account ${bankLabel}:</div>
+          <div class="text-xl sm:text-3xl font-black text-white font-mono tracking-wider select-all mb-2">
+            ${displayVa}
+          </div>
+          <button onclick="copyText('${displayVa}', 'Nomor Virtual Account ${bankLabel} tersalin!')" class="px-4 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-md transition-all">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i> Salin Nomor VA
+          </button>
+        </div>
+
+        <div class="text-xs font-bold text-slate-300">Total Tagihan:</div>
+        <div class="text-2xl font-black text-sky-400 font-display mt-0.5 mb-3">${formatRupiah(order.total)}</div>
+
+        <div class="text-[11px] text-slate-400 mb-4 flex items-center justify-center gap-1.5">
+          <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span>Menunggu konfirmasi pembayaran otomatis Duitku...</span>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-2">
+          ${paymentUrl ? `
+            <a href="${paymentUrl}" target="_blank" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-lg transition-all flex items-center justify-center gap-1.5">
+              <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Buka Pembayaran Duitku (Web / Simulator)
+            </a>
+          ` : ''}
+          <button onclick="checkOrderStatusManual('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 flex items-center justify-center gap-1.5">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Cek Status Sekarang
+          </button>
+          <button onclick="simulateCustomerPaid('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-900/60 hover:bg-emerald-800/80 text-emerald-300 text-xs font-bold border border-emerald-600/40 flex items-center justify-center gap-1.5" title="Uji Coba Sandbox">
+            <i data-lucide="play" class="w-3.5 h-3.5"></i> Tes Lunas (Sandbox)
+          </button>
+        </div>
+      </div>
+    `;
+    lucide.createIcons();
+  } else if (isDana && paymentUrl) {
+    container.innerHTML = `
+      <div class="p-5 rounded-2xl bg-[#070d1e] border border-sky-500/40 text-center">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-950 text-sky-400 border border-sky-500/30 text-[11px] font-bold mb-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> E-WALLET DANA RESMI DUITKU (OTOMATIS)
+        </div>
+        <p class="text-xs text-slate-400 mb-3">Klik tombol di bawah untuk menyelesaikan pembayaran langsung di aplikasi DANA.</p>
+
+        <div class="text-xs font-bold text-slate-300">Total Tagihan:</div>
+        <div class="text-2xl font-black text-sky-400 font-display mt-0.5 mb-4">${formatRupiah(order.total)}</div>
+
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-2 mb-3">
+          <a href="${paymentUrl}" target="_blank" class="w-full sm:w-auto px-5 py-3 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-black shadow-lg shadow-sky-600/30 flex items-center justify-center gap-2 transition-all">
+            <i data-lucide="external-link" class="w-4 h-4"></i> Bayar Sekarang via DANA
+          </a>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-2">
+          <button onclick="checkOrderStatusManual('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 flex items-center justify-center gap-1.5">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Cek Status Sekarang
+          </button>
+          <button onclick="simulateCustomerPaid('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-900/60 hover:bg-emerald-800/80 text-emerald-300 text-xs font-bold border border-emerald-600/40 flex items-center justify-center gap-1.5" title="Uji Coba Sandbox">
+            <i data-lucide="play" class="w-3.5 h-3.5"></i> Tes Lunas (Sandbox)
+          </button>
+        </div>
+      </div>
+    `;
+    lucide.createIcons();
+  } else {
+    // Default QRIS (Universal for all Banks & E-Wallets)
     container.innerHTML = `
       <div class="text-center p-5 rounded-2xl bg-[#070d1e] border border-sky-500/40">
         <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-950 text-sky-400 border border-sky-500/30 text-[11px] font-bold mb-2">
@@ -2770,30 +2856,6 @@ function renderPaymentBox(order) {
       }
       lucide.createIcons();
     }, 50);
-  } else {
-    container.innerHTML = `
-      <div class="p-5 rounded-2xl bg-[#070d1e] border border-slate-800">
-        <div class="text-xs font-black text-sky-400 uppercase tracking-widest mb-3">REKENING BANK RESMI ALIANSI STORE</div>
-        <div class="space-y-2.5 mb-4">
-          ${state.config.bankAccounts.map(b => `
-            <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs">
-              <div>
-                <span class="font-bold text-white">${b.bank}</span>
-                <span class="text-sky-300 block font-mono text-xs font-bold mt-0.5">${b.number}</span>
-                <span class="text-[10px] text-slate-500">a.n. ${b.name}</span>
-              </div>
-              <button onclick="copyText('${b.number}', 'Rekening ${b.bank} tersalin!')" class="px-3 py-1.5 rounded-lg bg-sky-600/30 text-sky-300 hover:bg-sky-600/50 text-xs font-bold border border-sky-500/30">
-                Salin Rekening
-              </button>
-            </div>
-          `).join('')}
-        </div>
-
-        <button onclick="simulateCustomerPaid('${order.id}')" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center gap-2">
-          <i data-lucide="check-circle-2" class="w-4 h-4"></i> Konfirmasi Sudah Transfer
-        </button>
-      </div>
-    `;
   }
 }
 
