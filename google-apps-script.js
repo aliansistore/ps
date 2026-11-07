@@ -60,6 +60,25 @@ var GDRIVE_FOLDER_MAP = {
  * Handle HTTP GET - Untuk uji coba / health check browser
  */
 function doGet(e) {
+  var action = (e && e.parameter && e.parameter.action) || "";
+  if (action === "test") {
+    var to = (e && e.parameter && e.parameter.to) || "aliansistore.id@gmail.com";
+    try {
+      GmailApp.sendEmail(to, "[ALIANSI STORE] Tes Integrasi Google Apps Script Webhook Berhasil!", 
+        "Halo! Integrasi Webhook Google Apps Script ALIANSI STORE berhasil berjalan dengan baik. Layanan siap mengirimkan bukti transaksi dan laporan penjualan otomatis.");
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "success",
+        message: "Email tes berhasil dikirim ke " + to,
+        timestamp: new Date().toISOString()
+      })).setMimeType(ContentService.MimeType.JSON);
+    } catch (err) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "error",
+        message: err.message
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
   return ContentService.createTextOutput(JSON.stringify({
     status: "online",
     service: "ALIANSI STORE Payment & Drive Automation Webhook",
@@ -68,7 +87,7 @@ function doGet(e) {
 }
 
 /**
- * Handle HTTP POST - Menerima Notifikasi Webhook dari Duitku
+ * Handle HTTP POST - Menerima Notifikasi Webhook dari Duitku atau Panggilan Langsung dari Website
  */
 function doPost(e) {
   var lock = LockService.getScriptLock();
@@ -76,18 +95,86 @@ function doPost(e) {
     // Kunci proses 10 detik agar tidak double process jika Duitku retry
     lock.waitLock(10000);
     
-    // Parse data dari Duitku (Mendukung Form-URLEncoded dan JSON)
+    // Parse data (Mendukung Form-URLEncoded dan JSON)
     var params = {};
-    if (e.parameter && e.parameter.merchantOrderId) {
+    if (e.parameter && Object.keys(e.parameter).length > 0) {
       params = e.parameter;
-    } else if (e.postData && e.postData.contents) {
+    }
+    if (e.postData && e.postData.contents) {
       try {
-        params = JSON.parse(e.postData.contents);
+        var parsed = JSON.parse(e.postData.contents);
+        for (var k in parsed) { params[k] = parsed[k]; }
       } catch (err) {
-        params = e.parameter || {};
+        // Fallback ke parameter bawaan
       }
     }
     
+    // ------------------------------------------------------------------------
+    // A. Direct API Dispatch dari Website Aliansi Store (Checkout / Fulfillment)
+    // ------------------------------------------------------------------------
+    var action = params.action || "";
+    if (action === "send_order_emails" || action === "send_receipt") {
+      var ord = params.order || params;
+      var cEmail = (ord.customerEmail || ord.customer_email || params.customerEmail || "").trim();
+      var cName = ord.customerName || ord.customer_name || params.customerName || "Pelanggan Setia";
+      var aEmail = (params.adminEmail || ord.adminEmail || "aliansistore.id@gmail.com").trim();
+      
+      var items = Array.isArray(ord.items) ? ord.items : [];
+      var sharedLinks = [];
+      
+      // Auto-share Google Drive & Siapkan Link Akses
+      if (cEmail && cEmail.indexOf("@") !== -1) {
+        items.forEach(function(item) {
+          var folderId = GDRIVE_FOLDER_MAP[item.productId || item.id] || GDRIVE_FOLDER_MAP["default"];
+          if (folderId && folderId.indexOf("1ABCxyz") === -1) {
+            try {
+              var folder = DriveApp.getFolderById(folderId);
+              folder.addViewer(cEmail);
+            } catch (dErr) {
+              Logger.log("Drive share notice: " + dErr.message);
+            }
+          }
+          sharedLinks.push({
+            gameId: item.productId || item.id,
+            title: item.title,
+            folderId: folderId,
+            url: item.driveLink || ("https://drive.google.com/drive/folders/" + (folderId || ""))
+          });
+        });
+        
+        // 1. Kirim Faktur Bukti Pembelian ke Gmail Customer
+        sendCustomerReceiptEmail(cEmail, cName, ord, sharedLinks);
+      }
+      
+      // 2. Kirim Notifikasi Laporan Hasil Penjualan ke Gmail Admin
+      if (aEmail && aEmail.indexOf("@") !== -1) {
+        sendAdminSaleNotification(aEmail, ord);
+      }
+      
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "success",
+        message: "Email transaksi otomatis berhasil dikirim!",
+        customerEmail: cEmail,
+        adminEmail: aEmail
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // ------------------------------------------------------------------------
+    // B. Uji Coba Pengiriman Email Tes Langsung dari Admin Settings
+    // ------------------------------------------------------------------------
+    if (action === "test_email") {
+      var testTo = params.to || params.adminEmail || "aliansistore.id@gmail.com";
+      GmailApp.sendEmail(testTo, "[ALIANSI STORE] Integrasi Otomasi Email Berhasil!", 
+        "Halo Admin!\n\nWebhook Google Apps Script untuk ALIANSI STORE telah aktif dan siap digunakan.\n\nSetiap transaksi lunas kini akan otomatis mengirimkan faktur resmi ke pembeli dan salinan laporan penjualan ke admin toko.\n\nSalam,\nTim ALIANSI STORE");
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "success",
+        message: "Email tes berhasil dikirim ke " + testTo
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // ------------------------------------------------------------------------
+    // C. Notifikasi Webhook IPN dari Duitku Payment Gateway
+    // ------------------------------------------------------------------------
     var merchantCode = params.merchantCode || "";
     var amount = params.amount || "";
     var merchantOrderId = params.merchantOrderId || "";
@@ -95,84 +182,87 @@ function doPost(e) {
     var resultCode = params.resultCode || "";
     var reference = params.reference || "";
     
-    Logger.log("Incoming Duitku Webhook: OrderID=" + merchantOrderId + ", Amount=" + amount + ", ResultCode=" + resultCode);
-    
-    // 1. Verifikasi Signature: MD5(merchantCode + amount + merchantOrderId + apiKey)
-    var rawSig = CONFIG.DUITKU_MERCHANT_CODE + amount + merchantOrderId + CONFIG.DUITKU_API_KEY;
-    var expectedSig = computeMD5(rawSig);
-    
-    if (signature.toLowerCase() !== expectedSig.toLowerCase()) {
-      Logger.log("Signature MISMATCH! Received: " + signature + ", Expected: " + expectedSig);
-      return ContentService.createTextOutput("Bad Signature").setMimeType(ContentService.MimeType.TEXT);
-    }
-    
-    // 2. Cek apakah transaksi Sukses (resultCode == "00")
-    if (resultCode !== "00") {
-      Logger.log("Payment not successful. ResultCode: " + resultCode);
-      return ContentService.createTextOutput("OK").setMimeType(ContentService.MimeType.TEXT);
-    }
-    
-    // 3. Ambil data pesanan dari Supabase
-    var order = fetchOrderFromSupabase(merchantOrderId);
-    if (!order) {
-      Logger.log("Order ID " + merchantOrderId + " tidak ditemukan di Supabase!");
-      return ContentService.createTextOutput("Order Not Found").setMimeType(ContentService.MimeType.TEXT);
-    }
-    
-    // Cek jika pesanan sudah diproses sebelumnya (idempotency)
-    if (order.payment_status === "PAID" && order.status === "COMPLETED") {
-      Logger.log("Order " + merchantOrderId + " sudah berstatus PAID sebelumnya.");
-      return ContentService.createTextOutput("OK").setMimeType(ContentService.MimeType.TEXT);
-    }
-    
-    var customerEmail = (order.customer_email || "").trim();
-    var customerName = order.customer_name || "Pelanggan Setia";
-    var items = Array.isArray(order.items) ? order.items : [];
-    
-    // 4. Bagikan Folder Google Drive ke Email Pembeli
-    var sharedLinks = [];
-    if (customerEmail && customerEmail.indexOf("@") !== -1) {
-      items.forEach(function(item) {
-        var folderId = GDRIVE_FOLDER_MAP[item.id] || GDRIVE_FOLDER_MAP["default"];
-        
-        // Jangan share jika masih pakai template dummy ID
-        if (folderId && folderId.indexOf("1ABCxyz") === -1) {
-          try {
-            var folder = DriveApp.getFolderById(folderId);
-            folder.addViewer(customerEmail);
-            var folderUrl = "https://drive.google.com/drive/folders/" + folderId;
-            sharedLinks.push({
-              gameId: item.id,
-              title: item.title,
-              folderId: folderId,
-              url: folderUrl
-            });
-            Logger.log("Berhasil share folder " + item.title + " ke " + customerEmail);
-          } catch (driveErr) {
-            Logger.log("Gagal share folder " + folderId + ": " + driveErr.message);
+    if (merchantOrderId && signature) {
+      Logger.log("Incoming Duitku Webhook: OrderID=" + merchantOrderId + ", Amount=" + amount + ", ResultCode=" + resultCode);
+      
+      // 1. Verifikasi Signature: MD5(merchantCode + amount + merchantOrderId + apiKey)
+      var rawSig = CONFIG.DUITKU_MERCHANT_CODE + amount + merchantOrderId + CONFIG.DUITKU_API_KEY;
+      var expectedSig = computeMD5(rawSig);
+      
+      if (signature.toLowerCase() !== expectedSig.toLowerCase()) {
+        Logger.log("Signature MISMATCH! Received: " + signature + ", Expected: " + expectedSig);
+        return ContentService.createTextOutput("Bad Signature").setMimeType(ContentService.MimeType.TEXT);
+      }
+      
+      // 2. Cek apakah transaksi Sukses (resultCode == "00")
+      if (resultCode !== "00") {
+        Logger.log("Payment not successful. ResultCode: " + resultCode);
+        return ContentService.createTextOutput("OK").setMimeType(ContentService.MimeType.TEXT);
+      }
+      
+      // 3. Ambil data pesanan dari Supabase
+      var order = fetchOrderFromSupabase(merchantOrderId);
+      if (!order) {
+        Logger.log("Order ID " + merchantOrderId + " tidak ditemukan di Supabase!");
+        return ContentService.createTextOutput("Order Not Found").setMimeType(ContentService.MimeType.TEXT);
+      }
+      
+      // Cek jika pesanan sudah diproses sebelumnya (idempotency)
+      if (order.payment_status === "PAID" && order.status === "COMPLETED") {
+        Logger.log("Order " + merchantOrderId + " sudah berstatus PAID sebelumnya.");
+        return ContentService.createTextOutput("OK").setMimeType(ContentService.MimeType.TEXT);
+      }
+      
+      var customerEmail = (order.customer_email || "").trim();
+      var customerName = order.customer_name || "Pelanggan Setia";
+      var orderItems = Array.isArray(order.items) ? order.items : [];
+      
+      // 4. Bagikan Folder Google Drive ke Email Pembeli
+      var sharedLinksDuitku = [];
+      if (customerEmail && customerEmail.indexOf("@") !== -1) {
+        orderItems.forEach(function(item) {
+          var folderId = GDRIVE_FOLDER_MAP[item.id] || GDRIVE_FOLDER_MAP["default"];
+          
+          if (folderId && folderId.indexOf("1ABCxyz") === -1) {
+            try {
+              var folder = DriveApp.getFolderById(folderId);
+              folder.addViewer(customerEmail);
+            } catch (driveErr) {
+              Logger.log("Gagal share folder " + folderId + ": " + driveErr.message);
+            }
           }
+          var folderUrl = item.driveLink || ("https://drive.google.com/drive/folders/" + (folderId || ""));
+          sharedLinksDuitku.push({
+            gameId: item.id,
+            title: item.title,
+            folderId: folderId,
+            url: folderUrl
+          });
+        });
+        
+        // 5. Kirim Email Konfirmasi Resmi ke Pembeli & Laporan ke Admin
+        sendCustomerReceiptEmail(customerEmail, customerName, order, sharedLinksDuitku);
+        sendAdminSaleNotification("aliansistore.id@gmail.com", order);
+      }
+      
+      // 6. Update Status Pesanan di Supabase menjadi PAID & COMPLETED
+      updateOrderInSupabase(merchantOrderId, {
+        payment_status: "PAID",
+        status: "COMPLETED",
+        fulfillment: {
+          gdrive_shared: sharedLinksDuitku.length > 0,
+          shared_at: new Date().toISOString(),
+          customer_email: customerEmail,
+          drive_links: sharedLinksDuitku,
+          duitku_reference: reference
         }
       });
       
-      // 5. Kirim Email Konfirmasi Resmi ke Pembeli
-      sendCustomerReceiptEmail(customerEmail, customerName, order, sharedLinks);
+      Logger.log("Order " + merchantOrderId + " berhasil diselesaikan otomatis!");
+      return ContentService.createTextOutput("OK").setMimeType(ContentService.MimeType.TEXT);
     }
     
-    // 6. Update Status Pesanan di Supabase menjadi PAID & COMPLETED
-    updateOrderInSupabase(merchantOrderId, {
-      payment_status: "PAID",
-      status: "COMPLETED",
-      fulfillment: {
-        gdrive_shared: sharedLinks.length > 0,
-        shared_at: new Date().toISOString(),
-        customer_email: customerEmail,
-        drive_links: sharedLinks,
-        duitku_reference: reference
-      }
-    });
-    
-    Logger.log("Order " + merchantOrderId + " berhasil diselesaikan otomatis!");
-    return ContentService.createTextOutput("OK").setMimeType(ContentService.MimeType.TEXT);
+    return ContentService.createTextOutput(JSON.stringify({ status: "ignored", message: "No actionable parameter" })).setMimeType(ContentService.MimeType.JSON);
     
   } catch (err) {
     Logger.log("Error in doPost: " + err.message);
@@ -281,6 +371,50 @@ function sendCustomerReceiptEmail(toEmail, customerName, order, sharedLinks) {
     Logger.log("Email konfirmasi berhasil dikirim ke " + toEmail);
   } catch (emailErr) {
     Logger.log("Gagal mengirim email ke " + toEmail + ": " + emailErr.message);
+  }
+}
+
+/**
+ * Helper: Kirim Notifikasi Laporan Hasil Penjualan ke Admin Toko
+ */
+function sendAdminSaleNotification(adminEmail, order) {
+  try {
+    var subject = "[ALIANSI STORE - LAPORAN PENJUALAN] Transaksi Lunas #" + order.id + " (" + (order.customerName || "Pelanggan") + ") - Rp " + Number(order.total || 0).toLocaleString('id-ID');
+    
+    var itemsList = (order.items || []).map(function(item) {
+      return '<li style="margin-bottom:6px;"><b>' + item.title + '</b> (' + (item.variant || "Standard") + ') - Rp ' + Number(item.unitPrice || 0).toLocaleString('id-ID') + '</li>';
+    }).join("");
+
+    var htmlBody = '<!DOCTYPE html><html><body style="font-family:Arial,sans-serif; background:#070d1e; color:#f8fafc; margin:0; padding:20px;">' +
+      '<div style="max-width:560px; margin:auto; background:#0b1329; border:1px solid #1e293b; border-radius:14px; padding:25px; box-shadow:0 8px 24px rgba(0,0,0,0.5);">' +
+        '<div style="border-bottom:1px solid #1e293b; padding-bottom:15px; margin-bottom:15px;">' +
+          '<h2 style="color:#38bdf8; margin:0 0 5px 0; font-size:20px;">⚡ LAPORAN PENJUALAN MASUK</h2>' +
+          '<span style="background:#064e3b; color:#34d399; font-size:11px; font-weight:bold; padding:3px 8px; border-radius:6px; border:1px solid #059669;">TRANSAKSI LUNAS (PAID)</span>' +
+        '</div>' +
+        '<p style="color:#cbd5e1; font-size:13px; line-height:1.6;">Halo Admin ' + CONFIG.STORE_NAME + ', pesanan berikut telah berhasil diselesaikan:</p>' +
+        '<table style="width:100%; border-collapse:collapse; font-size:13px; margin:16px 0; background:#0f172a; border-radius:8px; overflow:hidden;">' +
+          '<tr style="border-bottom:1px solid #1e293b;"><td style="padding:10px 14px; color:#94a3b8; width:130px;">No. Invoice:</td><td style="padding:10px 14px; font-weight:bold; color:#38bdf8;">' + order.id + '</td></tr>' +
+          '<tr style="border-bottom:1px solid #1e293b;"><td style="padding:10px 14px; color:#94a3b8;">Nama Pembeli:</td><td style="padding:10px 14px; font-weight:bold; color:#ffffff;">' + (order.customerName || "-") + '</td></tr>' +
+          '<tr style="border-bottom:1px solid #1e293b;"><td style="padding:10px 14px; color:#94a3b8;">Email Pembeli:</td><td style="padding:10px 14px; color:#38bdf8;">' + (order.customerEmail || "-") + '</td></tr>' +
+          '<tr style="border-bottom:1px solid #1e293b;"><td style="padding:10px 14px; color:#94a3b8;">WhatsApp:</td><td style="padding:10px 14px; color:#4ade80;">' + (order.customerPhone || "-") + '</td></tr>' +
+          '<tr style="border-bottom:1px solid #1e293b;"><td style="padding:10px 14px; color:#94a3b8;">Metode Bayar:</td><td style="padding:10px 14px; font-weight:bold; color:#f8fafc;">' + (order.paymentMethod || "QRIS").toUpperCase() + '</td></tr>' +
+          '<tr><td style="padding:10px 14px; color:#94a3b8;">Total Omset:</td><td style="padding:10px 14px; font-size:16px; font-weight:black; color:#22c55e;">Rp ' + Number(order.total || 0).toLocaleString('id-ID') + '</td></tr>' +
+        '</table>' +
+        '<h4 style="color:#f8fafc; font-size:14px; margin:18px 0 8px 0;">🎮 Daftar Game Dipesan:</h4>' +
+        '<ul style="color:#cbd5e1; font-size:13px; padding-left:22px; line-height:1.7;">' + itemsList + '</ul>' +
+        '<div style="text-align:center; padding-top:16px; margin-top:20px; border-top:1px solid #1e293b; color:#64748b; font-size:11px;">' +
+          'Sistem Otomasi Notifikasi &bull; ' + CONFIG.STORE_NAME +
+        '</div>' +
+      '</div>' +
+    '</body></html>';
+
+    GmailApp.sendEmail(adminEmail, subject, "Laporan penjualan pesanan #" + order.id + " senilai Rp " + Number(order.total || 0).toLocaleString('id-ID'), {
+      name: CONFIG.STORE_NAME,
+      htmlBody: htmlBody
+    });
+    Logger.log("Laporan penjualan berhasil dikirim ke admin: " + adminEmail);
+  } catch (err) {
+    Logger.log("Gagal mengirim laporan penjualan ke admin: " + err.message);
   }
 }
 

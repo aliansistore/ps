@@ -771,6 +771,7 @@ async function syncFromSupabase() {
         whatsappFormatted: cfg.whatsapp_formatted || state.config.whatsappFormatted,
         adminEmail: cfg.admin_email || state.config.adminEmail || 'aliansistore.id@gmail.com',
         adminPin: cfg.admin_pin || state.config.adminPin || '1234',
+        appsScriptUrl: cfg.apps_script_url || state.config.appsScriptUrl || '',
         bankAccounts: cfg.bank_accounts || state.config.bankAccounts,
         vouchers: cfg.vouchers || state.config.vouchers
       };
@@ -845,13 +846,15 @@ async function syncConfigToSupabase() {
       whatsapp_formatted: state.config.whatsappFormatted || '+62 812-3456-7890',
       admin_email: state.config.adminEmail || 'aliansistore.id@gmail.com',
       admin_pin: state.config.adminPin || '1234',
+      apps_script_url: state.config.appsScriptUrl || '',
       bank_accounts: state.config.bankAccounts || [],
       vouchers: state.config.vouchers || [],
       updated_at: new Date().toISOString()
     };
     const { error } = await supabaseClient.from('store_config').upsert(payload);
-    if (error && error.message && error.message.includes('admin_email')) {
-      delete payload.admin_email;
+    if (error && error.message) {
+      if (error.message.includes('apps_script_url')) delete payload.apps_script_url;
+      if (error.message.includes('admin_email')) delete payload.admin_email;
       await supabaseClient.from('store_config').upsert(payload);
     }
   } catch (err) {
@@ -2630,9 +2633,7 @@ function renderInvoiceDetails(order) {
 
     if (dispatchCard) {
       dispatchCard.classList.remove('hidden');
-      const adminEmailEl = document.getElementById('inv-dispatch-admin-email');
       const custEmailEl = document.getElementById('inv-dispatch-customer-email');
-      if (adminEmailEl) adminEmailEl.textContent = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
       if (custEmailEl) custEmailEl.textContent = order.customerEmail || '-';
     }
   } else {
@@ -2985,13 +2986,15 @@ function buildOrderDriveLinksText(order) {
   return links.map(l => `• ${l.title}:\n  ${l.url || 'https://drive.google.com/drive/shared-with-me'}`).join('\n');
 }
 
-function dispatchOrderCompletionEmails(order) {
+async function dispatchOrderCompletionEmails(order) {
   if (!order) return;
 
   if (!order.fulfillment) order.fulfillment = {};
   
   const adminEmail = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
-  const customerEmail = order.customerEmail || 'customer@gmail.com';
+  const customerEmail = (order.customerEmail || '').trim();
+  const customerName = order.customerName || 'Pelanggan Setia';
+  const appsScriptUrl = (state.config && state.config.appsScriptUrl) || '';
 
   // Mark in order fulfillment state
   order.fulfillment.emails_dispatched = {
@@ -3009,19 +3012,87 @@ function dispatchOrderCompletionEmails(order) {
     syncOrderToSupabase(order);
   }
 
-  // Update Invoice view if opened
+  // Update Customer Invoice view if opened (Clean customer confirmation)
   const dispatchCard = document.getElementById('inv-email-dispatch-card');
   if (dispatchCard) {
     dispatchCard.classList.remove('hidden');
-    const adminEmailEl = document.getElementById('inv-dispatch-admin-email');
     const custEmailEl = document.getElementById('inv-dispatch-customer-email');
-    if (adminEmailEl) adminEmailEl.textContent = adminEmail;
-    if (custEmailEl) custEmailEl.textContent = customerEmail;
+    if (custEmailEl) custEmailEl.textContent = customerEmail || 'email Anda';
+  }
+
+  // Prepare structured payload for automated delivery
+  const payload = {
+    action: 'send_order_emails',
+    orderId: order.id,
+    order: {
+      id: order.id,
+      customerName: customerName,
+      customerEmail: customerEmail,
+      customerPhone: order.customerPhone || '',
+      paymentMethod: order.paymentMethod || 'QRIS',
+      total: order.total || 0,
+      subtotal: order.subtotal || 0,
+      discount: order.discount || 0,
+      voucherCode: order.voucherCode || '',
+      createdAt: order.createdAt || new Date().toISOString(),
+      items: (order.items || []).map(i => {
+        const prod = (state.products || []).find(p => p.id === (i.productId || i.id));
+        return {
+          productId: i.productId || i.id,
+          title: i.title,
+          variant: i.variant || 'PS4 HEN',
+          unitPrice: i.unitPrice || 0,
+          qty: i.qty || 1,
+          driveLink: (prod && prod.driveLink) ? prod.driveLink : (i.driveLink || '')
+        };
+      })
+    },
+    customerEmail: customerEmail,
+    customerName: customerName,
+    adminEmail: adminEmail,
+    appsScriptUrl: appsScriptUrl
+  };
+
+  // 1. Direct dispatch to Google Apps Script Web App (if configured)
+  if (appsScriptUrl && appsScriptUrl.startsWith('http')) {
+    try {
+      fetch(appsScriptUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).catch(e => console.info('[EMAIL DISPATCH] Direct Apps Script fetch initiated'));
+    } catch (e) {
+      console.warn('[EMAIL DISPATCH] Apps Script note:', e);
+    }
+  }
+
+  // 2. Dispatch via Serverless Function / Local Server Endpoint
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const endpoints = isLocal
+    ? ['http://localhost:5050/.netlify/functions/send-email', 'http://localhost:5050/api/send-email']
+    : ['/.netlify/functions/send-email', '/api/send-email', 'https://aliansistore-ps.netlify.app/.netlify/functions/send-email'];
+
+  for (const ep of endpoints) {
+    try {
+      const res = await fetch(ep, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        console.info(`[ALIANSI EMAIL DISPATCH] Berhasil diproses endpoint: ${ep}`);
+        break;
+      }
+    } catch (err) {
+      // Continue next endpoint
+    }
   }
 
   console.info(`[ALIANSI EMAIL DISPATCH] Transaksi Selesai #${order.id}:`, {
-    adminSalesNotification: `Sent to ${adminEmail}`,
-    customerProofOfPurchase: `Sent to ${customerEmail} (Mode: NO-REPLY)`
+    customerEmail: customerEmail,
+    adminEmail: adminEmail,
+    appsScriptConnected: Boolean(appsScriptUrl)
   });
 }
 
@@ -4501,10 +4572,12 @@ function openAdminSettingsModal() {
   const waEl = document.getElementById('setting-admin-wa');
   const emailEl = document.getElementById('setting-admin-email');
   const nameEl = document.getElementById('setting-store-name');
+  const appsScriptEl = document.getElementById('setting-apps-script-url');
 
   if (waEl) waEl.value = (state.config && state.config.whatsappNumber) || '6281234567890';
   if (emailEl) emailEl.value = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
   if (nameEl) nameEl.value = (state.config && state.config.storeName) || 'ALIANSI STORE';
+  if (appsScriptEl) appsScriptEl.value = (state.config && state.config.appsScriptUrl) || '';
 
   const newPinEl = document.getElementById('setting-admin-new-pin');
   const confirmPinEl = document.getElementById('setting-admin-confirm-pin');
@@ -4531,16 +4604,56 @@ function testCurrentWaLink() {
   window.open(`https://wa.me/${cleanWa}?text=${testMsg}`, '_blank');
 }
 
+async function testAppsScriptEmail() {
+  playSfx('click');
+  const urlInput = document.getElementById('setting-apps-script-url');
+  const url = (urlInput ? urlInput.value.trim() : '') || (state.config && state.config.appsScriptUrl) || '';
+  const adminEmail = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
+
+  if (!url || !url.startsWith('http')) {
+    showToast('Tempelkan URL Web App Google Apps Script (https://script.google.com/macros/s/.../exec) terlebih dahulu!', 'warning', 'URL Webhook Belum Diisi');
+    if (urlInput) urlInput.focus();
+    return;
+  }
+
+  showToast(`Mengirim email uji coba ke ${adminEmail}...`, 'info', 'Uji Coba Email');
+
+  try {
+    const payload = {
+      action: 'test_email',
+      to: adminEmail,
+      adminEmail: adminEmail,
+      timestamp: new Date().toISOString()
+    };
+
+    fetch(url, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(() => {
+      playSfx('success');
+      showToast(`Permintaan email tes telah diteruskan ke Google Apps Script! Silakan cek inbox Gmail ${adminEmail}.`, 'success', 'Tes Berhasil Terkirim');
+    }).catch(err => {
+      showToast('Gagal menghubungi Google Apps Script: ' + err.message, 'error');
+    });
+  } catch (err) {
+    showToast('Terjadi kesalahan saat uji coba: ' + err.message, 'error');
+  }
+}
+
 function saveAdminSettings() {
   const waInput = document.getElementById('setting-admin-wa');
   const emailInput = document.getElementById('setting-admin-email');
   const nameInput = document.getElementById('setting-store-name');
+  const appsScriptInput = document.getElementById('setting-apps-script-url');
 
   if (!waInput || !emailInput) return;
 
   let rawWa = waInput.value.trim();
   const email = emailInput.value.trim();
   const storeName = nameInput ? nameInput.value.trim() : 'ALIANSI STORE';
+  const appsScriptUrl = appsScriptInput ? appsScriptInput.value.trim() : '';
 
   // Normalize phone number to standard international format (e.g. 0812... -> 62812...)
   let cleanWa = rawWa.replace(/[^0-9]/g, '');
@@ -4574,6 +4687,7 @@ function saveAdminSettings() {
   }
 
   state.config.adminEmail = email;
+  state.config.appsScriptUrl = appsScriptUrl;
   if (storeName) state.config.storeName = storeName;
 
   // Process Admin Password Change (if provided)

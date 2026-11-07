@@ -11,7 +11,7 @@ $listener.Prefixes.Add($url)
 try {
     $listener.Start()
     Write-Host "==========================================================" -ForegroundColor Cyan
-    Write-Host " 🎮 ALIANSI STORE - Next-Gen Server Berjalan!" -ForegroundColor Green
+    Write-Host " [ALIANSI STORE] Next-Gen Server Berjalan!" -ForegroundColor Green
     Write-Host " Buka browser di: $url" -ForegroundColor Yellow
     Write-Host " Tekan Ctrl+C di jendela ini untuk menghentikan server" -ForegroundColor Gray
     Write-Host "==========================================================" -ForegroundColor Cyan
@@ -89,7 +89,57 @@ try {
             }
             catch {
                 $response.StatusCode = 500
-                $errBytes = [System.Text.Encoding]::UTF8.GetBytes("{""error"":""$($_.Exception.Message)""}")
+                $errJson = @{ error = $_.Exception.Message } | ConvertTo-Json -Compress
+                $errBytes = [System.Text.Encoding]::UTF8.GetBytes($errJson)
+                $response.OutputStream.Write($errBytes, 0, $errBytes.Length)
+            }
+            $response.Close()
+            continue
+        }
+
+        # Handle Automated Email Dispatch Mock / Forwarder for Local Server
+        if ($localPath -like "*.netlify/functions/send-email*" -or $localPath -like "*api/send-email*") {
+            try {
+                $reader = New-Object System.IO.StreamReader($request.InputStream, [System.Text.Encoding]::UTF8)
+                $reqBodyStr = $reader.ReadToEnd()
+                $reqJson = $reqBodyStr | ConvertFrom-Json
+                
+                $cEmail = if ($reqJson.customerEmail) { $reqJson.customerEmail } elseif ($reqJson.order -and $reqJson.order.customerEmail) { $reqJson.order.customerEmail } else { "customer@email.com" }
+                $aEmail = if ($reqJson.adminEmail) { $reqJson.adminEmail } else { "aliansistore.id@gmail.com" }
+                $asUrl = if ($reqJson.appsScriptUrl) { $reqJson.appsScriptUrl } else { "" }
+                
+                Write-Host "[LOCAL SERVER] Permintaan Pengiriman Email Otomatis:" -ForegroundColor Cyan
+                Write-Host "               -> Pembeli: $cEmail" -ForegroundColor Yellow
+                Write-Host "               -> Admin:   $aEmail" -ForegroundColor Yellow
+                
+                # If Apps Script Web App URL is provided, forward it asynchronously
+                if ($asUrl -and $asUrl.StartsWith("http")) {
+                    Write-Host "               -> Meneruskan ke Google Apps Script: $asUrl" -ForegroundColor Green
+                    try {
+                        Invoke-RestMethod -Uri $asUrl -Method Post -Body $reqBodyStr -ContentType "application/json" -TimeoutSec 10 | Out-Null
+                        Write-Host "               -> Forward Google Apps Script SUKSES!" -ForegroundColor Green
+                    } catch {
+                        Write-Host "               -> Catatan forward Apps Script: $($_.Exception.Message)" -ForegroundColor DarkGray
+                    }
+                }
+                
+                $response.ContentType = "application/json; charset=utf-8"
+                $response.AddHeader("Access-Control-Allow-Origin", "*")
+                $resData = @{
+                    success = $true
+                    message = "Email dispatch processed for $cEmail"
+                    customerEmail = $cEmail
+                    adminEmail = $aEmail
+                } | ConvertTo-Json -Compress
+                $resBytes = [System.Text.Encoding]::UTF8.GetBytes($resData)
+                $response.ContentLength64 = $resBytes.Length
+                $response.StatusCode = 200
+                $response.OutputStream.Write($resBytes, 0, $resBytes.Length)
+            }
+            catch {
+                $response.StatusCode = 500
+                $errJson = @{ error = $_.Exception.Message } | ConvertTo-Json -Compress
+                $errBytes = [System.Text.Encoding]::UTF8.GetBytes($errJson)
                 $response.OutputStream.Write($errBytes, 0, $errBytes.Length)
             }
             $response.Close()
@@ -107,14 +157,15 @@ try {
                 }
                 $response.ContentType = "application/json; charset=utf-8"
                 $response.AddHeader("Access-Control-Allow-Origin", "*")
-                $resBytes = [System.Text.Encoding]::UTF8.GetBytes("{""success"":true}")
+                $resBytes = [System.Text.Encoding]::UTF8.GetBytes('{"success":true}')
                 $response.ContentLength64 = $resBytes.Length
                 $response.StatusCode = 200
                 $response.OutputStream.Write($resBytes, 0, $resBytes.Length)
             }
             catch {
                 $response.StatusCode = 500
-                $errBytes = [System.Text.Encoding]::UTF8.GetBytes("{""error"":""$($_.Exception.Message)""}")
+                $errJson = @{ error = $_.Exception.Message } | ConvertTo-Json -Compress
+                $errBytes = [System.Text.Encoding]::UTF8.GetBytes($errJson)
                 $response.OutputStream.Write($errBytes, 0, $errBytes.Length)
             }
             $response.Close()
@@ -163,7 +214,7 @@ try {
     }
 }
 catch {
-    Write-Host "Error: $_" -ForegroundColor Red
+    Write-Host ("Error: " + $_.Exception.Message) -ForegroundColor Red
 }
 finally {
     $listener.Stop()
