@@ -4495,9 +4495,15 @@ function openAdminForgotPasswordModal() {
   if (step2) step2.classList.add('hidden');
 
   const emailInput = document.getElementById('forgot-admin-email-input');
-  const registeredEmail = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
+  const loginIdInput = document.getElementById('auth-login-identifier');
+  
   if (emailInput) {
-    emailInput.value = registeredEmail;
+    const prefill = loginIdInput && loginIdInput.value.trim() ? loginIdInput.value.trim() : '';
+    emailInput.value = prefill;
+    setTimeout(() => {
+      emailInput.focus();
+      if (prefill) emailInput.select();
+    }, 150);
   }
 
   const otpInput = document.getElementById('forgot-admin-otp-input');
@@ -4509,6 +4515,16 @@ function openAdminForgotPasswordModal() {
 
   modal.classList.remove('hidden');
   if (window.lucide) lucide.createIcons();
+}
+
+function prefillAdminForgotEmail() {
+  playSfx('click');
+  const emailInput = document.getElementById('forgot-admin-email-input');
+  const registeredEmail = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
+  if (emailInput) {
+    emailInput.value = registeredEmail;
+    emailInput.focus();
+  }
 }
 
 function openLoginModalFromForgot() {
@@ -4528,44 +4544,141 @@ function backToForgotStep1() {
 
 function requestAdminResetCode() {
   playSfx('click');
-  const registeredEmail = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
+  const emailInput = document.getElementById('forgot-admin-email-input');
+  const rawInput = emailInput ? emailInput.value.trim() : '';
+  
+  if (!rawInput) {
+    showToast('Mohon masukkan Email atau No. WhatsApp akun Anda!', 'warning');
+    if (emailInput) emailInput.focus();
+    return;
+  }
+
+  const inputLower = rawInput.toLowerCase();
+  const cleanPhone = rawInput.replace(/[\s-]/g, '');
   const storeName = (state.config && state.config.storeName) || 'ALIANSI STORE';
+  const adminEmail = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
+  const adminPhone = (state.config && state.config.whatsappNumber) || '081234567890';
+  const cleanAdminPhone = adminPhone.replace(/[\s-]/g, '');
+
+  let accountType = null;
+  let targetUser = null;
+  let targetEmail = '';
+  let targetPhone = '';
+  let targetName = '';
+
+  // 1. Check if matches Admin
+  if (
+    inputLower === 'admin' ||
+    inputLower === 'administrator' ||
+    inputLower === 'owner' ||
+    inputLower === 'admin@aliansistore.com' ||
+    inputLower === adminEmail.toLowerCase() ||
+    (cleanAdminPhone && cleanPhone === cleanAdminPhone)
+  ) {
+    accountType = 'admin';
+    targetName = `Admin ${storeName}`;
+    targetEmail = adminEmail;
+    targetPhone = adminPhone;
+  }
+
+  // 2. Check if matches registered member in state.users
+  if (!accountType && Array.isArray(state.users)) {
+    const matched = state.users.find(u => 
+      (u.email && u.email.toLowerCase() === inputLower) ||
+      (u.phone && u.phone.replace(/[\s-]/g, '') === cleanPhone) ||
+      (u.identifier && u.identifier.toLowerCase() === inputLower)
+    );
+    if (matched) {
+      accountType = matched.role === 'admin' ? 'admin' : 'member';
+      targetUser = matched;
+      targetName = matched.name || 'Member Toko';
+      targetEmail = matched.email || '';
+      targetPhone = matched.phone || rawInput;
+    }
+  }
+
+  // 3. Check if customer from state.orders
+  if (!accountType && Array.isArray(state.orders)) {
+    const matchedOrder = state.orders.find(o => 
+      (o.customerEmail && o.customerEmail.toLowerCase() === inputLower) ||
+      (o.customerPhone && o.customerPhone.replace(/[\s-]/g, '') === cleanPhone)
+    );
+    if (matchedOrder) {
+      accountType = 'member';
+      targetName = matchedOrder.customerName || 'Pelanggan Setia';
+      targetEmail = matchedOrder.customerEmail || '';
+      targetPhone = matchedOrder.customerPhone || rawInput;
+
+      if (!state.users) state.users = [];
+      let existingUser = state.users.find(u => 
+        (targetEmail && u.email && u.email.toLowerCase() === targetEmail.toLowerCase()) ||
+        (targetPhone && u.phone && u.phone.replace(/[\s-]/g, '') === cleanPhone)
+      );
+      if (!existingUser) {
+        existingUser = {
+          id: 'usr-' + Date.now(),
+          identifier: targetPhone || targetEmail,
+          name: targetName,
+          phone: targetPhone,
+          email: targetEmail,
+          pin: '1234',
+          role: 'customer',
+          roleLabel: 'Member VIP',
+          lastOnline: new Date().toISOString()
+        };
+        state.users.push(existingUser);
+        saveUsers();
+      }
+      targetUser = existingUser;
+    }
+  }
+
+  // 4. Not found
+  if (!accountType) {
+    showToast('Akun dengan Email / No. WhatsApp tersebut tidak ditemukan! Periksa kembali atau daftar akun baru.', 'error', 'Akun Tidak Ditemukan');
+    if (emailInput) emailInput.focus();
+    return;
+  }
 
   // Generate secure 6-digit numeric OTP code
   const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
   const expiresAt = Date.now() + 15 * 60 * 1000; // 15 minutes validity
 
-  state.adminResetOtp = {
+  const resetData = {
     code: otpCode,
-    email: registeredEmail,
+    role: accountType,
+    userId: targetUser ? targetUser.id : 'usr-admin',
+    name: targetName,
+    email: targetEmail,
+    phone: targetPhone,
     expiresAt: expiresAt
   };
 
-  // Format verification email
-  const subject = `[RESET PASSWORD] Kode Verifikasi OTP ${storeName} - ${otpCode}`;
-  const body = `Halo Pengelola ${storeName},
+  state.adminResetOtp = resetData;
+  state.activeResetOtp = resetData;
 
-Kami menerima permintaan untuk mereset password akun login toko Anda.
+  const displayTarget = targetEmail || targetPhone || rawInput;
+  const roleLabel = accountType === 'admin' ? 'Admin' : 'Member';
+  const subject = `[RESET PASSWORD ${roleLabel.toUpperCase()}] Kode OTP Verifikasi ${storeName} - ${otpCode}`;
+  const body = `Halo ${targetName},
 
-Berikut adalah Kode Verifikasi (OTP) untuk reset password:
+Kami menerima permintaan untuk mereset password akun ${roleLabel} Anda di ${storeName}.
+
+Berikut adalah Kode Verifikasi (OTP) untuk reset password akun Anda:
 ======================================================
 KODE OTP ANDA: ${otpCode}
 ======================================================
 
-* Kode OTP ini hanya berlaku selama 15 menit.
-* Masukkan kode 6-digit di atas pada formulir reset password di website toko Anda.
-* JANGAN BERIKAN KODE INI KEPADA SIAPAPUN demi keamanan toko Anda.
+* Kode OTP ini berlaku selama 15 menit.
+* Masukkan kode 6-digit di atas pada formulir reset password di website toko.
+* JANGAN BERIKAN KODE INI KEPADA SIAPAPUN demi keamanan akun Anda.
 
-Jika Anda tidak merasa melakukan permintaan ini, segera abaikan email ini atau periksa pengaturan keamanan akun Anda.
+Jika Anda tidak merasa melakukan permintaan ini, abaikan pesan ini.
 
 Hormat kami,
 Sistem Keamanan & Verifikasi
-${storeName}
-Official Email: ${registeredEmail}`;
+${storeName}`;
 
-  // Trigger mailto client
-  const mailtoUrl = `mailto:${registeredEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  
   // Transition UI to Step 2
   const step1 = document.getElementById('forgot-admin-step-1');
   const step2 = document.getElementById('forgot-admin-step-2');
@@ -4573,7 +4686,7 @@ Official Email: ${registeredEmail}`;
   if (step2) step2.classList.remove('hidden');
 
   const targetDisplay = document.getElementById('forgot-otp-sent-target');
-  if (targetDisplay) targetDisplay.textContent = registeredEmail;
+  if (targetDisplay) targetDisplay.textContent = displayTarget;
 
   const otpInput = document.getElementById('forgot-admin-otp-input');
   if (otpInput) {
@@ -4583,11 +4696,19 @@ Official Email: ${registeredEmail}`;
 
   if (window.lucide) lucide.createIcons();
   playSfx('success');
-  showToast(`Kode OTP 6-digit (${otpCode}) telah dikirimkan ke email ${registeredEmail}!`, 'success', 'Kode OTP Dikirim');
-  console.info(`[ADMIN SECURITY OTP] Generated OTP Code: ${otpCode} for ${registeredEmail} (valid 15 mins)`);
 
-  // Open email client
-  window.open(mailtoUrl, '_blank');
+  // Trigger mailto if email is available
+  if (targetEmail) {
+    const mailtoUrl = `mailto:${targetEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    try {
+      window.open(mailtoUrl, '_blank');
+    } catch (e) {
+      console.warn('Mailto open blocked:', e);
+    }
+  }
+
+  showToast(`Kode OTP 6-digit (${otpCode}) siap digunakan untuk verifikasi akun ${targetName}!`, 'success', 'Kode OTP Diterbitkan');
+  console.info(`[SECURITY RESET OTP] Generated OTP Code: ${otpCode} for ${targetName} (${roleLabel}) [Target: ${displayTarget}]`);
 }
 
 function submitAdminPasswordReset() {
@@ -4600,7 +4721,9 @@ function submitAdminPasswordReset() {
   const newPass = newPassInput ? newPassInput.value.trim() : '';
   const confirmPass = confirmPassInput ? confirmPassInput.value.trim() : '';
 
-  if (!state.adminResetOtp || !state.adminResetOtp.code) {
+  const resetState = state.activeResetOtp || state.adminResetOtp;
+
+  if (!resetState || !resetState.code) {
     showToast('Silakan minta kode OTP terlebih dahulu!', 'warning');
     backToForgotStep1();
     return;
@@ -4613,7 +4736,7 @@ function submitAdminPasswordReset() {
   }
 
   // Validate OTP code
-  if (enteredOtp !== state.adminResetOtp.code) {
+  if (enteredOtp !== resetState.code) {
     playSfx('cart');
     showToast('Kode OTP yang Anda masukkan salah / tidak cocok!', 'error', 'OTP Tidak Valid');
     if (otpInput) otpInput.focus();
@@ -4621,7 +4744,7 @@ function submitAdminPasswordReset() {
   }
 
   // Validate expiration
-  if (Date.now() > state.adminResetOtp.expiresAt) {
+  if (Date.now() > resetState.expiresAt) {
     playSfx('cart');
     showToast('Kode OTP telah kedaluwarsa (lebih dari 15 menit). Silakan minta kode baru!', 'warning', 'OTP Expired');
     backToForgotStep1();
@@ -4641,40 +4764,97 @@ function submitAdminPasswordReset() {
     return;
   }
 
-  // Update admin PIN / Password
-  if (!state.config) state.config = {};
-  state.config.adminPin = newPass;
+  const storeName = (state.config && state.config.storeName) || 'ALIANSI STORE';
 
-  // Persist to LocalStorage and Cloud
-  saveConfig();
-  if (typeof syncConfigToSupabase === 'function') {
-    syncConfigToSupabase();
-  }
+  // 1. ADMIN RESET
+  if (resetState.role === 'admin') {
+    if (!state.config) state.config = {};
+    state.config.adminPin = newPass;
 
-  // Clear OTP state
-  state.adminResetOtp = { code: '', email: '', expiresAt: 0 };
-
-  playSfx('success');
-  if (typeof confetti === 'function') {
-    confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
-  }
-
-  showToast('Password berhasil direset! Silakan login dengan password baru Anda.', 'success', 'Reset Berhasil');
-  closeModals();
-
-  // Open Login form and autofill
-  setTimeout(() => {
-    openAuthModal('login');
-    const idEl = document.getElementById('auth-login-identifier');
-    const passEl = document.getElementById('auth-login-password');
-    if (idEl) idEl.value = 'admin';
-    if (passEl) {
-      passEl.value = newPass;
-      passEl.focus();
+    saveConfig();
+    if (typeof syncConfigToSupabase === 'function') {
+      syncConfigToSupabase();
     }
-  }, 400);
+
+    state.isAdmin = true;
+    state.currentUser = {
+      id: 'usr-admin-01',
+      name: `Admin ${storeName}`,
+      email: resetState.email || ((state.config && state.config.adminEmail) || 'admin@aliansistore.com'),
+      phone: resetState.phone || ((state.config && state.config.whatsappNumber) || '081234567890'),
+      role: 'admin'
+    };
+    localStorage.setItem(APP_STORAGE_KEYS.ADMIN_AUTH, 'true');
+    localStorage.setItem(APP_STORAGE_KEYS.USER, JSON.stringify(state.currentUser));
+
+    state.adminResetOtp = { code: '', email: '', expiresAt: 0 };
+    state.activeResetOtp = null;
+
+    closeModals();
+    updateNavAuthUI();
+    playSfx('success');
+    if (typeof confetti === 'function') confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
+    showToast('Password Admin berhasil diperbarui! Anda otomatis masuk ke Dashboard Admin.', 'success', 'Reset Berhasil');
+    setTimeout(() => {
+      openAdminDashboard();
+    }, 400);
+    return;
+  }
+
+  // 2. MEMBER RESET
+  if (resetState.role === 'member') {
+    if (!Array.isArray(state.users)) state.users = [];
+    let member = state.users.find(u => 
+      u.id === resetState.userId ||
+      (resetState.email && u.email && u.email.toLowerCase() === resetState.email.toLowerCase()) ||
+      (resetState.phone && u.phone && u.phone.replace(/[\s-]/g, '') === resetState.phone.replace(/[\s-]/g, ''))
+    );
+
+    if (!member) {
+      member = {
+        id: resetState.userId || ('usr-' + Date.now()),
+        identifier: resetState.phone || resetState.email,
+        name: resetState.name || 'Member Setia',
+        phone: resetState.phone || '',
+        email: resetState.email || '',
+        pin: newPass,
+        role: 'customer',
+        roleLabel: 'Member VIP',
+        lastOnline: new Date().toISOString()
+      };
+      state.users.push(member);
+    } else {
+      member.pin = newPass;
+      member.password = newPass;
+      member.lastOnline = new Date().toISOString();
+    }
+
+    saveUsers();
+
+    state.isAdmin = false;
+    state.currentUser = member;
+    localStorage.setItem(APP_STORAGE_KEYS.ADMIN_AUTH, 'false');
+    localStorage.setItem(APP_STORAGE_KEYS.USER, JSON.stringify(state.currentUser));
+
+    state.adminResetOtp = { code: '', email: '', expiresAt: 0 };
+    state.activeResetOtp = null;
+
+    closeModals();
+    updateNavAuthUI();
+    playSfx('success');
+    if (typeof confetti === 'function') confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
+    showToast(`Password Member (${member.name}) berhasil diperbarui! Anda otomatis login.`, 'success', 'Reset Berhasil');
+    return;
+  }
+
+  // Fallback
+  showToast('Password berhasil diperbarui!', 'success');
+  closeModals();
 }
 
+// Global Aliases for consistency
+const openForgotPasswordModal = openAdminForgotPasswordModal;
+const submitPasswordReset = submitAdminPasswordReset;
 // ================= GAME REQUESTS MANAGEMENT SYSTEM =================
 let currentRequestModalTab = 'new';
 let customerRequestModalFilter = 'all';
