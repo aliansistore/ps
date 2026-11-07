@@ -676,19 +676,6 @@ const INITIAL_USERS = [
     avatar: "👑"
   },
   {
-    id: "usr-cust-01",
-    identifier: "081234567890",
-    name: "Rian Pratama",
-    phone: "081234567890",
-    email: "rian.pratama@gmail.com",
-    pin: "1234",
-    role: "customer",
-    roleLabel: "Member VIP",
-    authProvider: "local",
-    avatar: "RP",
-    memberSince: "2024"
-  },
-  {
     id: "usr-cust-google-01",
     identifier: "dimas.gamer@gmail.com",
     name: "Dimas Setiawan",

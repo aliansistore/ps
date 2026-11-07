@@ -432,6 +432,13 @@ function loadStoredData() {
   if (Array.isArray(state.users)) {
     let usersUpdated = false;
     
+    // Clean up removed demo customer accounts if previously cached
+    const beforeCount = state.users.length;
+    state.users = state.users.filter(u => u.id !== 'usr-cust-01');
+    if (state.users.length !== beforeCount) {
+      usersUpdated = true;
+    }
+
     // 1. Sync from INITIAL_USERS
     if (typeof INITIAL_USERS !== 'undefined' && Array.isArray(INITIAL_USERS)) {
       INITIAL_USERS.forEach(iu => {
