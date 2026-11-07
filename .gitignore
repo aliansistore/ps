@@ -6,3 +6,4 @@ Thumbs.db
 # Temporary & Log files
 *.log
 *.tmp
+assets/products-cache.json

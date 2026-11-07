@@ -26,6 +26,24 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
 
+// Master Helper: Identify PlayStation HEN (File PKG Google Drive) Games
+// Pada game HEN tidak ada akun Secondary atau Primary, murni format File PKG
+function isHenProduct(product) {
+  if (!product) return false;
+  // 1. Explicit boolean flag
+  if (product.isHen === true || product.is_hen === true) return true;
+  // 2. Platform contains HEN (e.g. "PS4 HEN", "HEN", etc.)
+  if (Array.isArray(product.platform) && product.platform.some(pl => String(pl).toUpperCase().includes('HEN'))) return true;
+  if (typeof product.platform === 'string' && product.platform.toUpperCase().includes('HEN')) return true;
+  // 3. Category is hen or subindo
+  if (product.category === 'hen' || product.category === 'subindo' || product.category === 'service-hen') return true;
+  // 4. Title, Slug, or Tagline indicates HEN / Sub Indo format
+  const title = (product.title || '').toLowerCase();
+  const slug = (product.slug || '').toLowerCase();
+  if (title.includes('hen') || slug.includes('hen') || title.includes('sub indo') || slug.includes('sub-indo') || title.includes('pkg')) return true;
+  return false;
+}
+
 // Permanent High-Resolution Local & Fallback Poster Map (14 Official Sub Indo Titles)
 const COVER_FALLBACK_MAP = {
   'game-it-takes-two-subindo': 'assets/covers/it-takes-two.jpg',
@@ -385,8 +403,14 @@ function loadStoredData() {
     });
   }
 
-  // Ensure cover fallbacks if image is missing
+  // Ensure isHen flag and cover fallbacks if image is missing
   state.products.forEach(p => {
+    if (isHenProduct(p)) {
+      p.isHen = true;
+      if (p.prices) {
+        p.prices.secondary = p.prices.primary;
+      }
+    }
     if (COVER_FALLBACK_MAP[p.id] && (!p.images || !p.images.poster)) {
       if (!p.images) p.images = {};
       p.images.poster = COVER_FALLBACK_MAP[p.id];
@@ -532,7 +556,8 @@ function loadStoredData() {
       // Auto-migrate legacy 'primary' variant to 'PS4 HEN' for HEN games
       if (Array.isArray(state.cart)) {
         state.cart.forEach(item => {
-          if (!item.variant || item.variant.toLowerCase() === 'primary') {
+          const prod = state.products.find(p => p.id === item.productId);
+          if (isHenProduct(prod) || (item.variant && item.variant.toLowerCase().includes('hen'))) {
             item.variant = 'PS4 HEN';
           }
         });
@@ -655,7 +680,7 @@ async function syncFromSupabase() {
         type: p.type || 'digital',
         badge: p.badge,
         isSubIndo: !!p.is_sub_indo,
-        isHen: !!p.is_hen,
+        isHen: isHenProduct(p) || !!p.is_hen,
         isSpotlight: !!p.isSpotlight,
         rating: Number(p.rating) || 5.0,
         soldCount: Number(p.sold_count) || 0,
@@ -1180,7 +1205,7 @@ function updateSpotlightDisplay(index) {
 
   const pSecEl = document.getElementById('hero-price-secondary');
   if (pSecEl) {
-    if (game.prices.secondary && !game.isHen) {
+    if (game.prices.secondary && !isHenProduct(game) && game.prices.secondary !== game.prices.primary) {
       pSecEl.textContent = formatRupiah(game.prices.secondary);
       pSecEl.parentElement?.classList.remove('hidden');
     } else {
@@ -1268,7 +1293,7 @@ function getFilteredProducts() {
   if (state.activeFilter === 'subindo') {
     list = list.filter(p => p.isSubIndo || (p.badge && p.badge.toLowerCase().includes('sub indo')) || p.title.toLowerCase().includes('sub indo') || p.category === 'subindo');
   } else if (state.activeFilter === 'hen') {
-    list = list.filter(p => p.isHen || (p.platform && p.platform.some(pl => pl.includes('HEN'))) || p.category === 'hen');
+    list = list.filter(p => isHenProduct(p) || p.category === 'hen');
   } else if (state.activeFilter === 'action') {
     list = list.filter(p => p.category === 'action' || p.category === 'adventure' || /action|adventure|petualangan|spider|god of war|uncharted|gta|watch dogs/i.test(p.title));
   } else if (state.activeFilter === 'rpg') {
@@ -1312,7 +1337,7 @@ function getFilteredProducts() {
 
         // 2. Smart aliases & keywords
         const subIndoMatch = (q.includes('sub') || q.includes('indo') || q.includes('indonesia')) && (p.isSubIndo || p.category === 'subindo');
-        const henMatch = (q.includes('hen') || q.includes('pkg')) && (p.isHen || (Array.isArray(p.platform) && p.platform.some(pl => pl.includes('HEN'))));
+        const henMatch = (q.includes('hen') || q.includes('pkg')) && isHenProduct(p);
         const digitalMatch = q.includes('digital') && (p.type === 'digital' || (Array.isArray(p.platform) && p.platform.some(pl => pl.includes('PS5') || pl.includes('PS4'))));
         const coopMatch = (q.includes('coop') || q.includes('co-op') || q.includes('mabar') || q.includes('family')) && (p.category === 'family' || p.category === 'coop');
         const sportsMatch = (q.includes('bola') || q.includes('soccer') || q.includes('fifa') || q.includes('pes') || q.includes('balap')) && (p.category === 'sports' || p.category === 'racing');
@@ -1425,7 +1450,7 @@ function renderProducts() {
   if (emptyState) emptyState.classList.add('hidden');
 
   container.innerHTML = items.map(product => {
-    const isHenGame = product.isHen || product.category === 'subindo' || product.category === 'hen';
+    const isHenGame = isHenProduct(product);
     const isSpecial = product.category === 'service-hen' || product.category === 'tool' || isHenGame || (product.prices.primary === product.prices.secondary);
     const currentVariant = isHenGame ? 'PS4 HEN' : (state.cardVariants[product.id] || 'primary');
     const activePrice = product.prices.primary;
@@ -1590,7 +1615,7 @@ function buyCardVariant(productId) {
   playSfx('click');
   const product = state.products.find(p => p.id === productId);
   if (!product) return;
-  const isHenGame = product.isHen || product.category === 'subindo' || product.category === 'hen';
+  const isHenGame = isHenProduct(product);
   const variant = isHenGame ? 'PS4 HEN' : (state.cardVariants[productId] || 'primary');
 
   addToCart(product.id, variant, product.platform[0], 1, false);
@@ -1607,7 +1632,7 @@ function openProductDetail(productId) {
   const modal = document.getElementById('modal-product-detail');
   if (!modal) return;
 
-  const isHenGame = product.isHen || product.category === 'subindo' || product.category === 'hen';
+  const isHenGame = isHenProduct(product);
   const isSpecial = product.category === 'service-hen' || product.category === 'tool' || isHenGame;
 
   // Toggle account guide button & label for HEN vs Digital
@@ -1774,9 +1799,11 @@ function openProductDetail(productId) {
   // Platform radio
   const platformContainer = document.getElementById('modal-platform-container');
   if (platformContainer) {
+    const henIdx = product.platform.findIndex(pl => pl.includes('HEN'));
+    const defaultIdx = henIdx > -1 ? henIdx : 0;
     platformContainer.innerHTML = product.platform.map((pl, idx) => `
-      <label class="flex items-center gap-2 px-3 py-1.5 rounded-lg border ${idx === 0 ? 'border-sky-500 bg-sky-950/40 text-white' : 'border-slate-800 bg-slate-900 text-slate-400'} text-xs font-bold cursor-pointer platform-pill" onclick="selectPlatformPill(this)">
-        <input type="radio" name="selected-platform" value="${pl}" ${idx === 0 ? 'checked' : ''} class="hidden" />
+      <label class="flex items-center gap-2 px-3 py-1.5 rounded-lg border ${idx === defaultIdx ? 'border-sky-500 bg-sky-950/40 text-white' : 'border-slate-800 bg-slate-900 text-slate-400'} text-xs font-bold cursor-pointer platform-pill" onclick="selectPlatformPill(this)">
+        <input type="radio" name="selected-platform" value="${pl}" ${idx === defaultIdx ? 'checked' : ''} class="hidden" />
         <span>${pl}</span>
       </label>
     `).join('');
@@ -1838,7 +1865,7 @@ function quickBuy(productId) {
   const product = state.products.find(p => p.id === productId);
   if (!product) return;
 
-  const isHenGame = product.isHen || product.category === 'subindo' || product.category === 'hen';
+  const isHenGame = isHenProduct(product);
   const defaultVar = isHenGame ? 'PS4 HEN' : 'primary';
 
   addToCart(product.id, defaultVar, product.platform[0], 1, false);
@@ -1850,7 +1877,7 @@ function addToCart(productId, variant = null, platform = null, qty = 1, showNoti
   const product = state.products.find(p => p.id === productId);
   if (!product) return;
 
-  const isHenGame = product.isHen || product.category === 'subindo' || product.category === 'hen';
+  const isHenGame = isHenProduct(product);
   const finalVariant = isHenGame ? 'PS4 HEN' : (variant || 'primary');
   const targetPlatform = platform || product.platform[0];
   const unitPrice = finalVariant === 'secondary' ? (product.prices.secondary || product.prices.primary) : product.prices.primary;
@@ -1885,7 +1912,7 @@ function addToCart(productId, variant = null, platform = null, qty = 1, showNoti
 
 function addCurrentModalToCart() {
   if (!state.selectedProduct) return;
-  const isHenGame = state.selectedProduct.isHen || state.selectedProduct.category === 'subindo' || state.selectedProduct.category === 'hen';
+  const isHenGame = isHenProduct(state.selectedProduct);
   const variantInput = document.getElementById('selected-variant');
   const variant = isHenGame ? 'PS4 HEN' : (variantInput ? variantInput.value : 'primary');
 
@@ -1898,7 +1925,7 @@ function addCurrentModalToCart() {
 
 function buyCurrentModalNow() {
   if (!state.selectedProduct) return;
-  const isHenGame = state.selectedProduct.isHen || state.selectedProduct.category === 'subindo' || state.selectedProduct.category === 'hen';
+  const isHenGame = isHenProduct(state.selectedProduct);
   const variantInput = document.getElementById('selected-variant');
   const variant = isHenGame ? 'PS4 HEN' : (variantInput ? variantInput.value : 'primary');
 
@@ -1961,7 +1988,7 @@ function renderCartDrawer() {
 
   itemsContainer.innerHTML = state.cart.map((item, idx) => {
     const prod = state.products.find(p => p.id === item.productId);
-    const isHen = item.variant === 'PS4 HEN' || item.variant === 'primary' || (prod && prod.isHen);
+    const isHen = item.variant === 'PS4 HEN' || isHenProduct(prod);
     const displayVariant = isHen ? 'PS4 HEN' : item.variant;
     item.variant = displayVariant;
 
@@ -2066,17 +2093,22 @@ function renderCheckoutSummary() {
   const finalTotal = Math.max(0, subtotal - discount);
 
   if (summaryContainer) {
-    summaryContainer.innerHTML = state.cart.map(item => `
+    summaryContainer.innerHTML = state.cart.map(item => {
+      const prod = state.products.find(p => p.id === item.productId);
+      const isHen = item.variant === 'PS4 HEN' || isHenProduct(prod);
+      const displayVariant = isHen ? 'PS4 HEN' : (item.variant || 'Primary');
+      return `
       <div class="flex items-center justify-between py-2 border-b border-slate-800/80 text-xs">
         <div class="flex-1 pr-2 truncate">
           <div class="text-white font-bold truncate">${item.title}</div>
-          <div class="text-[10px] text-sky-400 uppercase font-mono">${item.variant} • ${item.platform} • x${item.qty}</div>
+          <div class="text-[10px] text-sky-400 uppercase font-mono">${displayVariant} • ${item.platform} • x${item.qty}</div>
         </div>
         <div class="font-extrabold text-white shrink-0 font-display">
           ${formatRupiah(item.unitPrice * item.qty)}
         </div>
       </div>
-    `).join('');
+    `;
+    }).join('');
   }
 
   if (subtotalElem) subtotalElem.textContent = formatRupiah(subtotal);
@@ -2254,6 +2286,15 @@ async function submitOrder() {
   const finalTotal = Math.max(0, subtotal - discount);
   const newInvoiceId = generateInvoiceId();
 
+  const sanitizedCartItems = state.cart.map(item => {
+    const prod = state.products.find(p => p.id === item.productId);
+    const isHen = item.variant === 'PS4 HEN' || isHenProduct(prod);
+    return {
+      ...item,
+      variant: isHen ? 'PS4 HEN' : (item.variant || 'Primary')
+    };
+  });
+
   const newOrder = {
     id: newInvoiceId,
     createdAt: new Date().toISOString(),
@@ -2262,7 +2303,7 @@ async function submitOrder() {
     customerPhone: phone,
     customerEmail: email,
     notes: notes,
-    items: [...state.cart],
+    items: sanitizedCartItems,
     subtotal: subtotal,
     discount: discount,
     voucherCode: state.appliedVoucher ? state.appliedVoucher.code : null,
@@ -2539,17 +2580,22 @@ function renderInvoiceDetails(order) {
   // Items List
   const itemsContainer = document.getElementById('inv-items');
   if (itemsContainer) {
-    itemsContainer.innerHTML = order.items.map(item => `
+    itemsContainer.innerHTML = order.items.map(item => {
+      const prod = (state.products || []).find(p => p.id === (item.productId || item.id) || p.title === item.title);
+      const isHen = item.variant === 'PS4 HEN' || isHenProduct(prod);
+      const displayVariant = isHen ? 'PS4 HEN' : (item.variant || 'Primary');
+      return `
       <div class="flex items-center justify-between py-2 border-b border-slate-800/80 text-xs">
         <div>
-          <div class="font-bold text-white">${item.title}</div>
-          <div class="text-[11px] text-sky-400 uppercase font-mono">${item.variant} • ${item.platform} • x${item.qty}</div>
+          <div class="font-bold text-white">${escapeHtml(item.title)}</div>
+          <div class="text-[11px] text-sky-400 uppercase font-mono">${displayVariant} • ${item.platform} • x${item.qty}</div>
         </div>
         <div class="text-right font-display font-extrabold text-slate-100">
           ${formatRupiah((item.unitPrice || item.price) * item.qty)}
         </div>
       </div>
-    `).join('');
+    `;
+    }).join('');
   }
 
   document.getElementById('inv-subtotal').textContent = formatRupiah(order.subtotal);
@@ -2850,7 +2896,9 @@ function buildOrderItemsText(order) {
   return order.items.map((item, idx) => {
     const qty = item.qty || 1;
     const price = item.unitPrice || item.price || 0;
-    const variant = item.variant || 'Primary';
+    const prod = (state.products || []).find(p => p.id === (item.productId || item.id) || p.title === item.title);
+    const isHen = item.variant === 'PS4 HEN' || isHenProduct(prod);
+    const variant = isHen ? 'PS4 HEN (PKG)' : (item.variant || 'Primary');
     const plat = item.platform || 'PS4';
     return `${idx + 1}. ${item.title}\n   - Varian: ${variant} | Platform: ${plat} | Qty: x${qty}\n   - Harga: ${formatRupiah(price * qty)}`;
   }).join('\n');
@@ -6286,7 +6334,12 @@ function openFulfillmentModal(orderId) {
 
   document.getElementById('fulfill-target-invoice').textContent = order.id;
   document.getElementById('fulfill-target-customer').textContent = `${order.customerName} (${order.customerPhone})`;
-  document.getElementById('fulfill-target-items').textContent = order.items.map(i => `${i.title} [${(i.variant || 'Primary').toUpperCase()}]`).join(', ');
+  document.getElementById('fulfill-target-items').textContent = order.items.map(i => {
+    const prod = (state.products || []).find(p => p.id === (i.productId || i.id) || p.title === i.title);
+    const isHen = i.variant === 'PS4 HEN' || isHenProduct(prod);
+    const v = isHen ? 'PS4 HEN (PKG)' : (i.variant || 'Primary').toUpperCase();
+    return `${i.title} [${v}]`;
+  }).join(', ');
 
   const f = order.fulfillment || {};
   document.getElementById('input-fulfill-email').value = f.psnEmail || `aliansi.${order.items[0]?.title.toLowerCase().replace(/[^a-z0-9]/g, '') || 'psgame'}@gmail.com`;
@@ -7692,6 +7745,10 @@ function submitNewProduct() {
     inStock: true
   };
 
+  newGame.isHen = isHenProduct(newGame);
+  if (newGame.isHen) {
+    newGame.prices.secondary = newGame.prices.primary;
+  }
   newGame.updatedAt = new Date().toISOString();
   state.products.unshift(newGame);
   saveProducts();
@@ -7799,6 +7856,10 @@ function submitEditProduct() {
     p.images.backdrop = backdrop;
   }
   p.description = document.getElementById('edit-game-desc').value.trim();
+  p.isHen = isHenProduct(p);
+  if (p.isHen) {
+    p.prices.secondary = p.prices.primary;
+  }
   p.updatedAt = new Date().toISOString();
 
   saveProducts();
