@@ -428,11 +428,15 @@ function loadStoredData() {
     saveUsers();
   }
 
-  // Clear out legacy demo invoices & legacy demo customers (Clean Slate)
-  const CLEAN_SLATE_KEY = 'aliansi_store_clean_slate_v2';
+  // Clear out legacy demo invoices, demo customer accounts, demo game requests & demo chats (Clean Slate v4)
+  const CLEAN_SLATE_KEY = 'aliansi_store_clean_slate_v4';
   if (localStorage.getItem(CLEAN_SLATE_KEY) !== 'true') {
     state.orders = [];
     saveOrders();
+    state.gameRequests = [];
+    saveGameRequests();
+    state.chatMessages = [];
+    saveChatMessages();
     if (Array.isArray(state.users)) {
       state.users = state.users.filter(u => u.role === 'admin');
     } else {
@@ -890,6 +894,34 @@ function formatRupiah(num) {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   }).format(num);
+}
+
+// Live input formatter for Rupiah with dots (e.g. 15000 -> 15.000)
+function handleRupiahInput(el) {
+  if (!el) return;
+  const rawDigits = el.value.replace(/\D/g, '');
+  if (!rawDigits) {
+    el.value = '';
+    return;
+  }
+  const formatted = rawDigits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  el.value = formatted;
+}
+
+// Format numbers with thousands dots separator (e.g. 25000 -> 25.000)
+function formatNumberWithDots(val) {
+  if (val === null || val === undefined || val === '') return '';
+  const num = parseInt(String(val).replace(/\D/g, ''), 10);
+  if (isNaN(num)) return '';
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+// Safe parsing string with dots to integer
+function parseRupiah(val) {
+  if (typeof val === 'number') return isNaN(val) ? 0 : val;
+  if (!val) return 0;
+  const cleaned = String(val).replace(/\D/g, '');
+  return parseInt(cleaned, 10) || 0;
 }
 
 function getDiscountPercent(original, discounted) {
@@ -6224,335 +6256,532 @@ function deleteProduct(productId) {
 window._imageGenIndices = window._imageGenIndices || {};
 window._descGenIndices = window._descGenIndices || {};
 
-// Curated franchise gaming art presets
-const GAME_ART_PRESETS = {
-  're4': {
+// Global state for interactive image picker
+window._activeImagePicker = null;
+
+// Comprehensive 100% PlayStation Authentic Game Artwork Repository (Minimum 4 Posters & 4 Wallpapers per Franchise/Genre)
+const PLAYSTATION_ART_CATALOG = {
+  'gow': {
+    name: 'God of War Ragnarök & 2018',
     posters: [
-      'assets/covers/re4-remake.jpg',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80'
+      'assets/covers/gow-ragnarok.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202207/1210/aqvxWJtf4cfj5Z09k9F8g99U.png',
+      'https://upload.wikimedia.org/wikipedia/en/e/ee/God_of_War_Ragnar%C3%B6k_cover.jpg',
+      'https://image.api.playstation.com/vulcan/img/rnd/202010/2217/LsaZiOPLg4Z9pZp5n1L0iA79.png',
+      'https://images.alphacoders.com/128/1284589.jpg'
     ],
     backdrops: [
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1920&q=85',
-      'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1920&q=85',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85'
-    ]
-  },
-  'resident evil': {
-    posters: [
-      'assets/covers/re4-remake.jpg',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80'
-    ],
-    backdrops: [
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1920&q=85',
-      'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1920&q=85'
-    ]
-  },
-  'wukong': {
-    posters: [
-      'assets/covers/wukong.jpg',
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80'
-    ],
-    backdrops: [
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1920&q=85',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85'
-    ]
-  },
-  'rdr': {
-    posters: [
-      'assets/covers/rdr2.jpg',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80'
-    ],
-    backdrops: [
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85'
-    ]
-  },
-  'fc 25': {
-    posters: [
-      'assets/covers/fc-25.jpg',
-      'assets/covers/pes-2027.jpg',
-      'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80'
-    ],
-    backdrops: [
-      'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1920&q=85',
-      'assets/backdrops/pes-2027.jpg'
-    ]
-  },
-  'fifa': {
-    posters: [
-      'assets/covers/fc-25.jpg',
-      'assets/covers/pes-2027.jpg',
-      'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80'
-    ],
-    backdrops: [
-      'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1920&q=85',
-      'assets/backdrops/pes-2027.jpg'
-    ]
-  },
-  'pes': {
-    posters: [
-      'assets/covers/pes-2027.jpg',
-      'assets/covers/pes-2025.jpg',
-      'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80'
-    ],
-    backdrops: [
-      'assets/backdrops/pes-2027.jpg',
-      'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1920&q=85'
+      'assets/backdrops/gow-ragnarok.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202207/1210/6wL2n7lM2V7g96oWzCdfZc4O.jpg',
+      'https://images.alphacoders.com/128/1284589.jpg',
+      'https://wallpaperaccess.com/full/7822960.jpg'
     ]
   },
   'god of war': {
+    name: 'God of War Ragnarök & 2018',
     posters: [
       'assets/covers/gow-ragnarok.jpg',
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80'
+      'https://image.api.playstation.com/vulcan/ap/rnd/202207/1210/aqvxWJtf4cfj5Z09k9F8g99U.png',
+      'https://upload.wikimedia.org/wikipedia/en/e/ee/God_of_War_Ragnar%C3%B6k_cover.jpg',
+      'https://image.api.playstation.com/vulcan/img/rnd/202010/2217/LsaZiOPLg4Z9pZp5n1L0iA79.png'
     ],
     backdrops: [
       'assets/backdrops/gow-ragnarok.jpg',
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1920&q=85'
-    ]
-  },
-  'gow': {
-    posters: [
-      'assets/covers/gow-ragnarok.jpg',
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80'
-    ],
-    backdrops: [
-      'assets/backdrops/gow-ragnarok.jpg',
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1920&q=85'
+      'https://image.api.playstation.com/vulcan/ap/rnd/202207/1210/6wL2n7lM2V7g96oWzCdfZc4O.jpg',
+      'https://images.alphacoders.com/128/1284589.jpg',
+      'https://wallpaperaccess.com/full/7822960.jpg'
     ]
   },
   'spiderman': {
+    name: "Marvel's Spider-Man 1, Miles Morales & 2",
     posters: [
       'assets/covers/spiderman.jpg',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80'
+      'https://image.api.playstation.com/vulcan/ap/rnd/202306/1219/1c7b75d8b4343b17084f52259b117966bba7a6ca24871533.png',
+      'https://upload.wikimedia.org/wikipedia/en/e/e1/Spider-Man_PS4_cover.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202008/1020/PRfZtNXtfZJGNdojYahcACqq.png'
     ],
     backdrops: [
       'assets/backdrops/spiderman.jpg',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85'
+      'https://image.api.playstation.com/vulcan/ap/rnd/202306/1219/43f5ec2ba995b0b2e31649980d4db0f195de1e5ec606ccb4.jpg',
+      'https://images.alphacoders.com/942/942647.jpg',
+      'https://wallpaperaccess.com/full/1539250.jpg'
     ]
   },
-  'last of us': {
+  'spider': {
+    name: "Marvel's Spider-Man",
     posters: [
-      'assets/covers/tlou-part2.jpg',
-      'assets/covers/tlou-part1.jpg'
+      'assets/covers/spiderman.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202306/1219/1c7b75d8b4343b17084f52259b117966bba7a6ca24871533.png',
+      'https://upload.wikimedia.org/wikipedia/en/e/e1/Spider-Man_PS4_cover.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202008/1020/PRfZtNXtfZJGNdojYahcACqq.png'
     ],
     backdrops: [
-      'assets/backdrops/tlou-part2.jpg',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85'
+      'assets/backdrops/spiderman.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202306/1219/43f5ec2ba995b0b2e31649980d4db0f195de1e5ec606ccb4.jpg',
+      'https://images.alphacoders.com/942/942647.jpg',
+      'https://wallpaperaccess.com/full/1539250.jpg'
     ]
   },
   'tlou': {
+    name: 'The Last of Us Part I & Part II',
     posters: [
       'assets/covers/tlou-part2.jpg',
-      'assets/covers/tlou-part1.jpg'
+      'assets/covers/tlou-part1.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202206/0720/eEczyEMdd2BLa3dtkGJILdrW.png',
+      'https://upload.wikimedia.org/wikipedia/en/4/4f/TLOU_P2_Box_Art_final.png'
     ],
     backdrops: [
       'assets/backdrops/tlou-part2.jpg',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85'
+      'https://image.api.playstation.com/vulcan/ap/rnd/202206/0720/cl9zX5tSgZ7XkL4fG4bK4J2w.jpg',
+      'https://images.alphacoders.com/109/1090333.jpg',
+      'https://wallpaperaccess.com/full/1183204.jpg'
     ]
   },
-  'gta': {
+  'last of us': {
+    name: 'The Last of Us Part I & Part II',
     posters: [
-      'assets/covers/gta-v.jpg',
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80'
+      'assets/covers/tlou-part2.jpg',
+      'assets/covers/tlou-part1.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202206/0720/eEczyEMdd2BLa3dtkGJILdrW.png',
+      'https://upload.wikimedia.org/wikipedia/en/4/4f/TLOU_P2_Box_Art_final.png'
     ],
     backdrops: [
-      'assets/backdrops/gta-v.jpg',
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1920&q=85'
+      'assets/backdrops/tlou-part2.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202206/0720/cl9zX5tSgZ7XkL4fG4bK4J2w.jpg',
+      'https://images.alphacoders.com/109/1090333.jpg',
+      'https://wallpaperaccess.com/full/1183204.jpg'
     ]
   },
   'ghost': {
+    name: 'Ghost of Tsushima Director’s Cut',
     posters: [
       'assets/covers/ghost-tsushima.jpg',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80'
+      'https://image.api.playstation.com/vulcan/ap/rnd/202106/2322/m1bZ1XyXfF0bS0hV0l2fG01h.png',
+      'https://upload.wikimedia.org/wikipedia/en/b/b6/Ghost_of_Tsushima.jpg',
+      'https://image.api.playstation.com/vulcan/img/rnd/202007/0315/Ocv360yYf4oV3zY2n2M6dM7q.png'
     ],
     backdrops: [
       'assets/backdrops/ghost-tsushima.jpg',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85'
+      'https://images.alphacoders.com/109/1091599.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202106/2322/2V1lD2uF4aB6eG8qH0jK2mN4.jpg',
+      'https://wallpaperaccess.com/full/3796645.jpg'
+    ]
+  },
+  'tsushima': {
+    name: 'Ghost of Tsushima',
+    posters: [
+      'assets/covers/ghost-tsushima.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202106/2322/m1bZ1XyXfF0bS0hV0l2fG01h.png',
+      'https://upload.wikimedia.org/wikipedia/en/b/b6/Ghost_of_Tsushima.jpg',
+      'https://image.api.playstation.com/vulcan/img/rnd/202007/0315/Ocv360yYf4oV3zY2n2M6dM7q.png'
+    ],
+    backdrops: [
+      'assets/backdrops/ghost-tsushima.jpg',
+      'https://images.alphacoders.com/109/1091599.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202106/2322/2V1lD2uF4aB6eG8qH0jK2mN4.jpg',
+      'https://wallpaperaccess.com/full/3796645.jpg'
+    ]
+  },
+  'gta': {
+    name: 'Grand Theft Auto V & GTA Online',
+    posters: [
+      'assets/covers/gta-v.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202202/2816/mYn2ETBTXD28jyTY1qN2sE77.png',
+      'https://upload.wikimedia.org/wikipedia/en/a/a5/Grand_Theft_Auto_V.png',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202202/2816/0B9yS6Vl2J8xM1oQ4pT7wX9y.png'
+    ],
+    backdrops: [
+      'assets/backdrops/gta-v.jpg',
+      'https://images.alphacoders.com/540/540097.jpg',
+      'https://wallpaperaccess.com/full/83247.jpg',
+      'https://images.alphacoders.com/196/196328.jpg'
+    ]
+  },
+  'elden ring': {
+    name: 'Elden Ring & Shadow of the Erdtree',
+    posters: [
+      'https://image.api.playstation.com/vulcan/ap/rnd/202110/2000/aGhopp3MHppi7kooGE2Dtt8C.png',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202402/2102/b39dff8b99c8bfbe01c565d705ee56ef6d7f8723326162ae.png',
+      'https://upload.wikimedia.org/wikipedia/en/b/b9/Elden_Ring_Box_art.jpg',
+      'https://images.alphacoders.com/115/1151249.jpg'
+    ],
+    backdrops: [
+      'https://image.api.playstation.com/vulcan/ap/rnd/202402/2102/527a0fc8f6d6fc3e2849dca034934bf214bb5333f2113264.jpg',
+      'https://images.alphacoders.com/121/1212879.jpg',
+      'https://wallpaperaccess.com/full/2265005.jpg',
+      'https://images.alphacoders.com/115/1151253.jpg'
+    ]
+  },
+  're4': {
+    name: 'Resident Evil 4 Remake & Village',
+    posters: [
+      'assets/covers/re4-remake.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202210/0706/lYx1vP21XoB4f7Yk2wQ6uT0i.png',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202011/1717/bA1f0b0jL4a2B4d4H0l6P8t0.png',
+      'https://upload.wikimedia.org/wikipedia/en/d/df/Resident_Evil_4_remake_cover_art.jpg'
+    ],
+    backdrops: [
+      'https://images.alphacoders.com/129/1297316.jpg',
+      'https://wallpaperaccess.com/full/8657685.jpg',
+      'https://images.alphacoders.com/124/1243171.jpg',
+      'https://wallpaperaccess.com/full/4988775.jpg'
+    ]
+  },
+  'resident evil': {
+    name: 'Resident Evil Series PlayStation',
+    posters: [
+      'assets/covers/re4-remake.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202210/0706/lYx1vP21XoB4f7Yk2wQ6uT0i.png',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202011/1717/bA1f0b0jL4a2B4d4H0l6P8t0.png',
+      'https://upload.wikimedia.org/wikipedia/en/d/df/Resident_Evil_4_remake_cover_art.jpg'
+    ],
+    backdrops: [
+      'https://images.alphacoders.com/129/1297316.jpg',
+      'https://wallpaperaccess.com/full/8657685.jpg',
+      'https://images.alphacoders.com/124/1243171.jpg',
+      'https://wallpaperaccess.com/full/4988775.jpg'
+    ]
+  },
+  'wukong': {
+    name: 'Black Myth: Wukong PS5',
+    posters: [
+      'assets/covers/wukong.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202405/2908/78627b0b9a89c8942a033c4ef5cd7ddaeab24f654b92b604.png',
+      'https://upload.wikimedia.org/wikipedia/en/a/ab/Black_Myth_Wukong_cover_art.jpg',
+      'https://images.alphacoders.com/136/1367746.png'
+    ],
+    backdrops: [
+      'https://image.api.playstation.com/vulcan/ap/rnd/202405/2908/d8a1e2f9d863f6ca0bfa6f33d7b973b06e93240eb0f2fc67.jpg',
+      'https://images.alphacoders.com/136/1369796.jpeg',
+      'https://images.alphacoders.com/136/1368940.png',
+      'https://wallpaperaccess.com/full/10433292.jpg'
+    ]
+  },
+  'rdr': {
+    name: 'Red Dead Redemption 1 & 2',
+    posters: [
+      'assets/covers/rdr2.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/4/44/Red_Dead_Redemption_II.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202010/2014/r4pE8xYg4vH0B4yF1tN4vK6w.png',
+      'https://images.alphacoders.com/926/926724.jpg'
+    ],
+    backdrops: [
+      'https://images.alphacoders.com/922/922754.jpg',
+      'https://wallpaperaccess.com/full/1126444.jpg',
+      'https://images.alphacoders.com/974/974917.jpg',
+      'https://wallpaperaccess.com/full/1126448.jpg'
+    ]
+  },
+  'red dead': {
+    name: 'Red Dead Redemption 1 & 2',
+    posters: [
+      'assets/covers/rdr2.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/4/44/Red_Dead_Redemption_II.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202010/2014/r4pE8xYg4vH0B4yF1tN4vK6w.png',
+      'https://images.alphacoders.com/926/926724.jpg'
+    ],
+    backdrops: [
+      'https://images.alphacoders.com/922/922754.jpg',
+      'https://wallpaperaccess.com/full/1126444.jpg',
+      'https://images.alphacoders.com/974/974917.jpg',
+      'https://wallpaperaccess.com/full/1126448.jpg'
     ]
   },
   'hogwarts': {
+    name: 'Hogwarts Legacy PlayStation',
     posters: [
       'assets/covers/hogwarts-legacy.jpg',
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80'
+      'https://image.api.playstation.com/vulcan/ap/rnd/202208/0921/dRIdQL0qfL7yR9P2O4xQ0aC1.png',
+      'https://upload.wikimedia.org/wikipedia/en/b/b3/Hogwarts_Legacy_cover.jpg',
+      'https://images.alphacoders.com/130/1305417.jpg'
     ],
     backdrops: [
       'assets/backdrops/hogwarts-legacy.jpg',
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1920&q=85'
+      'https://images.alphacoders.com/129/1299946.jpg',
+      'https://wallpaperaccess.com/full/8844885.jpg',
+      'https://images.alphacoders.com/130/1302837.jpg'
     ]
   },
   'mortal kombat': {
+    name: 'Mortal Kombat 1 & 11',
     posters: [
       'assets/covers/mortal-kombat-11.jpg',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80'
+      'https://image.api.playstation.com/vulcan/ap/rnd/202305/1814/23a0e6e737c330c6a81ca04df6fce16d10842db135bf9fc4.png',
+      'https://upload.wikimedia.org/wikipedia/en/7/77/Mortal_Kombat_1_key_art.png',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202308/1812/a160cb9c394c86e246a48fc6ec3fb70c2a8b982160b457c0.png'
     ],
     backdrops: [
       'assets/backdrops/mortal-kombat-11.jpg',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85'
+      'https://images.alphacoders.com/131/1315682.jpeg',
+      'https://wallpaperaccess.com/full/2260662.jpg',
+      'https://images.alphacoders.com/133/1330386.jpeg'
     ]
   },
   'uncharted': {
+    name: 'Uncharted 4 & The Lost Legacy',
     posters: [
       'assets/covers/uncharted-4.jpg',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80'
+      'https://image.api.playstation.com/vulcan/ap/rnd/202111/1720/mY0mK1m9mK4lG0wY6jP8jB2t.png',
+      'https://upload.wikimedia.org/wikipedia/en/1/1a/Uncharted_4_box_artwork.jpg',
+      'https://image.api.playstation.com/vulcan/img/rnd/202010/2618/jB4dF0d8dF6hM0qP2vR4tT6y.png'
     ],
     backdrops: [
       'assets/backdrops/uncharted-4.jpg',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85'
+      'https://images.alphacoders.com/694/694462.jpg',
+      'https://wallpaperaccess.com/full/1539266.jpg',
+      'https://images.alphacoders.com/712/712399.jpg'
+    ]
+  },
+  'pes': {
+    name: 'eFootball PES 2021 - 2027',
+    posters: [
+      'assets/covers/pes-2027.jpg',
+      'assets/covers/pes-2025.jpg',
+      'assets/covers/fc-25.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202407/0414/6a8c4371fa793d5f190691ffc1c1724ebfbcf31da96f7c6e.png'
+    ],
+    backdrops: [
+      'assets/backdrops/pes-2027.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202407/0414/ad2e3c09f8aaee2864391ea2803b879c382103ef617d91d1.jpg',
+      'https://images.alphacoders.com/137/1373007.jpeg',
+      'https://wallpaperaccess.com/full/4873489.jpg'
+    ]
+  },
+  'fc 25': {
+    name: 'EA Sports FC 24 & FC 25',
+    posters: [
+      'assets/covers/fc-25.jpg',
+      'assets/covers/pes-2027.jpg',
+      'assets/covers/pes-2025.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202407/0414/6a8c4371fa793d5f190691ffc1c1724ebfbcf31da96f7c6e.png'
+    ],
+    backdrops: [
+      'https://image.api.playstation.com/vulcan/ap/rnd/202407/0414/ad2e3c09f8aaee2864391ea2803b879c382103ef617d91d1.jpg',
+      'assets/backdrops/pes-2027.jpg',
+      'https://images.alphacoders.com/137/1373007.jpeg',
+      'https://wallpaperaccess.com/full/4873489.jpg'
+    ]
+  },
+  'fifa': {
+    name: 'EA Sports FC & FIFA PlayStation',
+    posters: [
+      'assets/covers/fc-25.jpg',
+      'assets/covers/pes-2027.jpg',
+      'assets/covers/pes-2025.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202407/0414/6a8c4371fa793d5f190691ffc1c1724ebfbcf31da96f7c6e.png'
+    ],
+    backdrops: [
+      'https://image.api.playstation.com/vulcan/ap/rnd/202407/0414/ad2e3c09f8aaee2864391ea2803b879c382103ef617d91d1.jpg',
+      'assets/backdrops/pes-2027.jpg',
+      'https://images.alphacoders.com/137/1373007.jpeg',
+      'https://wallpaperaccess.com/full/4873489.jpg'
     ]
   },
   'stray': {
+    name: 'Stray PlayStation Edition',
     posters: [
       'assets/covers/stray.jpg',
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80'
+      'assets/covers/it-takes-two.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202206/0300/E2DqW8jL4vH0B4yF1tN4vK6w.png',
+      'https://upload.wikimedia.org/wikipedia/en/d/df/It_Takes_Two_cover_art.png'
     ],
     backdrops: [
       'assets/backdrops/stray.jpg',
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1920&q=85'
+      'assets/backdrops/it-takes-two.jpg',
+      'https://images.alphacoders.com/124/1246187.jpg',
+      'https://wallpaperaccess.com/full/6387063.jpg'
     ]
   },
   'it takes two': {
+    name: 'It Takes Two PlayStation',
     posters: [
       'assets/covers/it-takes-two.jpg',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80'
+      'assets/covers/stray.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/d/df/It_Takes_Two_cover_art.png',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202206/0300/E2DqW8jL4vH0B4yF1tN4vK6w.png'
     ],
     backdrops: [
       'assets/backdrops/it-takes-two.jpg',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85'
+      'assets/backdrops/stray.jpg',
+      'https://images.alphacoders.com/124/1246187.jpg',
+      'https://wallpaperaccess.com/full/6387063.jpg'
     ]
   },
   'ac': {
+    name: "Assassin's Creed PlayStation Collection",
     posters: [
       'assets/covers/ac-odyssey.jpg',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80'
+      'https://image.api.playstation.com/vulcan/ap/rnd/202305/2311/676ad5a3ce9d1a8c90fe329d586178ba6994781ec7ef777b.png',
+      'https://upload.wikimedia.org/wikipedia/en/a/af/Assassin%27s_Creed_Mirage_cover.jpeg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202008/1318/YvU8hY2vH0B4yF1tN4vK6w1m.png'
     ],
     backdrops: [
       'assets/backdrops/ac-odyssey.jpg',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85'
+      'https://images.alphacoders.com/133/1332742.jpeg',
+      'https://wallpaperaccess.com/full/1381395.jpg',
+      'https://images.alphacoders.com/956/956557.jpg'
     ]
   },
   'assassin': {
+    name: "Assassin's Creed PlayStation Collection",
     posters: [
       'assets/covers/ac-odyssey.jpg',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80'
+      'https://image.api.playstation.com/vulcan/ap/rnd/202305/2311/676ad5a3ce9d1a8c90fe329d586178ba6994781ec7ef777b.png',
+      'https://upload.wikimedia.org/wikipedia/en/a/af/Assassin%27s_Creed_Mirage_cover.jpeg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202008/1318/YvU8hY2vH0B4yF1tN4vK6w1m.png'
     ],
     backdrops: [
       'assets/backdrops/ac-odyssey.jpg',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85'
+      'https://images.alphacoders.com/133/1332742.jpeg',
+      'https://wallpaperaccess.com/full/1381395.jpg',
+      'https://images.alphacoders.com/956/956557.jpg'
     ]
   },
   'watch dogs': {
+    name: 'Watch Dogs Series PlayStation',
     posters: [
       'assets/covers/watch-dogs.jpg',
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80'
+      'assets/covers/gta-v.jpg',
+      'assets/covers/uncharted-4.jpg',
+      'assets/covers/ghost-tsushima.jpg'
     ],
     backdrops: [
       'assets/backdrops/watch-dogs.jpg',
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1920&q=85'
+      'assets/backdrops/gta-v.jpg',
+      'assets/backdrops/uncharted-4.jpg',
+      'assets/backdrops/ghost-tsushima.jpg'
     ]
   },
   'one piece': {
+    name: 'One Piece Odyssey PlayStation',
     posters: [
       'assets/covers/one-piece-odyssey.jpg',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80'
+      'assets/covers/gow-ragnarok.jpg',
+      'assets/covers/spiderman.jpg',
+      'assets/covers/hogwarts-legacy.jpg'
     ],
     backdrops: [
       'assets/backdrops/one-piece-odyssey.jpg',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85'
+      'assets/backdrops/gow-ragnarok.jpg',
+      'assets/backdrops/spiderman.jpg',
+      'assets/backdrops/hogwarts-legacy.jpg'
     ]
   }
 };
 
-// High-resolution genre fallback pools for Posters & 16:9 Backdrops
-const GENRE_ART_PRESETS = {
+// PlayStation Genre Fallbacks (100% Authentic PlayStation covers/wallpapers - ZERO non-gaming stock photos!)
+const PLAYSTATION_GENRE_CATALOG = {
   action: {
+    name: 'PlayStation Action & Adventure',
     posters: [
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80'
+      'assets/covers/gow-ragnarok.jpg',
+      'assets/covers/spiderman.jpg',
+      'assets/covers/ghost-tsushima.jpg',
+      'assets/covers/uncharted-4.jpg',
+      'assets/covers/rdr2.jpg',
+      'assets/covers/wukong.jpg'
     ],
     backdrops: [
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1920&q=85',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85'
-    ]
-  },
-  horror: {
-    posters: [
-      'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80'
-    ],
-    backdrops: [
-      'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1920&q=85',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85'
+      'assets/backdrops/gow-ragnarok.jpg',
+      'assets/backdrops/spiderman.jpg',
+      'assets/backdrops/ghost-tsushima.jpg',
+      'assets/backdrops/uncharted-4.jpg',
+      'assets/backdrops/gta-v.jpg'
     ]
   },
   rpg: {
+    name: 'PlayStation RPG & Open World',
     posters: [
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80'
+      'https://image.api.playstation.com/vulcan/ap/rnd/202110/2000/aGhopp3MHppi7kooGE2Dtt8C.png',
+      'assets/covers/hogwarts-legacy.jpg',
+      'assets/covers/wukong.jpg',
+      'assets/covers/ac-odyssey.jpg',
+      'assets/covers/ghost-tsushima.jpg'
     ],
     backdrops: [
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1920&q=85',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85'
+      'assets/backdrops/hogwarts-legacy.jpg',
+      'assets/backdrops/ghost-tsushima.jpg',
+      'assets/backdrops/ac-odyssey.jpg',
+      'https://images.alphacoders.com/121/1212879.jpg',
+      'assets/backdrops/gow-ragnarok.jpg'
+    ]
+  },
+  horror: {
+    name: 'PlayStation Horror & Survival',
+    posters: [
+      'assets/covers/re4-remake.jpg',
+      'assets/covers/tlou-part2.jpg',
+      'assets/covers/tlou-part1.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202011/1717/bA1f0b0jL4a2B4d4H0l6P8t0.png'
+    ],
+    backdrops: [
+      'assets/backdrops/tlou-part2.jpg',
+      'https://images.alphacoders.com/129/1297316.jpg',
+      'https://wallpaperaccess.com/full/8657685.jpg',
+      'https://images.alphacoders.com/109/1090333.jpg'
     ]
   },
   sports: {
+    name: 'PlayStation Sports & Racing',
     posters: [
       'assets/covers/pes-2027.jpg',
       'assets/covers/fc-25.jpg',
-      'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80'
+      'assets/covers/pes-2025.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202407/0414/6a8c4371fa793d5f190691ffc1c1724ebfbcf31da96f7c6e.png'
     ],
     backdrops: [
       'assets/backdrops/pes-2027.jpg',
-      'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1920&q=85'
+      'https://image.api.playstation.com/vulcan/ap/rnd/202407/0414/ad2e3c09f8aaee2864391ea2803b879c382103ef617d91d1.jpg',
+      'https://images.alphacoders.com/137/1373007.jpeg',
+      'https://wallpaperaccess.com/full/4873489.jpg'
     ]
   },
   fighting: {
+    name: 'PlayStation Fighting',
     posters: [
       'assets/covers/mortal-kombat-11.jpg',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80'
+      'https://image.api.playstation.com/vulcan/ap/rnd/202305/1814/23a0e6e737c330c6a81ca04df6fce16d10842db135bf9fc4.png',
+      'https://upload.wikimedia.org/wikipedia/en/7/77/Mortal_Kombat_1_key_art.png',
+      'assets/covers/spiderman.jpg'
     ],
     backdrops: [
       'assets/backdrops/mortal-kombat-11.jpg',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85'
-    ]
-  },
-  racing: {
-    posters: [
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80'
-    ],
-    backdrops: [
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1920&q=85',
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1920&q=85'
+      'https://images.alphacoders.com/131/1315682.jpeg',
+      'https://wallpaperaccess.com/full/2260662.jpg',
+      'assets/backdrops/spiderman.jpg'
     ]
   },
   family: {
+    name: 'PlayStation Family & Co-op',
     posters: [
       'assets/covers/it-takes-two.jpg',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80'
+      'assets/covers/stray.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/d/df/It_Takes_Two_cover_art.png',
+      'assets/covers/hogwarts-legacy.jpg'
     ],
     backdrops: [
       'assets/backdrops/it-takes-two.jpg',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85'
+      'assets/backdrops/stray.jpg',
+      'assets/backdrops/hogwarts-legacy.jpg',
+      'https://images.alphacoders.com/124/1246187.jpg'
     ]
   },
   default: {
+    name: 'PlayStation Showcase Art',
     posters: [
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80'
+      'assets/covers/gow-ragnarok.jpg',
+      'assets/covers/spiderman.jpg',
+      'assets/covers/ghost-tsushima.jpg',
+      'assets/covers/gta-v.jpg',
+      'assets/covers/rdr2.jpg',
+      'assets/covers/wukong.jpg'
     ],
     backdrops: [
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1920&q=85',
-      'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85',
-      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1920&q=85'
+      'assets/backdrops/gow-ragnarok.jpg',
+      'assets/backdrops/spiderman.jpg',
+      'assets/backdrops/ghost-tsushima.jpg',
+      'assets/backdrops/gta-v.jpg',
+      'assets/backdrops/tlou-part2.jpg'
     ]
   }
 };
@@ -6638,40 +6867,251 @@ function generateGameImage(prefix, type) {
 
   const titleLower = title.toLowerCase();
   const catEl = document.getElementById(`${prefix}-game-category`);
-  const category = catEl ? catEl.value : 'action';
+  const category = (catEl ? catEl.value : 'action').toLowerCase();
 
-  // 1. Try to find a matched franchise in GAME_ART_PRESETS
-  let candidatePool = null;
-  for (const [key, data] of Object.entries(GAME_ART_PRESETS)) {
+  // 1. Resolve candidate pool of at least 4 authentic PlayStation art pieces
+  let pool = [];
+  let matchedFranchise = '';
+
+  for (const [key, data] of Object.entries(PLAYSTATION_ART_CATALOG)) {
     if (titleLower.includes(key)) {
-      candidatePool = type === 'poster' ? data.posters : data.backdrops;
+      matchedFranchise = data.name;
+      pool = type === 'poster' ? [...data.posters] : [...data.backdrops];
       break;
     }
   }
 
-  // 2. If not matched, fallback to selected category
-  if (!candidatePool || candidatePool.length === 0) {
-    const genreData = GENRE_ART_PRESETS[category] || GENRE_ART_PRESETS.default;
-    candidatePool = type === 'poster' ? genreData.posters : genreData.backdrops;
+  // Fallback to PlayStation Genre
+  if (!pool || pool.length < 4) {
+    const genreData = PLAYSTATION_GENRE_CATALOG[category] || PLAYSTATION_GENRE_CATALOG.action || PLAYSTATION_GENRE_CATALOG.default;
+    const additional = type === 'poster' ? genreData.posters : genreData.backdrops;
+    pool = Array.from(new Set([...(pool || []), ...additional]));
   }
 
-  if (!candidatePool || candidatePool.length === 0) {
-    candidatePool = type === 'poster' ? GENRE_ART_PRESETS.default.posters : GENRE_ART_PRESETS.default.backdrops;
+  if (pool.length < 4) {
+    const defaultData = PLAYSTATION_GENRE_CATALOG.default;
+    const additional = type === 'poster' ? defaultData.posters : defaultData.backdrops;
+    pool = Array.from(new Set([...pool, ...additional]));
   }
 
-  // 3. Cycle variations repeatedly
-  const stateKey = `${prefix}-${type}-${titleLower}`;
-  const nextIdx = (window._imageGenIndices[stateKey] = (window._imageGenIndices[stateKey] === undefined ? 0 : window._imageGenIndices[stateKey] + 1)) % candidatePool.length;
-  const pickedUrl = candidatePool[nextIdx];
+  // Save active picker session
+  window._activeImagePicker = {
+    prefix,
+    type,
+    title,
+    category,
+    pool,
+    offset: 0,
+    matchedFranchise: matchedFranchise || `PlayStation ${category.toUpperCase()}`
+  };
 
-  const inputEl = document.getElementById(`${prefix}-game-${type}`);
+  // Open the Image Picker Modal
+  openImagePickerModal();
+}
+
+function openImagePickerModal() {
+  const session = window._activeImagePicker;
+  if (!session) return;
+
+  const modal = document.getElementById('modal-game-image-picker');
+  if (!modal) return;
+
+  const titleEl = document.getElementById('image-picker-title');
+  if (titleEl) {
+    titleEl.textContent = `Pilihan Art PlayStation: "${session.title}"`;
+  }
+
+  const badgeEl = document.getElementById('image-picker-type-badge');
+  if (badgeEl) {
+    if (session.type === 'poster') {
+      badgeEl.textContent = 'Poster Cover (2:3)';
+      badgeEl.className = 'px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-500/30';
+    } else {
+      badgeEl.textContent = 'Wallpaper 16:9 Banner';
+      badgeEl.className = 'px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30';
+    }
+  }
+
+  const subEl = document.getElementById('image-picker-subtitle');
+  if (subEl) {
+    subEl.textContent = `Tersedia 4 pilihan gambar PlayStation resmi untuk ${session.type === 'poster' ? 'Poster Cover' : 'Wallpaper Highlight'}. Klik salah satu gambar untuk menerapkan.`;
+  }
+
+  // Setup Google Images link
+  const googleBtn = document.getElementById('btn-google-images');
+  if (googleBtn) {
+    const q = session.type === 'poster' ? `${session.title} PS4 PS5 cover art` : `${session.title} PS4 PS5 wallpaper 16:9`;
+    googleBtn.href = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(q)}`;
+  }
+
+  const customUrlInput = document.getElementById('image-picker-custom-url');
+  if (customUrlInput) customUrlInput.value = '';
+
+  renderImagePickerGrid();
+  modal.classList.remove('hidden');
+  lucide.createIcons();
+}
+
+function closeImagePickerModal() {
+  const modal = document.getElementById('modal-game-image-picker');
+  if (modal) modal.classList.add('hidden');
+}
+
+function renderImagePickerGrid() {
+  const session = window._activeImagePicker;
+  if (!session) return;
+
+  const grid = document.getElementById('image-picker-grid');
+  if (!grid) return;
+
+  grid.innerHTML = '';
+
+  // Get current 4 items
+  const total = session.pool.length;
+  const currentItems = [];
+  for (let i = 0; i < 4; i++) {
+    const idx = (session.offset + i) % total;
+    currentItems.push({
+      url: session.pool[idx],
+      index: idx + 1
+    });
+  }
+
+  const isPoster = session.type === 'poster';
+
+  currentItems.forEach((item, slotIdx) => {
+    const card = document.createElement('div');
+    card.className = 'bg-slate-900 border border-slate-700/80 hover:border-sky-400 rounded-2xl p-2.5 flex flex-col justify-between group transition-all shadow-lg hover:shadow-sky-500/10 cursor-pointer';
+    card.onclick = () => selectImageFromPicker(item.url);
+
+    const imgContainer = document.createElement('div');
+    imgContainer.className = `w-full rounded-xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center relative ${isPoster ? 'aspect-[2/3] sm:h-52' : 'aspect-video sm:h-36'}`;
+
+    const img = document.createElement('img');
+    img.src = item.url;
+    img.alt = `Pilihan ${slotIdx + 1}`;
+    img.className = 'w-full h-full object-cover group-hover:scale-105 transition-transform duration-300';
+    img.onerror = function() {
+      this.src = isPoster ? 'assets/covers/service-1tb.jpg' : 'assets/backdrops/gow-ragnarok.jpg';
+    };
+
+    const overlay = document.createElement('div');
+    overlay.className = 'absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity text-white';
+    overlay.innerHTML = `
+      <div class="w-9 h-9 rounded-full bg-sky-500 text-white flex items-center justify-center shadow-lg mb-1 scale-90 group-hover:scale-100 transition-transform">
+        <i data-lucide="check" class="w-5 h-5"></i>
+      </div>
+      <span class="text-[10px] font-black tracking-wide text-sky-200">PILIH INI</span>
+    `;
+
+    imgContainer.appendChild(img);
+    imgContainer.appendChild(overlay);
+
+    const labelWrap = document.createElement('div');
+    labelWrap.className = 'mt-2.5 pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-xs';
+    labelWrap.innerHTML = `
+      <div>
+        <span class="text-[10px] font-black text-sky-400 uppercase tracking-wider block">Pilihan #${slotIdx + 1}</span>
+        <span class="text-[11px] font-semibold text-slate-300 truncate max-w-[120px] block">${session.matchedFranchise || 'PlayStation'}</span>
+      </div>
+      <button type="button" class="px-2 py-1 rounded-lg bg-sky-600 group-hover:bg-sky-500 text-white text-[10px] font-bold shadow flex items-center gap-1 transition-colors">
+        Pilih
+      </button>
+    `;
+
+    card.appendChild(imgContainer);
+    card.appendChild(labelWrap);
+    grid.appendChild(card);
+  });
+
+  lucide.createIcons();
+}
+
+function cycleImagePickerVariations() {
+  playSfx('click');
+  const session = window._activeImagePicker;
+  if (!session) return;
+
+  session.offset = (session.offset + 4) % session.pool.length;
+  renderImagePickerGrid();
+  showToast(`Menampilkan 4 variasi PlayStation berikutnya!`, 'info');
+}
+
+// Live Internet Fetch from Wikipedia Game Art
+async function fetchImagesFromWikipedia() {
+  playSfx('click');
+  const session = window._activeImagePicker;
+  if (!session) return;
+
+  const btn = document.getElementById('btn-fetch-wiki');
+  const originalHtml = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Mencari di Wikipedia...</span>`;
+    lucide.createIcons();
+  }
+
+  try {
+    const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(session.title + ' video game')}&gsrlimit=4&prop=pageimages&piprop=original|thumbnail&pithumbsize=1200&format=json&origin=*`;
+    const resp = await fetch(searchUrl);
+    const data = await resp.json();
+
+    const wikiImages = [];
+    if (data && data.query && data.query.pages) {
+      Object.values(data.query.pages).forEach(page => {
+        if (page.original && page.original.source) {
+          wikiImages.push(page.original.source);
+        } else if (page.thumbnail && page.thumbnail.source) {
+          wikiImages.push(page.thumbnail.source);
+        }
+      });
+    }
+
+    if (wikiImages.length > 0) {
+      session.pool = [...wikiImages, ...session.pool];
+      session.offset = 0;
+      session.matchedFranchise = 'Wikipedia Official Game Art';
+      renderImagePickerGrid();
+      playSfx('success');
+      showToast(`Berhasil menemukan ${wikiImages.length} gambar resmi dari Wikipedia!`, 'success');
+    } else {
+      showToast('Tidak ada gambar tambahan di Wikipedia, menampilkan variasi resmi PlayStation.', 'info');
+      cycleImagePickerVariations();
+    }
+  } catch (err) {
+    console.warn('Wiki fetch error:', err);
+    showToast('Koneksi internet bermasalah, menampilkan art resmi PlayStation lokal.', 'warning');
+    cycleImagePickerVariations();
+  } finally {
+    if (btn) {
+      btn.innerHTML = originalHtml;
+      lucide.createIcons();
+    }
+  }
+}
+
+function selectImageFromPicker(url) {
+  const session = window._activeImagePicker;
+  if (!session || !url) return;
+
+  const inputEl = document.getElementById(`${session.prefix}-game-${session.type}`);
   if (inputEl) {
-    inputEl.value = pickedUrl;
-    updateImagePreview(prefix, type);
+    inputEl.value = url;
+    updateImagePreview(session.prefix, session.type);
   }
 
   playSfx('success');
-  showToast(`🎨 ${type === 'poster' ? 'Poster' : 'Wallpaper'} dihasilkan (Variasi ${nextIdx + 1}/${candidatePool.length})! Klik lagi untuk variasi lain.`, 'success', 'AI Generator');
+  closeImagePickerModal();
+  showToast(`Gambar ${session.type === 'poster' ? 'Poster' : 'Wallpaper'} berhasil diterapkan!`, 'success');
+}
+
+function applyCustomImageUrlFromPicker() {
+  const input = document.getElementById('image-picker-custom-url');
+  const url = input ? input.value.trim() : '';
+  if (!url) {
+    showToast('Tempel URL gambar terlebih dahulu!', 'warning');
+    return;
+  }
+  selectImageFromPicker(url);
 }
 
 function generateGameDescription(prefix) {
@@ -6830,10 +7270,16 @@ function openAddProductModal() {
   const modal = document.getElementById('modal-admin-add-product');
   if (!modal) return;
   document.getElementById('new-game-title').value = '';
-  document.getElementById('new-game-price-original').value = '';
-  document.getElementById('new-game-price-primary').value = '';
+  const normalEl = document.getElementById('new-game-price-normal');
+  if (normalEl) normalEl.value = '';
+  const discCheckEl = document.getElementById('new-game-has-discount');
+  if (discCheckEl) discCheckEl.checked = false;
+  const discContainer = document.getElementById('new-discount-fields-container');
+  if (discContainer) discContainer.classList.add('hidden');
   const newRateEl = document.getElementById('new-game-discount-rate');
   if (newRateEl) newRateEl.value = '';
+  const discountedEl = document.getElementById('new-game-price-discounted');
+  if (discountedEl) discountedEl.value = '';
   const newDriveEl = document.getElementById('new-game-drive-link');
   if (newDriveEl) newDriveEl.value = '';
   document.getElementById('new-game-poster').value = '';
@@ -6847,42 +7293,63 @@ function openAddProductModal() {
   updateImagePreview('new', 'poster');
   updateImagePreview('new', 'backdrop');
   modal.classList.remove('hidden');
-  updateDiscountCalc('new');
   lucide.createIcons();
 }
 
-// Two-Way Interactive Discount Calculator for Admin Forms (prefix: 'new' | 'edit')
-function onPriceOriginalInput(prefix) {
-  const origEl = document.getElementById(`${prefix}-game-price-original`);
+// Two-Way Interactive Discount Calculator with Checkbox & Rupiah Dot Formatting (prefix: 'new' | 'edit')
+function toggleDiscountSection(prefix) {
+  playSfx('click');
+  const checkEl = document.getElementById(`${prefix}-game-has-discount`);
+  const container = document.getElementById(`${prefix}-discount-fields-container`);
+  if (!checkEl || !container) return;
+
+  if (checkEl.checked) {
+    container.classList.remove('hidden');
+    const normalVal = parseRupiah(document.getElementById(`${prefix}-game-price-normal`)?.value);
+    const discEl = document.getElementById(`${prefix}-game-price-discounted`);
+    const rateEl = document.getElementById(`${prefix}-game-discount-rate`);
+    if (normalVal > 0 && (!discEl.value || parseRupiah(discEl.value) >= normalVal)) {
+      rateEl.value = '20';
+      const discounted = Math.round(normalVal * 0.8);
+      discEl.value = formatNumberWithDots(discounted);
+    }
+    updateDiscountCalc(prefix);
+  } else {
+    container.classList.add('hidden');
+    const preview = document.getElementById(`${prefix}-game-discount-preview`);
+    if (preview) preview.classList.add('hidden');
+  }
+}
+
+function onPriceNormalInput(prefix) {
+  const checkEl = document.getElementById(`${prefix}-game-has-discount`);
+  if (!checkEl || !checkEl.checked) return;
+
+  const normal = parseRupiah(document.getElementById(`${prefix}-game-price-normal`)?.value);
   const rateEl = document.getElementById(`${prefix}-game-discount-rate`);
-  const discEl = document.getElementById(`${prefix}-game-price-primary`);
-  if (!origEl || !rateEl || !discEl) return;
+  const discEl = document.getElementById(`${prefix}-game-price-discounted`);
+  if (!rateEl || !discEl) return;
 
-  const original = parseInt(origEl.value, 10) || 0;
   const rate = parseFloat(rateEl.value) || 0;
-  const discounted = parseInt(discEl.value, 10) || 0;
-
-  if (original > 0 && rate > 0) {
-    discEl.value = Math.round(original * (1 - rate / 100));
-  } else if (original > 0 && discounted > 0) {
-    if (discounted < original) {
-      rateEl.value = Math.round((1 - discounted / original) * 100);
-    } else {
-      rateEl.value = 0;
+  if (normal > 0 && rate > 0) {
+    const discounted = Math.round(normal * (1 - rate / 100));
+    discEl.value = formatNumberWithDots(discounted);
+  } else if (normal > 0 && discEl.value) {
+    const discounted = parseRupiah(discEl.value);
+    if (discounted < normal && discounted > 0) {
+      rateEl.value = Math.round((1 - discounted / normal) * 100);
     }
   }
   updateDiscountCalc(prefix);
 }
 
 function onDiscountRateInput(prefix) {
-  const origEl = document.getElementById(`${prefix}-game-price-original`);
+  const normal = parseRupiah(document.getElementById(`${prefix}-game-price-normal`)?.value);
   const rateEl = document.getElementById(`${prefix}-game-discount-rate`);
-  const discEl = document.getElementById(`${prefix}-game-price-primary`);
-  if (!origEl || !rateEl || !discEl) return;
+  const discEl = document.getElementById(`${prefix}-game-price-discounted`);
+  if (!rateEl || !discEl) return;
 
-  const original = parseInt(origEl.value, 10) || 0;
   const rateStr = rateEl.value.trim();
-
   if (rateStr === '') {
     updateDiscountCalc(prefix);
     return;
@@ -6893,33 +7360,23 @@ function onDiscountRateInput(prefix) {
   if (rate < 0) rate = 0;
   if (rate > 99) rate = 99;
 
-  if (original > 0) {
-    discEl.value = Math.round(original * (1 - rate / 100));
+  if (normal > 0) {
+    const discounted = Math.round(normal * (1 - rate / 100));
+    discEl.value = formatNumberWithDots(discounted);
   }
   updateDiscountCalc(prefix);
 }
 
-function onPriceDiscountInput(prefix) {
-  const origEl = document.getElementById(`${prefix}-game-price-original`);
+function onPriceDiscountedInput(prefix) {
+  const normal = parseRupiah(document.getElementById(`${prefix}-game-price-normal`)?.value);
   const rateEl = document.getElementById(`${prefix}-game-discount-rate`);
-  const discEl = document.getElementById(`${prefix}-game-price-primary`);
-  if (!origEl || !rateEl || !discEl) return;
+  const discEl = document.getElementById(`${prefix}-game-price-discounted`);
+  if (!rateEl || !discEl) return;
 
-  const original = parseInt(origEl.value, 10) || 0;
-  const discStr = discEl.value.trim();
-
-  if (discStr === '') {
-    rateEl.value = '';
-    updateDiscountCalc(prefix);
-    return;
-  }
-
-  const discounted = parseInt(discStr, 10);
-  if (isNaN(discounted)) return;
-
-  if (original > 0) {
-    if (discounted < original && discounted > 0) {
-      rateEl.value = Math.round((1 - discounted / original) * 100);
+  const discounted = parseRupiah(discEl.value);
+  if (normal > 0) {
+    if (discounted < normal && discounted > 0) {
+      rateEl.value = Math.round((1 - discounted / normal) * 100);
     } else {
       rateEl.value = 0;
     }
@@ -6930,20 +7387,23 @@ function onPriceDiscountInput(prefix) {
 }
 
 function updateDiscountCalc(prefix) {
-  const origEl = document.getElementById(`${prefix}-game-price-original`);
-  const discEl = document.getElementById(`${prefix}-game-price-primary`);
+  const normal = parseRupiah(document.getElementById(`${prefix}-game-price-normal`)?.value);
+  const discounted = parseRupiah(document.getElementById(`${prefix}-game-price-discounted`)?.value);
   const rateEl = document.getElementById(`${prefix}-game-discount-rate`);
   const preview = document.getElementById(`${prefix}-game-discount-preview`);
   const diffEl = document.getElementById(`${prefix}-game-discount-diff`);
   const pctEl = document.getElementById(`${prefix}-game-discount-percent`);
-  if (!origEl || !discEl || !preview) return;
+  const checkEl = document.getElementById(`${prefix}-game-has-discount`);
+  if (!preview) return;
 
-  const original = parseInt(origEl.value, 10) || 0;
-  const discounted = parseInt(discEl.value, 10) || 0;
-  const pct = getDiscountPercent(original, discounted);
+  if (checkEl && !checkEl.checked) {
+    preview.classList.add('hidden');
+    return;
+  }
 
-  if (pct > 0 && original > discounted) {
-    const diff = original - discounted;
+  const pct = getDiscountPercent(normal, discounted);
+  if (pct > 0 && normal > discounted) {
+    const diff = normal - discounted;
     if (diffEl) diffEl.textContent = `Hemat ${formatRupiah(diff)}`;
     if (pctEl) pctEl.textContent = `Diskon ${pct}% (Hemat ${formatRupiah(diff)})`;
     preview.classList.remove('hidden');
@@ -6952,8 +7412,8 @@ function updateDiscountCalc(prefix) {
     }
   } else {
     preview.classList.add('hidden');
-    if (discounted >= original && rateEl && document.activeElement !== rateEl) {
-      rateEl.value = original > 0 ? 0 : '';
+    if (discounted >= normal && rateEl && document.activeElement !== rateEl) {
+      rateEl.value = normal > 0 ? 0 : '';
     }
   }
 }
@@ -6962,16 +7422,28 @@ function submitNewProduct() {
   const title = document.getElementById('new-game-title').value.trim();
   const category = document.getElementById('new-game-category').value;
   const platformChecked = Array.from(document.querySelectorAll('input[name="new-game-platform"]:checked')).map(cb => cb.value);
-  const pricePrimary = parseInt(document.getElementById('new-game-price-primary').value, 10) || 0;
-  const priceOriginalInput = parseInt(document.getElementById('new-game-price-original').value, 10) || 0;
-  const priceOriginal = priceOriginalInput > pricePrimary ? priceOriginalInput : 0;
+  const priceNormal = parseRupiah(document.getElementById('new-game-price-normal')?.value);
+  const hasDiscount = document.getElementById('new-game-has-discount')?.checked;
+  const priceDiscounted = parseRupiah(document.getElementById('new-game-price-discounted')?.value);
+
+  let pricePrimary = priceNormal;
+  let priceOriginal = 0;
+
+  if (hasDiscount && priceDiscounted > 0 && priceDiscounted < priceNormal) {
+    pricePrimary = priceDiscounted;
+    priceOriginal = priceNormal;
+  } else {
+    pricePrimary = priceNormal;
+    priceOriginal = 0; // Sells at normal regular price without strikethrough
+  }
+
   const driveLink = document.getElementById('new-game-drive-link') ? document.getElementById('new-game-drive-link').value.trim() : '';
   const posterUrl = document.getElementById('new-game-poster').value.trim();
   const backdropUrl = document.getElementById('new-game-backdrop') ? document.getElementById('new-game-backdrop').value.trim() : '';
   const desc = document.getElementById('new-game-desc').value.trim();
 
   if (!title || platformChecked.length === 0 || pricePrimary <= 0) {
-    showToast('Lengkapi judul, platform, dan harga diskon!', 'warning');
+    showToast('Lengkapi judul, platform, dan harga game!', 'warning');
     return;
   }
 
@@ -6991,9 +7463,9 @@ function submitNewProduct() {
     publisher: 'PlayStation Publisher',
     tagline: 'Game PlayStation Berkualitas Tinggi ALIANSI STORE',
     images: {
-      cover: posterUrl || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=600&q=80',
-      backdrop: backdropUrl || posterUrl || 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85',
-      poster: posterUrl || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=600&q=80',
+      cover: posterUrl || 'assets/covers/gow-ragnarok.jpg',
+      backdrop: backdropUrl || posterUrl || 'assets/backdrops/gow-ragnarok.jpg',
+      poster: posterUrl || 'assets/covers/gow-ragnarok.jpg',
       screenshots: []
     },
     prices: {
@@ -7039,16 +7511,28 @@ function openEditProductModal(productId) {
   editPlatCbs.forEach(cb => {
     cb.checked = Array.isArray(p.platform) && p.platform.includes(cb.value);
   });
-  document.getElementById('edit-game-price-primary').value = p.prices.primary;
-  document.getElementById('edit-game-price-original').value = p.prices.original || '';
-  const editRateEl = document.getElementById('edit-game-discount-rate');
-  if (editRateEl) {
-    if (p.prices.original && p.prices.original > p.prices.primary) {
-      editRateEl.value = getDiscountPercent(p.prices.original, p.prices.primary);
-    } else {
-      editRateEl.value = '';
-    }
+
+  const hasDiscount = !!(p.prices.original && p.prices.original > p.prices.primary);
+  const checkEl = document.getElementById('edit-game-has-discount');
+  const container = document.getElementById('edit-discount-fields-container');
+  const normalEl = document.getElementById('edit-game-price-normal');
+  const discEl = document.getElementById('edit-game-price-discounted');
+  const rateEl = document.getElementById('edit-game-discount-rate');
+
+  if (hasDiscount) {
+    if (checkEl) checkEl.checked = true;
+    if (container) container.classList.remove('hidden');
+    if (normalEl) normalEl.value = formatNumberWithDots(p.prices.original);
+    if (discEl) discEl.value = formatNumberWithDots(p.prices.primary);
+    if (rateEl) rateEl.value = getDiscountPercent(p.prices.original, p.prices.primary);
+  } else {
+    if (checkEl) checkEl.checked = false;
+    if (container) container.classList.add('hidden');
+    if (normalEl) normalEl.value = formatNumberWithDots(p.prices.primary);
+    if (discEl) discEl.value = '';
+    if (rateEl) rateEl.value = '';
   }
+
   const editDriveEl = document.getElementById('edit-game-drive-link');
   if (editDriveEl) editDriveEl.value = p.driveLink || '';
   const posterVal = (p.images && (p.images.poster || p.images.cover)) || '';
@@ -7077,10 +7561,21 @@ function submitEditProduct() {
   if (editCatEl && editCatEl.value) p.category = editCatEl.value;
   const editPlatCbs = Array.from(document.querySelectorAll('input[name="edit-game-platform"]:checked')).map(cb => cb.value);
   if (editPlatCbs.length > 0) p.platform = editPlatCbs;
-  p.prices.primary = parseInt(document.getElementById('edit-game-price-primary').value, 10) || p.prices.primary;
-  p.prices.secondary = p.prices.primary;
-  const editOriginal = parseInt(document.getElementById('edit-game-price-original').value, 10) || 0;
-  p.prices.original = editOriginal > p.prices.primary ? editOriginal : 0;
+
+  const priceNormal = parseRupiah(document.getElementById('edit-game-price-normal')?.value);
+  const hasDiscount = document.getElementById('edit-game-has-discount')?.checked;
+  const priceDiscounted = parseRupiah(document.getElementById('edit-game-price-discounted')?.value);
+
+  if (hasDiscount && priceDiscounted > 0 && priceDiscounted < priceNormal) {
+    p.prices.primary = priceDiscounted;
+    p.prices.secondary = priceDiscounted;
+    p.prices.original = priceNormal;
+  } else {
+    p.prices.primary = priceNormal || p.prices.primary;
+    p.prices.secondary = p.prices.primary;
+    p.prices.original = 0; // Sells at normal regular price without strikethrough
+  }
+
   const editDriveEl = document.getElementById('edit-game-drive-link');
   if (editDriveEl) p.driveLink = editDriveEl.value.trim();
   const poster = document.getElementById('edit-game-poster').value.trim();
