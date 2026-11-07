@@ -15,6 +15,17 @@ const APP_STORAGE_KEYS = {
   CHATS: 'aliansi_store_chats_v1'
 };
 
+// Global Safe HTML Escape Utility
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 // Permanent High-Resolution Local & Fallback Poster Map (14 Official Sub Indo Titles)
 const COVER_FALLBACK_MAP = {
   'game-it-takes-two-subindo': 'assets/covers/it-takes-two.jpg',
@@ -407,9 +418,11 @@ function loadStoredData() {
     saveUsers();
   }
 
-  // Ensure default INITIAL_USERS exist in state.users and have lastOnline timestamps
+  // Ensure default INITIAL_USERS exist in state.users, sync customers from orders & requests, and have lastOnline timestamps
   if (Array.isArray(state.users)) {
     let usersUpdated = false;
+    
+    // 1. Sync from INITIAL_USERS
     if (typeof INITIAL_USERS !== 'undefined' && Array.isArray(INITIAL_USERS)) {
       INITIAL_USERS.forEach(iu => {
         if (!state.users.some(u => u.id === iu.id || (u.email && iu.email && u.email.toLowerCase() === iu.email.toLowerCase()))) {
@@ -418,6 +431,57 @@ function loadStoredData() {
         }
       });
     }
+
+    // 2. Sync customers from Orders (if any)
+    if (Array.isArray(state.orders)) {
+      state.orders.forEach(o => {
+        const oEmail = (o.customerEmail || '').trim().toLowerCase();
+        const oPhone = (o.customerPhone || '').trim();
+        const oName = (o.customerName || '').trim();
+        if ((oEmail || oPhone) && !state.users.some(u => (oEmail && u.email && u.email.toLowerCase() === oEmail) || (oPhone && u.phone && u.phone.replace(/[\s-]/g, '') === oPhone.replace(/[\s-]/g, '')))) {
+          state.users.push({
+            id: 'usr-ord-' + Math.floor(1000 + Math.random() * 9000),
+            identifier: oPhone || oEmail,
+            name: oName || 'Customer Toko',
+            phone: oPhone,
+            email: oEmail,
+            pin: '1234',
+            role: 'customer',
+            roleLabel: 'Customer Pembeli',
+            authProvider: 'local',
+            memberSince: new Date().getFullYear().toString(),
+            lastOnline: o.createdAt || new Date().toISOString()
+          });
+          usersUpdated = true;
+        }
+      });
+    }
+
+    // 3. Sync customers from Game Requests (e.g. Bayu Perkasa, Derry Pratama)
+    if (Array.isArray(state.gameRequests)) {
+      state.gameRequests.forEach(r => {
+        const rEmail = (r.customerEmail || '').trim().toLowerCase();
+        const rPhone = (r.customerPhone || '').trim();
+        const rName = (r.customerName || '').trim();
+        if ((rEmail || rPhone) && !state.users.some(u => (rEmail && u.email && u.email.toLowerCase() === rEmail) || (rPhone && u.phone && u.phone.replace(/[\s-]/g, '') === rPhone.replace(/[\s-]/g, '')))) {
+          state.users.push({
+            id: 'usr-req-' + Math.floor(1000 + Math.random() * 9000),
+            identifier: rPhone || rEmail,
+            name: rName || 'Customer Request',
+            phone: rPhone,
+            email: rEmail,
+            pin: '1234',
+            role: 'customer',
+            roleLabel: 'Customer Request',
+            authProvider: 'local',
+            memberSince: new Date().getFullYear().toString(),
+            lastOnline: r.createdAt || new Date().toISOString()
+          });
+          usersUpdated = true;
+        }
+      });
+    }
+
     state.users.forEach((u, idx) => {
       if (!u.lastOnline) {
         const offsetHours = [0.1, 1.2, 3.5, 12, 26, 48, 72][idx % 7];
@@ -475,6 +539,44 @@ function loadStoredData() {
 
 function saveUsers() {
   localStorage.setItem(APP_STORAGE_KEYS.USERS_DB, JSON.stringify(state.users));
+}
+
+function upsertCustomerUser({ name, email, phone }) {
+  if (!name && !email && !phone) return;
+  if (!Array.isArray(state.users)) state.users = [];
+  const cleanEmail = (email || '').trim().toLowerCase();
+  const cleanPhone = (phone || '').trim().replace(/[\s-]/g, '');
+
+  let existing = state.users.find(u => 
+    (cleanEmail && u.email && u.email.toLowerCase() === cleanEmail) ||
+    (cleanPhone && u.phone && u.phone.replace(/[\s-]/g, '') === cleanPhone)
+  );
+
+  if (existing) {
+    if (name && !existing.name) existing.name = name;
+    if (cleanEmail && !existing.email) existing.email = cleanEmail;
+    if (cleanPhone && !existing.phone) existing.phone = cleanPhone;
+    existing.lastOnline = new Date().toISOString();
+  } else {
+    state.users.push({
+      id: 'usr-cust-' + Math.floor(1000 + Math.random() * 9000),
+      identifier: cleanPhone || cleanEmail,
+      name: name || 'Customer Toko',
+      phone: phone || '',
+      email: cleanEmail || '',
+      pin: '1234',
+      role: 'customer',
+      roleLabel: 'Member',
+      authProvider: 'local',
+      memberSince: new Date().getFullYear().toString(),
+      lastOnline: new Date().toISOString()
+    });
+  }
+  saveUsers();
+  renderAdminStats();
+  if (document.getElementById('admin-customers-table-body')) {
+    renderAdminCustomersTable();
+  }
 }
 
 function saveGameRequests() {
@@ -2116,6 +2218,7 @@ async function submitOrder() {
   state.orders.unshift(newOrder);
   saveOrders();
   syncOrderToSupabase(newOrder);
+  upsertCustomerUser({ name: newOrder.customerName, email: newOrder.customerEmail, phone: newOrder.customerPhone });
 
   // Clear cart
   state.cart = [];
@@ -3754,35 +3857,114 @@ function logoutAdmin() {
 
 // ================= CUSTOMER PORTAL & ORDERS LOGIC =================
 
-function openCustomerOrdersModal() {
+let currentCustomerModalTab = 'orders';
+let guestLookupEmailOrPhone = '';
+
+function switchCustomerModalTab(tab) {
+  currentCustomerModalTab = tab;
   playSfx('click');
-  if (!state.currentUser) {
-    openAuthModal('login');
-    return;
+
+  const btnOrders = document.getElementById('tab-custmodal-orders');
+  const btnRequests = document.getElementById('tab-custmodal-requests');
+  const subtitle = document.getElementById('customer-orders-subtitle');
+
+  if (tab === 'orders') {
+    if (btnOrders) {
+      btnOrders.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-sky-600 text-white shadow-sm flex items-center gap-2 transition-all cursor-pointer';
+    }
+    if (btnRequests) {
+      btnRequests.className = 'px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white flex items-center gap-2 transition-all cursor-pointer';
+    }
+    if (subtitle) subtitle.textContent = 'Riwayat pembelian game PS4 HEN & lisensi digital Anda';
+    renderCustomerOrders();
+  } else {
+    if (btnOrders) {
+      btnOrders.className = 'px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white flex items-center gap-2 transition-all cursor-pointer';
+    }
+    if (btnRequests) {
+      btnRequests.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-purple-600 text-white shadow-sm flex items-center gap-2 transition-all cursor-pointer';
+    }
+    if (subtitle) subtitle.textContent = 'Daftar tiket permintaan game Anda yang sedang diproses & sudah tersedia';
+    renderCustomerRequests();
   }
+}
+
+function openCustomerOrdersModal(initialTab = 'orders') {
+  playSfx('click');
   const modal = document.getElementById('modal-customer-orders');
   if (!modal) return;
   modal.classList.remove('hidden');
-  renderCustomerOrders();
+  updateCustomerModalBadges();
+  switchCustomerModalTab(initialTab);
+}
+
+function updateCustomerModalBadges() {
+  const user = state.currentUser;
+  const userPhone = user && user.phone ? user.phone.replace(/[\s-]/g, '') : (guestLookupEmailOrPhone || '');
+  const userEmail = user && user.email ? user.email.toLowerCase() : (guestLookupEmailOrPhone.toLowerCase() || '');
+
+  const myOrdersCount = (state.orders || []).filter(o => {
+    const oPhone = o.customerPhone ? o.customerPhone.replace(/[\s-]/g, '') : '';
+    const oEmail = o.customerEmail ? o.customerEmail.toLowerCase() : '';
+    return (userPhone && oPhone === userPhone) || (userEmail && oEmail === userEmail);
+  }).length;
+
+  const myRequestsCount = (state.gameRequests || []).filter(r => {
+    const rPhone = r.customerPhone ? r.customerPhone.replace(/[\s-]/g, '') : '';
+    const rEmail = r.customerEmail ? r.customerEmail.toLowerCase() : '';
+    return (userPhone && rPhone === userPhone) || (userEmail && rEmail === userEmail);
+  }).length;
+
+  const bOrders = document.getElementById('custmodal-badge-orders');
+  if (bOrders) bOrders.textContent = myOrdersCount;
+  const bRequests = document.getElementById('custmodal-badge-requests');
+  if (bRequests) bRequests.textContent = myRequestsCount;
 }
 
 function renderCustomerOrders() {
   const container = document.getElementById('customer-orders-list');
   if (!container) return;
 
-  if (!state.currentUser) {
-    container.innerHTML = '<p class="text-center text-slate-400 py-8">Silakan login terlebih dahulu.</p>';
+  const user = state.currentUser;
+  const userPhone = user && user.phone ? user.phone.replace(/[\s-]/g, '') : (guestLookupEmailOrPhone || '');
+  const userEmail = user && user.email ? user.email.toLowerCase() : (guestLookupEmailOrPhone.toLowerCase() || '');
+
+  if (!user && !guestLookupEmailOrPhone) {
+    container.innerHTML = `
+      <div class="text-center py-8 px-4">
+        <div class="w-14 h-14 rounded-2xl bg-sky-500/10 text-sky-400 flex items-center justify-center mx-auto mb-3 border border-sky-500/20">
+          <i data-lucide="scan-line" class="w-7 h-7"></i>
+        </div>
+        <h4 class="text-base font-bold text-white mb-1">Cek Pesanan & Lisensi Game Anda</h4>
+        <p class="text-xs text-slate-400 max-w-sm mx-auto mb-4">
+          Masukkan alamat email atau nomor WhatsApp yang Anda gunakan saat memesan game.
+        </p>
+        <div class="max-w-xs mx-auto flex gap-2 mb-4">
+          <input 
+            type="text" 
+            id="custmodal-lookup-input" 
+            placeholder="nama@gmail.com / 0812..." 
+            class="w-full px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:border-sky-500 font-mono"
+            onkeydown="if(event.key==='Enter') executeCustomerGuestLookup();"
+          />
+          <button onclick="executeCustomerGuestLookup()" class="px-4 py-2 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white cursor-pointer shrink-0">
+            Cari
+          </button>
+        </div>
+        <div class="text-slate-500 text-[11px]">
+          Atau <button onclick="closeModals(); openAuthModal('login');" class="text-sky-400 font-bold hover:underline cursor-pointer">Login ke Akun Member</button>
+        </div>
+      </div>
+    `;
+    lucide.createIcons();
     return;
   }
 
-  const userPhone = state.currentUser.phone ? state.currentUser.phone.replace(/[\s-]/g, '') : '';
-  const userEmail = state.currentUser.email ? state.currentUser.email.toLowerCase() : '';
-
-  const myOrders = state.orders ? state.orders.filter(o => {
+  const myOrders = (state.orders || []).filter(o => {
     const oPhone = o.customerPhone ? o.customerPhone.replace(/[\s-]/g, '') : '';
     const oEmail = o.customerEmail ? o.customerEmail.toLowerCase() : '';
     return (userPhone && oPhone === userPhone) || (userEmail && oEmail === userEmail);
-  }) : [];
+  });
 
   if (myOrders.length === 0) {
     container.innerHTML = `
@@ -3903,6 +4085,171 @@ function renderCustomerOrders() {
   }).join('');
 
   lucide.createIcons();
+}
+
+function renderCustomerRequests() {
+  const container = document.getElementById('customer-orders-list');
+  if (!container) return;
+
+  const user = state.currentUser;
+  const userPhone = user && user.phone ? user.phone.replace(/[\s-]/g, '') : (guestLookupEmailOrPhone || '');
+  const userEmail = user && user.email ? user.email.toLowerCase() : (guestLookupEmailOrPhone.toLowerCase() || '');
+
+  if (!user && !guestLookupEmailOrPhone) {
+    container.innerHTML = `
+      <div class="text-center py-8 px-4">
+        <div class="w-14 h-14 rounded-2xl bg-purple-500/10 text-purple-400 flex items-center justify-center mx-auto mb-3 border border-purple-500/20">
+          <i data-lucide="sparkles" class="w-7 h-7"></i>
+        </div>
+        <h4 class="text-base font-bold text-white mb-1">Cek Status Permintaan Game Anda</h4>
+        <p class="text-xs text-slate-400 max-w-sm mx-auto mb-4">
+          Masukkan alamat email atau nomor WhatsApp yang Anda gunakan saat mengajukan request game.
+        </p>
+        <div class="max-w-xs mx-auto flex gap-2 mb-4">
+          <input 
+            type="text" 
+            id="custmodal-lookup-input" 
+            placeholder="nama@gmail.com / 0812..." 
+            class="w-full px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:border-purple-500 font-mono"
+            onkeydown="if(event.key==='Enter') executeCustomerGuestLookup();"
+          />
+          <button onclick="executeCustomerGuestLookup()" class="px-4 py-2 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-500 text-white cursor-pointer shrink-0">
+            Cari
+          </button>
+        </div>
+        <div class="text-slate-500 text-[11px]">
+          Atau <button onclick="closeModals(); openAuthModal('login');" class="text-purple-400 font-bold hover:underline cursor-pointer">Login ke Akun Member</button>
+        </div>
+      </div>
+    `;
+    lucide.createIcons();
+    return;
+  }
+
+  const myRequests = (state.gameRequests || []).filter(r => {
+    const rPhone = r.customerPhone ? r.customerPhone.replace(/[\s-]/g, '') : '';
+    const rEmail = r.customerEmail ? r.customerEmail.toLowerCase() : '';
+    return (userPhone && rPhone === userPhone) || (userEmail && rEmail === userEmail);
+  });
+
+  if (myRequests.length === 0) {
+    container.innerHTML = `
+      <div class="text-center py-10 px-4">
+        <div class="w-16 h-16 rounded-3xl bg-slate-800/80 text-purple-400 flex items-center justify-center mx-auto mb-4">
+          <i data-lucide="sparkles" class="w-8 h-8"></i>
+        </div>
+        <h4 class="text-base font-bold text-white mb-1">Belum Ada Permintaan Game</h4>
+        <p class="text-xs text-slate-400 max-w-sm mx-auto mb-5 leading-relaxed">
+          Punya game PS4 / PS5 impian yang belum ada di katalog ALIANSI STORE? Ajukan sekarang dan kami akan siapkan link & patch subtitle Indonesianya!
+        </p>
+        <button onclick="closeModals(); openRequestGameModal();" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-black shadow-lg cursor-pointer">
+          + Ajukan Request Game Baru
+        </button>
+      </div>
+    `;
+    lucide.createIcons();
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800/60">
+      <span class="text-xs font-bold text-purple-300 flex items-center gap-1.5">
+        <i data-lucide="sparkles" class="w-3.5 h-3.5 text-purple-400"></i>
+        <span>Ditemukan ${myRequests.length} Permintaan Game Anda</span>
+      </span>
+      <button onclick="closeModals(); openRequestGameModal();" class="text-xs font-bold text-purple-400 hover:text-purple-300 flex items-center gap-1 cursor-pointer">
+        <i data-lucide="plus" class="w-3 h-3"></i> Request Baru
+      </button>
+    </div>
+    <div class="space-y-3">
+      ${myRequests.map(req => {
+        const isReady = req.status === 'READY';
+        const statusBadge = isReady
+          ? `<span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1"><i data-lucide="check-circle" class="w-3 h-3"></i> SUDAH TERSEDIA</span>`
+          : `<span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> SEDANG DICARIKAN</span>`;
+
+        return `
+          <div class="p-4 sm:p-5 rounded-2xl bg-[#091128] border ${isReady ? 'border-emerald-500/40 bg-gradient-to-br from-emerald-950/20 to-transparent' : 'border-slate-800'} transition-all">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-800/80 mb-3">
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-xs font-mono font-black text-purple-400">${req.id}</span>
+                  ${statusBadge}
+                </div>
+                <span class="text-[10px] text-slate-400">${formatDate(req.createdAt)}</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                ${(req.platform || []).map(p => `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/15 text-purple-300 border border-purple-500/30">${p}</span>`).join('')}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <h4 class="text-sm font-bold text-white mb-1 font-display">${escapeHtml(req.gameTitle)}</h4>
+              <div class="text-[11px] text-slate-400">Genre: <span class="text-slate-300 font-medium">${req.category || 'Action & Adventure'}</span></div>
+              ${req.notes ? `
+                <div class="mt-2 text-xs text-slate-300 bg-slate-900/70 p-2.5 rounded-xl border border-slate-800 italic">
+                  "${escapeHtml(req.notes)}"
+                </div>
+              ` : ''}
+              ${req.adminNotes ? `
+                <div class="mt-2 text-xs text-emerald-300 bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-500/30">
+                  <strong class="text-emerald-400">Pesan dari Admin:</strong> ${escapeHtml(req.adminNotes)}
+                </div>
+              ` : ''}
+            </div>
+
+            <div class="flex items-center justify-between pt-2 border-t border-slate-800/60 flex-wrap gap-2">
+              <div class="text-[11px] text-slate-400">
+                ${isReady ? '🎉 Game sudah siap dipesan di katalog toko!' : '⏳ Admin akan mengirimkan email konfirmasi begitu game siap.'}
+              </div>
+              <div class="flex items-center gap-2">
+                <button 
+                  onclick="openCustomerChatForRequest('${req.id}', '${escapeHtml(req.gameTitle)}')" 
+                  class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 flex items-center gap-1.5 transition-colors cursor-pointer"
+                  title="Chat Admin Toko perihal request ini"
+                >
+                  <i data-lucide="message-circle" class="w-3.5 h-3.5"></i> Chat Admin
+                </button>
+                ${isReady ? `
+                  <button onclick="closeModals(); window.location.hash = 'katalog';" class="px-3.5 py-1.5 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-500 text-white shadow flex items-center gap-1.5 cursor-pointer">
+                    <i data-lucide="shopping-cart" class="w-3.5 h-3.5"></i> Lihat di Katalog
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+  lucide.createIcons();
+}
+
+function executeCustomerGuestLookup() {
+  const input = document.getElementById('custmodal-lookup-input');
+  if (!input) return;
+  const val = input.value.trim();
+  if (!val) {
+    showToast('Masukkan alamat email atau nomor WhatsApp!', 'warning');
+    return;
+  }
+  guestLookupEmailOrPhone = val;
+  updateCustomerModalBadges();
+  if (currentCustomerModalTab === 'requests') {
+    renderCustomerRequests();
+  } else {
+    renderCustomerOrders();
+  }
+}
+
+function openCustomerChatForRequest(reqId, gameTitle) {
+  closeModals();
+  toggleCustomerChat();
+  const input = document.getElementById('customer-chat-input');
+  if (input) {
+    input.value = `Halo Admin, saya mau tanya perkembangan tiket request ${reqId} (${gameTitle}) saya.`;
+    input.focus();
+  }
 }
 
 function openAdminDashboard() {
@@ -4278,7 +4625,134 @@ function submitAdminPasswordReset() {
 }
 
 // ================= GAME REQUESTS MANAGEMENT SYSTEM =================
-function openRequestGameModal(prefillTitle = '') {
+let currentRequestModalTab = 'new';
+let customerRequestModalFilter = 'all';
+
+function switchRequestModalTab(tab) {
+  currentRequestModalTab = tab;
+  playSfx('click');
+
+  const btnNew = document.getElementById('tab-reqform-new');
+  const btnList = document.getElementById('tab-reqform-list');
+  const formBox = document.getElementById('container-request-form');
+  const listBox = document.getElementById('container-request-list');
+
+  if (tab === 'new') {
+    if (btnNew) {
+      btnNew.className = 'px-3.5 py-1.5 rounded-xl text-xs font-bold bg-purple-600 text-white shadow-sm flex items-center gap-1.5 transition-all cursor-pointer';
+    }
+    if (btnList) {
+      btnList.className = 'px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-white flex items-center gap-1.5 transition-all cursor-pointer';
+    }
+    if (formBox) formBox.classList.remove('hidden');
+    if (listBox) listBox.classList.add('hidden');
+  } else {
+    if (btnNew) {
+      btnNew.className = 'px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-white flex items-center gap-1.5 transition-all cursor-pointer';
+    }
+    if (btnList) {
+      btnList.className = 'px-3.5 py-1.5 rounded-xl text-xs font-bold bg-purple-600 text-white shadow-sm flex items-center gap-1.5 transition-all cursor-pointer';
+    }
+    if (formBox) formBox.classList.add('hidden');
+    if (listBox) listBox.classList.remove('hidden');
+    renderCustomerRequestsListInModal();
+  }
+}
+
+function filterCustomerRequestsModal(filter) {
+  customerRequestModalFilter = filter;
+  playSfx('click');
+  ['all', 'pending', 'ready'].forEach(f => {
+    const btn = document.getElementById(`tab-custreq-${f}`);
+    if (btn) {
+      if (f === filter) {
+        btn.className = 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-purple-600 text-white transition-colors cursor-pointer';
+      } else {
+        btn.className = 'px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-white transition-colors cursor-pointer';
+      }
+    }
+  });
+  renderCustomerRequestsListInModal();
+}
+
+function renderCustomerRequestsListInModal() {
+  const container = document.getElementById('customer-requests-cards-container');
+  if (!container) return;
+
+  const searchInput = document.getElementById('customer-request-search-input');
+  const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+  let list = state.gameRequests || [];
+
+  const badgeTotal = document.getElementById('badge-modal-total-requests');
+  if (badgeTotal) badgeTotal.textContent = list.length;
+
+  if (customerRequestModalFilter === 'pending') {
+    list = list.filter(r => r.status === 'PENDING');
+  } else if (customerRequestModalFilter === 'ready') {
+    list = list.filter(r => r.status === 'READY');
+  }
+
+  if (query) {
+    list = list.filter(r => 
+      (r.gameTitle || '').toLowerCase().includes(query) ||
+      (r.customerName || '').toLowerCase().includes(query) ||
+      (r.id || '').toLowerCase().includes(query)
+    );
+  }
+
+  if (list.length === 0) {
+    container.innerHTML = `
+      <div class="text-center py-8 text-xs text-slate-500">
+        <i data-lucide="sparkles" class="w-8 h-8 mx-auto mb-2 opacity-40"></i>
+        <div>Belum ada data permintaan game dengan filter ini.</div>
+      </div>
+    `;
+    lucide.createIcons();
+    return;
+  }
+
+  container.innerHTML = list.map(req => {
+    const isReady = req.status === 'READY';
+    const statusBadge = isReady
+      ? `<span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">SUDAH TERSEDIA</span>`
+      : `<span class="px-2 py-0.5 rounded text-[10px] font-black bg-amber-500/20 text-amber-400 border border-amber-500/30">MENUNGGU</span>`;
+
+    return `
+      <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border ${isReady ? 'border-emerald-500/40 bg-emerald-950/10' : 'border-slate-200 dark:border-slate-800'} text-xs">
+        <div class="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
+          <div class="flex items-center gap-2">
+            <span class="font-mono font-bold text-purple-400">${req.id}</span>
+            ${statusBadge}
+          </div>
+          <span class="text-[10px] text-slate-400">${formatDate(req.createdAt)}</span>
+        </div>
+        <div class="font-bold text-slate-900 dark:text-white text-sm mb-1">${escapeHtml(req.gameTitle)}</div>
+        <div class="flex items-center gap-1.5 flex-wrap mb-2">
+          ${(req.platform || []).map(p => `<span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">${p}</span>`).join('')}
+          <span class="text-[10px] text-slate-400">• Diminta oleh: <strong>${escapeHtml(req.customerName)}</strong></span>
+        </div>
+        ${req.notes ? `
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 italic bg-white dark:bg-slate-950 p-2 rounded-lg border border-slate-200 dark:border-slate-800/80 mb-2">
+            "${escapeHtml(req.notes)}"
+          </div>
+        ` : ''}
+        ${isReady ? `
+          <div class="flex items-center justify-between pt-1.5 border-t border-slate-200 dark:border-slate-800/80">
+            <span class="text-[10px] text-emerald-400 font-bold">✨ Sudah siap di katalog Aliansi Store!</span>
+            <button onclick="closeModals(); window.location.hash = 'katalog';" class="px-2.5 py-1 rounded-lg text-[10px] font-black bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer">
+              Beli Sekarang
+            </button>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+
+  lucide.createIcons();
+}
+
+function openRequestGameModal(prefillTitle = '', initialTab = 'new') {
   playSfx('click');
   const modal = document.getElementById('modal-request-game');
   if (!modal) return;
@@ -4305,8 +4779,9 @@ function openRequestGameModal(prefillTitle = '') {
   }
 
   modal.classList.remove('hidden');
+  switchRequestModalTab(initialTab);
   lucide.createIcons();
-  if (titleInput && !prefillTitle) {
+  if (titleInput && !prefillTitle && initialTab === 'new') {
     setTimeout(() => titleInput.focus(), 150);
   }
 }
@@ -4370,6 +4845,7 @@ function submitGameRequest() {
   }
   state.gameRequests.unshift(newReq);
   saveGameRequests();
+  upsertCustomerUser({ name: customerName, email: customerEmail, phone: customerPhone });
 
   if (typeof syncGameRequestToSupabase === 'function') {
     syncGameRequestToSupabase(newReq);

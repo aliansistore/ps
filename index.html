@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id" class="dark scroll-smooth">
 <head>
   <meta charset="UTF-8" />
@@ -2944,11 +2944,11 @@
       <div class="px-6 py-5 border-b border-slate-800 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-2xl bg-sky-500/15 border border-sky-500/30 text-sky-400 flex items-center justify-center">
-            <i data-lucide="gamepad-2" class="w-5 h-5"></i>
+            <i data-lucide="user-check" class="w-5 h-5"></i>
           </div>
           <div>
-            <h3 class="text-lg font-black text-white font-display">Pesanan & Lisensi Game Saya</h3>
-            <p class="text-xs text-slate-400" id="customer-orders-subtitle">Riwayat pembelian game PS4 HEN & Akun Digital</p>
+            <h3 class="text-lg font-black text-white font-display">Aktivitas & Transaksi Saya</h3>
+            <p class="text-xs text-slate-400" id="customer-orders-subtitle">Riwayat pembelian game, lisensi digital, & status permintaan game Anda</p>
           </div>
         </div>
         <button onclick="closeModals()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer">
@@ -2956,7 +2956,21 @@
         </button>
       </div>
 
-      <!-- Modal Body (Scrollable Orders List) -->
+      <!-- Customer Modal Sub-Tabs -->
+      <div class="px-6 pt-3 pb-2 border-b border-slate-800/80 bg-[#060c1d] flex items-center gap-2 overflow-x-auto">
+        <button id="tab-custmodal-orders" onclick="switchCustomerModalTab('orders')" class="px-4 py-2 rounded-xl text-xs font-bold bg-sky-600 text-white shadow-sm flex items-center gap-2 transition-all cursor-pointer">
+          <i data-lucide="gamepad-2" class="w-3.5 h-3.5"></i>
+          <span>Pesanan & Akun Game</span>
+          <span id="custmodal-badge-orders" class="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-sky-950/80 text-sky-200">0</span>
+        </button>
+        <button id="tab-custmodal-requests" onclick="switchCustomerModalTab('requests')" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white flex items-center gap-2 transition-all cursor-pointer">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-purple-400"></i>
+          <span>Permintaan Game Saya</span>
+          <span id="custmodal-badge-requests" class="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-slate-900 text-slate-300">0</span>
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable Orders / Requests List) -->
       <div class="p-6 overflow-y-auto space-y-4 flex-1" id="customer-orders-list">
         <!-- Rendered dynamically by renderCustomerOrders() -->
       </div>
@@ -3797,6 +3811,21 @@
         </button>
       </div>
 
+      <!-- Navigation Tabs: Form Request vs Daftar Permintaan Game -->
+      <div class="flex items-center gap-2 pt-3 pb-2 border-b border-slate-200 dark:border-slate-800">
+        <button type="button" id="tab-reqform-new" onclick="switchRequestModalTab('new')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-purple-600 text-white shadow-sm flex items-center gap-1.5 transition-all cursor-pointer">
+          <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+          <span>+ Ajukan Request Baru</span>
+        </button>
+        <button type="button" id="tab-reqform-list" onclick="switchRequestModalTab('list')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-white flex items-center gap-1.5 transition-all cursor-pointer">
+          <i data-lucide="list" class="w-3.5 h-3.5 text-purple-400"></i>
+          <span>📋 Daftar Permintaan Game</span>
+          <span id="badge-modal-total-requests" class="px-1.5 py-0.2 rounded-full text-[10px] bg-purple-500/20 text-purple-300 font-bold">0</span>
+        </button>
+      </div>
+
+      <!-- Tab 1: Form Input Permintaan Baru -->
+      <div id="container-request-form">
       <form onsubmit="event.preventDefault(); submitGameRequest();" class="space-y-4 pt-2">
         <!-- Judul Game -->
         <div>
@@ -3897,6 +3926,32 @@
           </button>
         </div>
       </form>
+      </div>
+
+      <!-- Tab 2: Daftar Permintaan Game Customer -->
+      <div id="container-request-list" class="hidden space-y-3 pt-3">
+        <div class="flex items-center justify-between gap-2 flex-wrap pb-2 border-b border-slate-200 dark:border-slate-800">
+          <div class="relative flex-1 min-w-[180px]">
+            <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+            <input 
+              type="text" 
+              id="customer-request-search-input" 
+              oninput="renderCustomerRequestsListInModal()" 
+              placeholder="Cari judul game atau nama..." 
+              class="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-purple-500"
+            />
+          </div>
+          <div class="flex items-center gap-1">
+            <button id="tab-custreq-all" onclick="filterCustomerRequestsModal('all')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-purple-600 text-white transition-colors cursor-pointer">Semua</button>
+            <button id="tab-custreq-pending" onclick="filterCustomerRequestsModal('pending')" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-white transition-colors cursor-pointer">Menunggu</button>
+            <button id="tab-custreq-ready" onclick="filterCustomerRequestsModal('ready')" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-white transition-colors cursor-pointer">Sudah Tersedia</button>
+          </div>
+        </div>
+
+        <div id="customer-requests-cards-container" class="space-y-2.5 max-h-[55vh] overflow-y-auto modal-custom-scroll pr-1">
+          <!-- Rendered dynamically by renderCustomerRequestsListInModal() -->
+        </div>
+      </div>
     </div>
   </div>
 

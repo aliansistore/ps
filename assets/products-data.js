@@ -1,4 +1,4 @@
-// ALIANSI STORE - Official Products Catalog Database
+﻿// ALIANSI STORE - Official Products Catalog Database
 // Spesialis: Game PS4 HEN, Subtitle Indonesia & Softfile Digital Google Drive
 
 const INITIAL_PRODUCTS = [
@@ -723,6 +723,32 @@ const INITIAL_USERS = [
     authProvider: "local",
     avatar: "BS",
     memberSince: "2025"
+  },
+  {
+    id: "usr-cust-bayu-01",
+    identifier: "bayu.perkasa@gmail.com",
+    name: "Bayu Perkasa",
+    phone: "081298765432",
+    email: "bayu.perkasa@gmail.com",
+    pin: "1234",
+    role: "customer",
+    roleLabel: "Member VIP",
+    authProvider: "google",
+    avatar: "BP",
+    memberSince: "2026"
+  },
+  {
+    id: "usr-cust-derry-01",
+    identifier: "derry.pratama@yahoo.com",
+    name: "Derry Pratama",
+    phone: "085712348899",
+    email: "derry.pratama@yahoo.com",
+    pin: "1234",
+    role: "customer",
+    roleLabel: "Member",
+    authProvider: "local",
+    avatar: "DP",
+    memberSince: "2026"
   }
 ];
 
