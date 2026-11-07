@@ -4655,7 +4655,7 @@ function submitAdminPasswordReset() {
     confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
   }
 
-  showToast('Password admin berhasil direset! Silakan login dengan password baru Anda.', 'success', 'Reset Berhasil');
+  showToast('Password berhasil direset! Silakan login dengan password baru Anda.', 'success', 'Reset Berhasil');
   closeModals();
 
   // Open Login form and autofill
