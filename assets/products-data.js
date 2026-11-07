@@ -596,71 +596,8 @@ const INITIAL_CATEGORIES = [
   { id: "digital", name: "Game Digital", icon: "gamepad-2" }
 ];
 
-// Initial Demo Orders
-const INITIAL_ORDERS = [
-  {
-    id: "ALN-20261104-7842",
-    createdAt: "2026-11-04T18:15:00Z",
-    customerType: "member",
-    customerName: "Rian Pratama",
-    customerPhone: "081234567890",
-    customerEmail: "rian.pratama@gmail.com",
-    notes: "Tolong kirim panduan install PKG untuk PS4 HEN ya min",
-    items: [
-      {
-        productId: "game-gow-ragnarok-subindo",
-        title: "God of War Ragnarök (Full Subtitle Indonesia)",
-        variant: "PS4 HEN",
-        price: 250000,
-        qty: 1,
-        platform: "PS4 HEN"
-      }
-    ],
-    subtotal: 250000,
-    discount: 0,
-    total: 250000,
-    paymentMethod: "qris",
-    paymentStatus: "PAID",
-    status: "COMPLETED",
-    fulfillment: {
-      account: "Link PKG Google Drive Private Server Aliansi",
-      password: "Token Akses: ALN-GOW-IND-9912",
-      guideLink: "https://aliansistore.com/panduan-install-hen-pkg",
-      notes: "File Base Game + Update Sub Indo sudah siap diunduh via Google Drive dan diinstal via Package Installer PS4 HEN."
-    }
-  },
-  {
-    id: "ALN-20261104-9120",
-    createdAt: "2026-11-04T19:30:00Z",
-    customerType: "member",
-    customerName: "Budi Santoso",
-    customerPhone: "085712349988",
-    customerEmail: "budi.santoso@yahoo.com",
-    notes: "Pastikan transfer musim panas 2026/2027 dan BRI Liga 1 sudah ada ya min",
-    items: [
-      {
-        productId: "game-pes-2027-bitbox",
-        title: "PES 2027 Bitbox Summer Update",
-        variant: "PS4 HEN",
-        price: 135000,
-        qty: 1,
-        platform: "PS4 HEN"
-      }
-    ],
-    subtotal: 135000,
-    discount: 15000,
-    total: 120000,
-    paymentMethod: "qris",
-    paymentStatus: "PAID",
-    status: "COMPLETED",
-    fulfillment: {
-      account: "Google Drive High-Speed Link",
-      password: "Token Akses: ALN-PES-BBX-27",
-      guideLink: "https://aliansistore.com/panduan-install-hen-pkg",
-      notes: "Patch Bitbox Summer 2027 sudah teruji 100% lancar di semua firmware PS4 HEN."
-    }
-  }
-];
+// Initial Orders Database (Fresh / Ready for Live Orders)
+const INITIAL_ORDERS = [];
 
 // Initial Users Database (Unified Auth for Admin & Customers)
 const INITIAL_USERS = [
@@ -674,71 +611,6 @@ const INITIAL_USERS = [
     role: "admin",
     roleLabel: "Super Admin Toko",
     avatar: "👑"
-  },
-  {
-    id: "usr-cust-google-01",
-    identifier: "dimas.gamer@gmail.com",
-    name: "Dimas Setiawan",
-    phone: "081298765432",
-    email: "dimas.gamer@gmail.com",
-    pin: "1234",
-    role: "customer",
-    roleLabel: "Member VIP (Google Verified)",
-    authProvider: "google",
-    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80",
-    memberSince: "2025"
-  },
-  {
-    id: "usr-cust-ms-01",
-    identifier: "dimas.gamer@outlook.com",
-    name: "Dimas Pratama",
-    phone: "081234567890",
-    email: "dimas.gamer@outlook.com",
-    pin: "1234",
-    role: "customer",
-    roleLabel: "Member VIP (Outlook Verified)",
-    authProvider: "microsoft",
-    avatar: null,
-    memberSince: "2025"
-  },
-  {
-    id: "usr-cust-02",
-    identifier: "085712349988",
-    name: "Budi Santoso",
-    phone: "085712349988",
-    email: "budi.santoso@yahoo.com",
-    pin: "1234",
-    role: "customer",
-    roleLabel: "Member",
-    authProvider: "local",
-    avatar: "BS",
-    memberSince: "2025"
-  },
-  {
-    id: "usr-cust-bayu-01",
-    identifier: "bayu.perkasa@gmail.com",
-    name: "Bayu Perkasa",
-    phone: "081298765432",
-    email: "bayu.perkasa@gmail.com",
-    pin: "1234",
-    role: "customer",
-    roleLabel: "Member VIP",
-    authProvider: "google",
-    avatar: "BP",
-    memberSince: "2026"
-  },
-  {
-    id: "usr-cust-derry-01",
-    identifier: "derry.pratama@yahoo.com",
-    name: "Derry Pratama",
-    phone: "085712348899",
-    email: "derry.pratama@yahoo.com",
-    pin: "1234",
-    role: "customer",
-    roleLabel: "Member",
-    authProvider: "local",
-    avatar: "DP",
-    memberSince: "2026"
   }
 ];
 

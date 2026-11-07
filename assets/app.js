@@ -428,18 +428,32 @@ function loadStoredData() {
     saveUsers();
   }
 
-  // Ensure default INITIAL_USERS exist in state.users, sync customers from orders & requests, and have lastOnline timestamps
+  // Clear out legacy demo invoices & legacy demo customers (Clean Slate)
+  const CLEAN_SLATE_KEY = 'aliansi_store_clean_slate_v2';
+  if (localStorage.getItem(CLEAN_SLATE_KEY) !== 'true') {
+    state.orders = [];
+    saveOrders();
+    if (Array.isArray(state.users)) {
+      state.users = state.users.filter(u => u.role === 'admin');
+    } else {
+      state.users = typeof INITIAL_USERS !== 'undefined' ? [...INITIAL_USERS] : [];
+    }
+    saveUsers();
+    localStorage.setItem(CLEAN_SLATE_KEY, 'true');
+  }
+
+  // Ensure default INITIAL_USERS exist in state.users, sync customers from real orders, and have lastOnline timestamps
   if (Array.isArray(state.users)) {
     let usersUpdated = false;
     
     // Clean up removed demo customer accounts if previously cached
     const beforeCount = state.users.length;
-    state.users = state.users.filter(u => u.id !== 'usr-cust-01');
+    state.users = state.users.filter(u => u.role === 'admin' || (!['usr-cust-01', 'usr-cust-google-01', 'usr-cust-ms-01', 'usr-cust-02', 'usr-cust-bayu-01', 'usr-cust-derry-01'].includes(u.id) && !u.id.startsWith('usr-req-')));
     if (state.users.length !== beforeCount) {
       usersUpdated = true;
     }
 
-    // 1. Sync from INITIAL_USERS
+    // 1. Sync from INITIAL_USERS (Super Admin)
     if (typeof INITIAL_USERS !== 'undefined' && Array.isArray(INITIAL_USERS)) {
       INITIAL_USERS.forEach(iu => {
         if (!state.users.some(u => u.id === iu.id || (u.email && iu.email && u.email.toLowerCase() === iu.email.toLowerCase()))) {
@@ -449,7 +463,7 @@ function loadStoredData() {
       });
     }
 
-    // 2. Sync customers from Orders (if any)
+    // 2. Sync customers from Orders (if any real orders placed)
     if (Array.isArray(state.orders)) {
       state.orders.forEach(o => {
         const oEmail = (o.customerEmail || '').trim().toLowerCase();
@@ -474,35 +488,9 @@ function loadStoredData() {
       });
     }
 
-    // 3. Sync customers from Game Requests (e.g. Bayu Perkasa, Derry Pratama)
-    if (Array.isArray(state.gameRequests)) {
-      state.gameRequests.forEach(r => {
-        const rEmail = (r.customerEmail || '').trim().toLowerCase();
-        const rPhone = (r.customerPhone || '').trim();
-        const rName = (r.customerName || '').trim();
-        if ((rEmail || rPhone) && !state.users.some(u => (rEmail && u.email && u.email.toLowerCase() === rEmail) || (rPhone && u.phone && u.phone.replace(/[\s-]/g, '') === rPhone.replace(/[\s-]/g, '')))) {
-          state.users.push({
-            id: 'usr-req-' + Math.floor(1000 + Math.random() * 9000),
-            identifier: rPhone || rEmail,
-            name: rName || 'Customer Request',
-            phone: rPhone,
-            email: rEmail,
-            pin: '1234',
-            role: 'customer',
-            roleLabel: 'Customer Request',
-            authProvider: 'local',
-            memberSince: new Date().getFullYear().toString(),
-            lastOnline: r.createdAt || new Date().toISOString()
-          });
-          usersUpdated = true;
-        }
-      });
-    }
-
-    state.users.forEach((u, idx) => {
+    state.users.forEach((u) => {
       if (!u.lastOnline) {
-        const offsetHours = [0.1, 1.2, 3.5, 12, 26, 48, 72][idx % 7];
-        u.lastOnline = new Date(Date.now() - offsetHours * 3600 * 1000).toISOString();
+        u.lastOnline = new Date().toISOString();
         usersUpdated = true;
       }
     });
