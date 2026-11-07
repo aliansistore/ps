@@ -64,26 +64,49 @@ const BACKDROP_MAP = {
 
 function getProductBackdrop(product) {
   if (!product) return '';
+  const pid = product.id || product.productId;
   const imgs = product.images || {};
-  if (imgs.backdrop && typeof imgs.backdrop === 'string' && imgs.backdrop.trim().length > 0) {
-    return imgs.backdrop;
+
+  // 1. Explicit custom or uploaded backdrop
+  if (imgs.backdrop && typeof imgs.backdrop === 'string') {
+    const trimmed = imgs.backdrop.trim();
+    if (trimmed.length > 0 && !trimmed.includes('photo-1508098682722')) {
+      return trimmed;
+    }
   }
-  if (BACKDROP_MAP[product.id]) return BACKDROP_MAP[product.id];
+
+  // 2. High-resolution PlayStation backdrop map fallback
+  if (pid && BACKDROP_MAP[pid]) return BACKDROP_MAP[pid];
+
+  // 3. Banner image if available
   if (imgs.banner && typeof imgs.banner === 'string' && imgs.banner.trim().length > 0) {
-    return imgs.banner;
+    return imgs.banner.trim();
   }
+
+  // 4. Fallback to product poster
   return getProductPoster(product);
 }
 
 function getProductPoster(product) {
   if (!product) return 'assets/covers/service-1tb.jpg';
   const pid = product.id || product.productId;
-  if (pid && COVER_FALLBACK_MAP[pid]) return COVER_FALLBACK_MAP[pid];
+
+  // 1. Prioritize explicit custom or uploaded poster image (data:image, http/https, local path)
   const img = (product.images && (product.images.poster || product.images.cover)) || product.poster;
-  if (img && typeof img === 'string' && !img.includes('playstation.com') && !img.includes('photo-1508098682722')) {
-    return img;
+  if (img && typeof img === 'string') {
+    const trimmed = img.trim();
+    if (trimmed.length > 0 && !trimmed.includes('photo-1508098682722')) {
+      return trimmed;
+    }
   }
-  return COVER_FALLBACK_MAP[pid] || 'assets/covers/service-1tb.jpg';
+
+  // 2. Fallback to high-resolution official PlayStation cover map
+  if (pid && COVER_FALLBACK_MAP[pid]) {
+    return COVER_FALLBACK_MAP[pid];
+  }
+
+  // 3. Default fallback cover
+  return 'assets/covers/service-1tb.jpg';
 }
 
 // Global State
@@ -1648,10 +1671,12 @@ function openProductDetail(productId) {
 
   // Screenshots Gallery
   const screenGallery = document.getElementById('modal-screenshots-gallery');
-  if (screenGallery && product.images.screenshots) {
+  if (screenGallery && product.images && Array.isArray(product.images.screenshots) && product.images.screenshots.length > 0) {
     screenGallery.innerHTML = product.images.screenshots.map(s => `
       <img src="${s}" class="w-full h-24 object-cover rounded-xl border border-slate-800 hover:border-sky-500 cursor-pointer transition-all" alt="Screenshot" onclick="document.getElementById('modal-product-img').src='${s}'" />
     `).join('');
+  } else if (screenGallery) {
+    screenGallery.innerHTML = '';
   }
 
   // Features list
