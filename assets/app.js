@@ -7589,7 +7589,7 @@ function updateDiscountCalc(prefix) {
   if (pct > 0 && normal > discounted) {
     const diff = normal - discounted;
     if (diffEl) diffEl.textContent = `Hemat ${formatRupiah(diff)}`;
-    if (pctEl) pctEl.textContent = `Diskon ${pct}% (Hemat ${formatRupiah(diff)})`;
+    if (pctEl) pctEl.textContent = `Diskon ${pct}%`;
     preview.classList.remove('hidden');
     if (rateEl && (!rateEl.value || document.activeElement !== rateEl)) {
       rateEl.value = pct;
