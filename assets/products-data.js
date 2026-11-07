@@ -1,4 +1,4 @@
-﻿// ALIANSI STORE - Official Products Catalog Database
+// ALIANSI STORE - Official Products Catalog Database
 // Spesialis: Game PS4 HEN, Subtitle Indonesia & Softfile Digital Google Drive
 
 const INITIAL_PRODUCTS = [
@@ -28,9 +28,9 @@ const INITIAL_PRODUCTS = [
       ]
     },
     prices: {
-      primary: 120000,
-      secondary: 70000,
-      original: 479000
+      primary: 10000,
+      secondary: 10000,
+      original: 15000
     },
     description: "Mainkan mahakarya petualangan co-op 2 pemain paling seru 'It Takes Two' dengan Full Subtitle Bahasa Indonesia. Sangat cocok dimainkan berdua bersama pasangan atau teman dengan jalan cerita komedi emosional yang kini 100% mudah dipahami!",
     features: [
@@ -40,8 +40,9 @@ const INITIAL_PRODUCTS = [
       "Termasuk Panduan Pasang File PKG Mudah",
       "Garansi Game Lancar Bebas Bug"
     ],
-    driveLink: "https://drive.google.com/drive/folders/17B_ittakestwo_subindo_ps4pkg",
-    inStock: true
+    driveLink: "https://drive.google.com/drive/folders/1Pw4Fe24O0LAAsV6Affwp_Ef4C0isK6JQ?usp=sharing",
+    inStock: true,
+    updatedAt: "2026-11-07T09:11:48.513Z"
   },
   {
     id: "game-gow-ragnarok-subindo",
@@ -110,9 +111,9 @@ const INITIAL_PRODUCTS = [
       ]
     },
     prices: {
-      primary: 195000,
-      secondary: 110000,
-      original: 729000
+      primary: 15000,
+      secondary: 15000,
+      original: 20000
     },
     description: "Rasakan keindahan pulau Tsushima era feodal Jepang dalam kisah Jin Sakai yang berkorban mempertahankan tanah kelahirannya dari invasi Mongol. Lengkap dengan Subtitle Indonesia rapi dan ekspansi Iki Island.",
     features: [
@@ -122,8 +123,9 @@ const INITIAL_PRODUCTS = [
       "Kompatibel PS4 HEN Semua Firmware",
       "File Game PKG Tested 100% Anti Crash"
     ],
-    driveLink: "https://drive.google.com/drive/folders/19D_ghosttsushima_subindo_ps4pkg",
-    inStock: true
+    driveLink: "https://drive.google.com/drive/folders/1P0VCc2I_vcNbOnFz7WbK6UaL6a9PRJlZ?usp=drive_link",
+    inStock: true,
+    updatedAt: "2026-11-07T09:13:12.998Z"
   },
   {
     id: "game-tlou-part2-subindo",
@@ -151,9 +153,9 @@ const INITIAL_PRODUCTS = [
       ]
     },
     prices: {
-      primary: 190000,
-      secondary: 105000,
-      original: 579000
+      primary: 15000,
+      secondary: 15000,
+      original: 20000
     },
     description: "Lanjutan perjalanan emosional Ellie melintasi Seattle pasca-pandemi dalam misi membalas dendam. Diterjemahkan secara mendalam ke dalam Bahasa Indonesia sehingga setiap nuansa dilema moral terasa begitu nyata.",
     features: [
@@ -163,8 +165,9 @@ const INITIAL_PRODUCTS = [
       "Support PS4 HEN Firmware 5.05 - 11.00",
       "File Google Drive Lengkap Part 1 - Selesai"
     ],
-    driveLink: "https://drive.google.com/drive/folders/20E_tloupart2_subindo_ps4pkg",
-    inStock: true
+    driveLink: "https://drive.google.com/drive/folders/1uxBTDu14Dez9CDB1H6UTDBJjc1vU25Id?usp=drive_link",
+    inStock: true,
+    updatedAt: "2026-11-07T09:15:39.015Z"
   },
   {
     id: "game-gta5-subindo",

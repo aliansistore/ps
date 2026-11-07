@@ -348,6 +348,16 @@ function loadStoredData() {
         if (ip.driveLink && !existing.driveLink) {
           existing.driveLink = ip.driveLink;
         }
+        // Auto-upgrade local cache if INITIAL_PRODUCTS baseline has newer updatedAt
+        if (ip.updatedAt) {
+          const localTime = existing.updatedAt ? new Date(existing.updatedAt).getTime() : 0;
+          const initialTime = new Date(ip.updatedAt).getTime();
+          if (initialTime > localTime) {
+            existing.prices = { ...ip.prices };
+            if (ip.driveLink) existing.driveLink = ip.driveLink;
+            existing.updatedAt = ip.updatedAt;
+          }
+        }
       }
     });
   }
@@ -585,6 +595,16 @@ function saveGameRequests() {
 
 function saveProducts() {
   localStorage.setItem(APP_STORAGE_KEYS.PRODUCTS, JSON.stringify(state.products));
+  // Background disk sync if running on local server
+  try {
+    if (typeof window !== 'undefined' && window.location && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+      fetch('/api/save-products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(state.products)
+      }).catch(() => {});
+    }
+  } catch (e) {}
 }
 function saveOrders() {
   localStorage.setItem(APP_STORAGE_KEYS.ORDERS, JSON.stringify(state.orders));

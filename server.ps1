@@ -96,6 +96,31 @@ try {
             continue
         }
 
+        # Handle Disk Persistence for Products
+        if ($localPath -like "*api/save-products*" -or $localPath -like "*api/products/save*") {
+            try {
+                $reader = New-Object System.IO.StreamReader($request.InputStream, [System.Text.Encoding]::UTF8)
+                $reqBodyStr = $reader.ReadToEnd()
+                if ($reqBodyStr -and $reqBodyStr.Length -gt 10) {
+                    $cachePath = Join-Path $baseDir "assets\products-cache.json"
+                    [System.IO.File]::WriteAllText($cachePath, $reqBodyStr, [System.Text.Encoding]::UTF8)
+                }
+                $response.ContentType = "application/json; charset=utf-8"
+                $response.AddHeader("Access-Control-Allow-Origin", "*")
+                $resBytes = [System.Text.Encoding]::UTF8.GetBytes("{""success"":true}")
+                $response.ContentLength64 = $resBytes.Length
+                $response.StatusCode = 200
+                $response.OutputStream.Write($resBytes, 0, $resBytes.Length)
+            }
+            catch {
+                $response.StatusCode = 500
+                $errBytes = [System.Text.Encoding]::UTF8.GetBytes("{""error"":""$($_.Exception.Message)""}")
+                $response.OutputStream.Write($errBytes, 0, $errBytes.Length)
+            }
+            $response.Close()
+            continue
+        }
+
         try {
             $filePath = Join-Path $baseDir $localPath
 
