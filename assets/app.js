@@ -7655,6 +7655,11 @@ function setupEventListeners() {
   const catalogSearchInput = document.getElementById('catalog-search-input');
   const mainSearchInput = document.getElementById('main-search-input');
 
+  // Explicitly ensure both search inputs start 100% empty on page load
+  state.searchQuery = '';
+  if (catalogSearchInput) catalogSearchInput.value = '';
+  if (mainSearchInput) mainSearchInput.value = '';
+
   const handleLiveSearch = (val) => {
     state.searchQuery = val;
     if (catalogSearchInput && catalogSearchInput.value !== val) {
@@ -7672,6 +7677,21 @@ function setupEventListeners() {
   if (mainSearchInput) {
     mainSearchInput.addEventListener('input', (e) => handleLiveSearch(e.target.value));
   }
+
+  // Prevent unwanted browser extension / password manager autofills (e.g. 'admin')
+  const preventSearchAutofill = () => {
+    const ci = document.getElementById('catalog-search-input');
+    const mi = document.getElementById('main-search-input');
+    if (state.searchQuery === 'admin' || (ci && ci.value === 'admin') || (mi && mi.value === 'admin')) {
+      state.searchQuery = '';
+      if (ci) ci.value = '';
+      if (mi) mi.value = '';
+      renderProducts();
+    }
+  };
+  setTimeout(preventSearchAutofill, 50);
+  setTimeout(preventSearchAutofill, 200);
+  setTimeout(preventSearchAutofill, 600);
 
   // Global Ctrl+K Keyboard Shortcut to focus search
   window.addEventListener('keydown', (e) => {
