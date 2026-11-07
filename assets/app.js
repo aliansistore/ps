@@ -1276,26 +1276,27 @@ function getFilteredProducts() {
       state.searchQuery = '';
     } else {
       list = list.filter(p => {
-      // 1. Direct text fields match
-      const titleMatch = (p.title || '').toLowerCase().includes(q);
-      const descMatch = (p.description || '').toLowerCase().includes(q);
-      const tagMatch = (p.tagline || '').toLowerCase().includes(q);
-      const pubMatch = (p.publisher || '').toLowerCase().includes(q);
-      const badgeMatch = (p.badge || '').toLowerCase().includes(q);
-      const platformMatch = Array.isArray(p.platform) && p.platform.some(pl => pl.toLowerCase().includes(q));
-      const catMatch = (p.category || '').toLowerCase().includes(q);
-      const catLabel = (typeof getCategoryLabel === 'function' ? getCategoryLabel(p.category || '') : '').toLowerCase();
-      const catLabelMatch = catLabel.includes(q);
+        // 1. Direct text fields match
+        const titleMatch = (p.title || '').toLowerCase().includes(q);
+        const descMatch = (p.description || '').toLowerCase().includes(q);
+        const tagMatch = (p.tagline || '').toLowerCase().includes(q);
+        const pubMatch = (p.publisher || '').toLowerCase().includes(q);
+        const badgeMatch = (p.badge || '').toLowerCase().includes(q);
+        const platformMatch = Array.isArray(p.platform) && p.platform.some(pl => pl.toLowerCase().includes(q));
+        const catMatch = (p.category || '').toLowerCase().includes(q);
+        const catLabel = (typeof getCategoryLabel === 'function' ? getCategoryLabel(p.category || '') : '').toLowerCase();
+        const catLabelMatch = catLabel.includes(q);
 
-      // 2. Smart aliases & keywords
-      const subIndoMatch = (q.includes('sub') || q.includes('indo') || q.includes('indonesia')) && (p.isSubIndo || p.category === 'subindo');
-      const henMatch = (q.includes('hen') || q.includes('pkg')) && (p.isHen || (Array.isArray(p.platform) && p.platform.some(pl => pl.includes('HEN'))));
-      const digitalMatch = q.includes('digital') && (p.type === 'digital' || (Array.isArray(p.platform) && p.platform.some(pl => pl.includes('PS5') || pl.includes('PS4'))));
-      const coopMatch = (q.includes('coop') || q.includes('co-op') || q.includes('mabar') || q.includes('family')) && (p.category === 'family' || p.category === 'coop');
-      const sportsMatch = (q.includes('bola') || q.includes('soccer') || q.includes('fifa') || q.includes('pes') || q.includes('balap')) && (p.category === 'sports' || p.category === 'racing');
+        // 2. Smart aliases & keywords
+        const subIndoMatch = (q.includes('sub') || q.includes('indo') || q.includes('indonesia')) && (p.isSubIndo || p.category === 'subindo');
+        const henMatch = (q.includes('hen') || q.includes('pkg')) && (p.isHen || (Array.isArray(p.platform) && p.platform.some(pl => pl.includes('HEN'))));
+        const digitalMatch = q.includes('digital') && (p.type === 'digital' || (Array.isArray(p.platform) && p.platform.some(pl => pl.includes('PS5') || pl.includes('PS4'))));
+        const coopMatch = (q.includes('coop') || q.includes('co-op') || q.includes('mabar') || q.includes('family')) && (p.category === 'family' || p.category === 'coop');
+        const sportsMatch = (q.includes('bola') || q.includes('soccer') || q.includes('fifa') || q.includes('pes') || q.includes('balap')) && (p.category === 'sports' || p.category === 'racing');
 
-      return titleMatch || descMatch || tagMatch || pubMatch || badgeMatch || platformMatch || catMatch || catLabelMatch || subIndoMatch || henMatch || digitalMatch || coopMatch || sportsMatch;
-    });
+        return titleMatch || descMatch || tagMatch || pubMatch || badgeMatch || platformMatch || catMatch || catLabelMatch || subIndoMatch || henMatch || digitalMatch || coopMatch || sportsMatch;
+      });
+    }
   }
 
   // Sorting
