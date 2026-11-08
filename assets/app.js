@@ -3037,6 +3037,12 @@ async function dispatchOrderCompletionEmails(order) {
     if (custEmailEl) custEmailEl.textContent = customerEmail || 'email Anda';
   }
 
+  // Extract fulfillment details (Google Drive, guide link, and notes)
+  const f = order.fulfillment || {};
+  const guideUrl = f.guideUrl || 'https://aliansistore.com/panduan-install-pkg-ps4-hen';
+  const adminNotes = f.adminNotes || '';
+  const driveLinks = f.driveLinks || [];
+
   // Prepare structured payload for automated delivery
   const payload = {
     action: 'send_order_emails',
@@ -3052,6 +3058,13 @@ async function dispatchOrderCompletionEmails(order) {
       discount: order.discount || 0,
       voucherCode: order.voucherCode || '',
       createdAt: order.createdAt || new Date().toISOString(),
+      fulfillment: {
+        driveLink: f.driveLink || '',
+        driveLinks: driveLinks,
+        guideUrl: guideUrl,
+        adminNotes: adminNotes,
+        type: 'PS4_HEN_PKG'
+      },
       items: (order.items || []).map(i => {
         const prod = (state.products || []).find(p => p.id === (i.productId || i.id));
         return {
@@ -3064,6 +3077,9 @@ async function dispatchOrderCompletionEmails(order) {
         };
       })
     },
+    fulfillment: f,
+    guideUrl: guideUrl,
+    adminNotes: adminNotes,
     customerEmail: customerEmail,
     customerName: customerName,
     adminEmail: adminEmail,
@@ -6643,41 +6659,21 @@ function submitOrderFulfillment() {
 
   saveOrders();
   syncOrderToSupabase(order);
+
+  // Kirim link Google Drive dan panduan instalasi langsung ke EMAIL pembeli (Bukan WhatsApp)
   dispatchOrderCompletionEmails(order);
+
   closeModals();
   playSfx('success');
   renderAdminStats();
   renderAdminOrdersTable();
 
-  const driveLinksFormatted = driveLinks.map(d => `📁 *${d.title}:*\n${d.url}`).join('\n\n');
-
-  const waMessage = encodeURIComponent(
-    `*PESANAN SELESAI & AKSES GOOGLE DRIVE DIBERIKAN - ALIANSI STORE* 🎮\n` +
-    `Halo kak ${order.customerName}, pesanan game PS4 HEN Anda telah selesai diproses!\n\n` +
-    `*No. Invoice:* ${order.id}\n` +
-    `*Game:* ${order.items.map(i => i.title).join(', ')}\n` +
-    `*Format:* Softfile .PKG Digital (PS4 HEN)\n` +
-    `*Email Gmail Akses:* ${order.customerEmail || '-'}\n\n` +
-    `📂 *LINK DOWNLOAD GOOGLE DRIVE (FILE .PKG):*\n` +
-    `${driveLinksFormatted}\n\n` +
-    `📖 *PANDUAN INSTALASI (PKG & GOLDHEN):*\n` +
-    `${guideUrl || 'https://aliansistore.com/panduan-install-pkg-ps4-hen'}\n\n` +
-    `💡 *Catatan & Langkah Instalasi:*\n` +
-    `${notes}\n\n` +
-    `_Hak akses Viewer telah otomatis dibagikan ke Gmail Anda. Anda juga dapat memeriksa menu "Dibagikan dengan saya" di Google Drive atau cek email masuk/spam._\n\n` +
-    `Cek invoice resmi Anda kapan saja di: ${window.location.origin}\n` +
-    `Selamat bermain & have fun! 🚀`
+  // Konfirmasi feedback jelas: Panduan dikirim ke Email pembeli
+  showToast(
+    `Pesanan ${order.id} selesai! Panduan instalasi dan akses Google Drive telah dikirimkan ke email ${order.customerEmail || 'pembeli'}.`,
+    'success',
+    'Panduan Terkirim ke Email'
   );
-
-  showToast(`Order ${order.id} selesai! Akses Google Drive tercatat.`, 'success', 'Fulfillment Sukses');
-
-  const phone = (order.customerPhone || '').replace(/[^0-9]/g, '');
-  if (phone) {
-    const openWa = confirm(`Order berhasil diselesaikan!\n\nApakah ingin langsung mengirimkan link download Google Drive & panduan ke WhatsApp pembeli (${order.customerPhone})?`);
-    if (openWa) {
-      window.open(`https://wa.me/${phone}?text=${waMessage}`, '_blank');
-    }
-  }
 }
 
 // Admin Products CRUD

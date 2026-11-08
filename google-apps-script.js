@@ -124,6 +124,16 @@ function doPost(e) {
       
       // Auto-share Google Drive & Siapkan Link Akses
       if (cEmail && cEmail.indexOf("@") !== -1) {
+        var fulfill = ord.fulfillment || params.fulfillment || {};
+        if (Array.isArray(fulfill.driveLinks) && fulfill.driveLinks.length > 0) {
+          fulfill.driveLinks.forEach(function(dl) {
+            sharedLinks.push({
+              title: dl.title,
+              url: dl.url
+            });
+          });
+        }
+
         items.forEach(function(item) {
           var folderId = GDRIVE_FOLDER_MAP[item.productId || item.id] || GDRIVE_FOLDER_MAP["default"];
           if (folderId && folderId.indexOf("1ABCxyz") === -1) {
@@ -134,15 +144,17 @@ function doPost(e) {
               Logger.log("Drive share notice: " + dErr.message);
             }
           }
-          sharedLinks.push({
-            gameId: item.productId || item.id,
-            title: item.title,
-            folderId: folderId,
-            url: item.driveLink || ("https://drive.google.com/drive/folders/" + (folderId || ""))
-          });
+          if (sharedLinks.length === 0) {
+            sharedLinks.push({
+              gameId: item.productId || item.id,
+              title: item.title,
+              folderId: folderId,
+              url: item.driveLink || ("https://drive.google.com/drive/folders/" + (folderId || ""))
+            });
+          }
         });
         
-        // 1. Kirim Faktur Bukti Pembelian ke Gmail Customer
+        // 1. Kirim Panduan Instalasi & Akses Google Drive ke Gmail Customer
         sendCustomerReceiptEmail(cEmail, cName, ord, sharedLinks);
       }
       
@@ -316,59 +328,77 @@ function updateOrderInSupabase(orderId, updateData) {
 }
 
 /**
- * Helper: Kirim Email HTML Resmi ke Pembeli
+ * Helper: Kirim Email HTML Panduan Instalasi & Akses Google Drive ke Pembeli
  */
 function sendCustomerReceiptEmail(toEmail, customerName, order, sharedLinks) {
   try {
-    var subject = "[ALIANSI STORE] Pembayaran Berhasil! Akses Google Drive Game Anda Telah Aktif (" + order.id + ")";
+    var subject = "[ALIANSI STORE] Panduan Instalasi & Akses Google Drive Game (" + order.id + ")";
     
+    var fulfill = order.fulfillment || {};
+    var guideUrl = fulfill.guideUrl || order.guideUrl || "https://aliansistore.com/panduan-install-pkg-ps4-hen";
+    var adminNotes = fulfill.adminNotes || order.adminNotes || "";
+
     var linksHtml = "";
     if (sharedLinks.length > 0) {
       linksHtml = sharedLinks.map(function(link) {
-        return '<div style="background:#0f172a; border:1px solid #0284c7; border-radius:10px; padding:15px; margin-bottom:12px;">' +
-          '<h3 style="color:#38bdf8; margin:0 0 8px 0; font-size:16px;">🎮 ' + link.title + '</h3>' +
+        return '<div style="background:#0f172a; border:1px solid #0284c7; border-radius:12px; padding:16px; margin-bottom:12px;">' +
+          '<h3 style="color:#38bdf8; margin:0 0 8px 0; font-size:15px;">🎮 ' + link.title + '</h3>' +
           '<p style="color:#94a3b8; font-size:13px; margin:0 0 12px 0;">Folder Google Drive telah dibagikan dengan hak akses Viewer ke email <b>' + toEmail + '</b>.</p>' +
           '<a href="' + link.url + '" target="_blank" style="display:inline-block; background:#0284c7; color:#ffffff; font-weight:bold; font-size:13px; padding:10px 18px; border-radius:8px; text-decoration:none;">Buka Folder Google Drive &raquo;</a>' +
         '</div>';
       }).join("");
     } else {
-      linksHtml = '<p style="color:#94a3b8; font-size:13px;">Admin kami sedang menyiapkan file game khusus untuk pesanan Anda. Hubungi kami via WhatsApp jika ada kendala.</p>';
+      linksHtml = '<p style="color:#94a3b8; font-size:13px;">Folder game Google Drive telah disiapkan. Pastikan login ke Google Drive dengan email <b>' + toEmail + '</b> pada menu "Dibagikan dengan saya".</p>';
     }
     
+    var notesHtml = "";
+    if (adminNotes) {
+      notesHtml = '<div style="background:#052e16; border:1px solid #16a34a; border-radius:10px; padding:14px; margin:20px 0;">' +
+        '<strong style="color:#4ade80; font-size:13px; display:block; margin-bottom:6px;">📌 Catatan & Instruksi Khusus:</strong>' +
+        '<p style="color:#dcfce7; font-size:13px; line-height:1.6; margin:0; white-space:pre-line;">' + adminNotes + '</p>' +
+      '</div>';
+    }
+
     var htmlBody = '<!DOCTYPE html>' +
       '<html><body style="font-family:Arial,sans-serif; background:#020617; color:#e2e8f0; margin:0; padding:25px;">' +
       '<div style="max-width:600px; margin:auto; background:#0b1329; border:1px solid #1e293b; border-radius:16px; padding:30px; box-shadow:0 10px 30px rgba(0,0,0,0.5);">' +
         '<div style="text-align:center; padding-bottom:20px; border-bottom:1px solid #1e293b;">' +
           '<h1 style="color:#38bdf8; margin:0; font-size:24px; letter-spacing:1px;">⚡ ALIANSI STORE</h1>' +
-          '<p style="color:#64748b; font-size:12px; margin:5px 0 0 0;">PlayStation Game Marketplace & Digital Software</p>' +
+          '<p style="color:#64748b; font-size:12px; margin:5px 0 0 0;">Spesialis Game PS4 HEN & Subtitle Indonesia</p>' +
         '</div>' +
         '<div style="padding:20px 0;">' +
-          '<h2 style="color:#22c55e; font-size:18px; margin:0 0 10px 0;">✓ PEMBAYARAN LUNAS TERVERIFIKASI</h2>' +
-          '<p style="color:#cbd5e1; font-size:14px; line-height:1.6;">Halo <b>' + customerName + '</b>, terima kasih telah berbelanja di ALIANSI STORE. Pembayaran untuk pesanan <b>' + order.id + '</b> sebesar <b>Rp ' + Number(order.total).toLocaleString('id-ID') + '</b> telah kami terima.</p>' +
-          '<h3 style="color:#f8fafc; font-size:15px; margin:25px 0 12px 0;">📂 Akses File Game Google Drive Anda:</h3>' +
+          '<h2 style="color:#22c55e; font-size:18px; margin:0 0 10px 0;">✓ AKSES GOOGLE DRIVE & PANDUAN INSTALASI</h2>' +
+          '<p style="color:#cbd5e1; font-size:14px; line-height:1.6;">Halo <b>' + customerName + '</b>, pesanan Anda untuk No. Invoice <b>' + order.id + '</b> telah selesai diproses. Hak akses Google Drive telah dibuka dan panduan instalasi dapat Anda simak di bawah ini:</p>' +
+          '<h3 style="color:#f8fafc; font-size:15px; margin:25px 0 12px 0;">📂 Link Download Game (.PKG via Google Drive):</h3>' +
           linksHtml +
-          '<div style="background:#020617; border-left:4px solid #38bdf8; padding:14px; border-radius:6px; margin:25px 0 15px 0;">' +
-            '<h4 style="color:#38bdf8; margin:0 0 6px 0; font-size:13px;">💡 Panduan Singkat Download & Instalasi:</h4>' +
-            '<ol style="color:#94a3b8; font-size:12px; margin:0; padding-left:18px; line-height:1.7;">' +
+          notesHtml +
+          '<div style="background:#020617; border-left:4px solid #38bdf8; padding:15px; border-radius:8px; margin:20px 0;">' +
+            '<h4 style="color:#38bdf8; margin:0 0 8px 0; font-size:13px;">💡 Panduan Langkah Instalasi Game PS4 HEN:</h4>' +
+            '<ol style="color:#94a3b8; font-size:12px; margin:0; padding-left:18px; line-height:1.8;">' +
               '<li>Buka link folder di atas, pastikan login menggunakan Gmail <b>' + toEmail + '</b>.</li>' +
-              '<li>Download semua part file .PKG game ke PC/Laptop atau Flashdisk/HDD External format exFAT.</li>' +
-              '<li>Tancapkan Flashdisk ke PS4, masuk ke menu <b>GoldHEN / HEN &gt; Package Installer</b>.</li>' +
-              '<li>Install file game secara berurutan (Base Game &gt; Update Sub Indo &gt; DLC).</li>' +
+              '<li>Download seluruh file part game (.PKG) dan file subtitle Indonesia.</li>' +
+              '<li>Pindahkan file ke Flashdisk atau Harddisk Eksternal dengan format sistem file <b>exFAT</b>.</li>' +
+              '<li>Tancapkan ke port USB konsol PS4 HEN, lalu aktifkan GoldHEN / HEN.</li>' +
+              '<li>Buka menu <b>GoldHEN &gt; Package Installer</b> di konsol PS4, lalu install file game dan update patch secara berurutan.</li>' +
             '</ol>' +
           '</div>' +
-          '<p style="color:#64748b; font-size:12px; text-align:center; margin-top:30px;">Butuh bantuan instalasi? Hubungi WhatsApp CS kami di: <b style="color:#38bdf8;">+' + CONFIG.WHATSAPP_CS + '</b></p>' +
+          '<div style="text-align:center; margin:25px 0 15px 0;">' +
+            '<a href="' + guideUrl + '" target="_blank" style="display:inline-block; background:#10b981; color:#ffffff; font-weight:bold; font-size:13px; padding:12px 24px; border-radius:10px; text-decoration:none; box-shadow:0 4px 15px rgba(16,185,129,0.3);">' +
+              '📖 Buka Halaman Panduan Lengkap & Setup &raquo;' +
+            '</a>' +
+          '</div>' +
         '</div>' +
         '<div style="text-align:center; padding-top:20px; border-top:1px solid #1e293b; color:#475569; font-size:11px;">' +
-          '&copy; ' + new Date().getFullYear() + ' ALIANSI STORE. All rights reserved.' +
+          '&copy; ' + new Date().getFullYear() + ' ALIANSI STORE. All rights reserved. (Email Resmi No-Reply)' +
         '</div>' +
       '</div>' +
       '</body></html>';
       
-    GmailApp.sendEmail(toEmail, subject, "Pembayaran berhasil untuk order " + order.id + ". Buka email ini dalam format HTML untuk melihat link Google Drive game Anda.", {
+    GmailApp.sendEmail(toEmail, subject, "Panduan instalasi dan akses Google Drive game untuk order " + order.id + ". Buka email ini dalam format HTML untuk melihat link Google Drive game Anda.", {
       name: CONFIG.STORE_NAME,
       htmlBody: htmlBody
     });
-    Logger.log("Email konfirmasi berhasil dikirim ke " + toEmail);
+    Logger.log("Email panduan berhasil dikirim ke " + toEmail);
   } catch (emailErr) {
     Logger.log("Gagal mengirim email ke " + toEmail + ": " + emailErr.message);
   }
