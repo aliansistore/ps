@@ -33,28 +33,44 @@ var CONFIG = {
 };
 
 // 2. MAPPING FOLDER GOOGLE DRIVE PER GAME (14 Official Titles)
-// Cara ambil ID folder: Buka folder di drive.google.com, salin kode setelah "/folders/..."
-// Contoh URL: https://drive.google.com/drive/folders/1ABCxyz123_456
-// Maka ID-nya adalah: 1ABCxyz123_456
+// Otomatis diambil dari link Google Drive masing-masing produk!
 var GDRIVE_FOLDER_MAP = {
-  "game-it-takes-two-subindo": "1ABCxyz_IT_TAKES_TWO_FOLDER_ID",
-  "game-gow-ragnarok-subindo": "1ABCxyz_GOW_RAGNAROK_FOLDER_ID",
-  "game-ghost-tsushima-subindo": "1ABCxyz_GHOST_TSUSHIMA_FOLDER_ID",
-  "game-tlou-part2-subindo": "1ABCxyz_TLOU_PART2_FOLDER_ID",
-  "game-gta5-subindo": "1ABCxyz_GTA_V_MOD_FOLDER_ID",
-  "game-mk11-subindo": "1ABCxyz_MK11_ULTIMATE_FOLDER_ID",
-  "game-hogwarts-legacy-subindo": "1ABCxyz_HOGWARTS_LEGACY_FOLDER_ID",
-  "game-uncharted-4-subindo": "1ABCxyz_UNCHARTED_4_FOLDER_ID",
-  "game-stray-subindo": "1ABCxyz_STRAY_FOLDER_ID",
-  "game-ac-odyssey-subindo": "1ABCxyz_AC_ODYSSEY_FOLDER_ID",
-  "game-one-piece-odyssey-subindo": "1ABCxyz_ONE_PIECE_FOLDER_ID",
-  "game-watch-dogs-subindo": "1ABCxyz_WATCH_DOGS_FOLDER_ID",
-  "game-spiderman-subindo": "1ABCxyz_SPIDERMAN_FOLDER_ID",
-  "game-pes-2027-bitbox": "1ABCxyz_PES_2027_FOLDER_ID",
+  "game-it-takes-two-subindo": "1Pw4Fe24O0LAAsV6Affwp_Ef4C0isK6JQ",
+  "game-gow-ragnarok-subindo": "1Z_sKyYSUbLNxbHphQlQnbCe-mpNDL5uI",
+  "game-ghost-tsushima-subindo": "1P0VCc2I_vcNbOnFz7WbK6UaL6a9PRJlZ",
+  "game-tlou-part2-subindo": "1uxBTDu14Dez9CDB1H6UTDBJjc1vU25Id",
+  "game-gta5-subindo": "1JVraSNB9bClkz4xiJK7AxpYkPvAUk7Ch",
+  "game-mk11-subindo": "1Ft7-nvhjDiROsH3lJTpIRiRkRJ0WAnKo",
+  "game-hogwarts-legacy-subindo": "1fYb7U4P2tBimPkgHbuisnhtrlO3jtClQ",
+  "game-uncharted-4-subindo": "1SKdN1zmzK1c93Y_WeJRh50L4gGy3k7p9",
+  "game-stray-subindo": "1qjWgZf5LM3KiBQnzZd1XCJneGtedvOhL",
+  "game-ac-odyssey-subindo": "1VjZ_0hcRJT2EyhyZ1E7VC5X5F_hTER_4",
+  "game-one-piece-odyssey-subindo": "1-64nEr0eZFEOSXKOJ2QXuYSp6_8DTjQX",
+  "game-watch-dogs-subindo": "1IVWJXMq1S0gXWTDwpBbKsOuDZIg3NLr8",
+  "game-spiderman-subindo": "1flqbyn1edmdGlmXPpjQmBfxK1_2n61Vx",
+  "game-pes-2027-bitbox": "1m5KFwedXfdEoIN6BCr4hT07wRN6MkYnO",
   
-  // FOLDER DEFAULT / MASTER (Jika game belum diset folder terpisah, folder ini yang dibagikan)
-  "default": "1ABCxyz_DEFAULT_MASTER_FOLDER_ID"
+  // FOLDER DEFAULT / MASTER
+  "default": "1P0VCc2I_vcNbOnFz7WbK6UaL6a9PRJlZ"
 };
+
+/**
+ * Ekstraktor Folder ID Google Drive otomatis dari berbagai format URL / link produk
+ */
+function extractDriveFolderId(urlOrId) {
+  if (!urlOrId) return "";
+  var str = String(urlOrId).trim();
+  // Jika sudah berupa ID murni (33 karakter base64)
+  if (/^[a-zA-Z0-9_-]{25,}$/.test(str)) {
+    return str;
+  }
+  // Ekstrak dari URL format https://drive.google.com/drive/folders/ID...
+  var match = str.match(/\/folders\/([a-zA-Z0-9_-]+)/) || str.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (match && match[1]) {
+    return match[1];
+  }
+  return "";
+}
 
 /**
  * Handle HTTP GET - Untuk uji coba / health check browser
@@ -135,7 +151,8 @@ function doPost(e) {
         }
 
         items.forEach(function(item) {
-          var folderId = GDRIVE_FOLDER_MAP[item.productId || item.id] || GDRIVE_FOLDER_MAP["default"];
+          var rawLink = item.driveLink || (item.images && item.images.driveLink) || "";
+          var folderId = extractDriveFolderId(rawLink) || GDRIVE_FOLDER_MAP[item.productId || item.id] || GDRIVE_FOLDER_MAP["default"];
           if (folderId && folderId.indexOf("1ABCxyz") === -1) {
             try {
               var folder = DriveApp.getFolderById(folderId);
@@ -149,7 +166,7 @@ function doPost(e) {
               gameId: item.productId || item.id,
               title: item.title,
               folderId: folderId,
-              url: item.driveLink || ("https://drive.google.com/drive/folders/" + (folderId || ""))
+              url: rawLink || ("https://drive.google.com/drive/folders/" + (folderId || ""))
             });
           }
         });
@@ -233,7 +250,8 @@ function doPost(e) {
       var sharedLinksDuitku = [];
       if (customerEmail && customerEmail.indexOf("@") !== -1) {
         orderItems.forEach(function(item) {
-          var folderId = GDRIVE_FOLDER_MAP[item.id] || GDRIVE_FOLDER_MAP["default"];
+          var rawLink = item.driveLink || (item.images && item.images.driveLink) || "";
+          var folderId = extractDriveFolderId(rawLink) || GDRIVE_FOLDER_MAP[item.productId || item.id] || GDRIVE_FOLDER_MAP["default"];
           
           if (folderId && folderId.indexOf("1ABCxyz") === -1) {
             try {
@@ -243,9 +261,9 @@ function doPost(e) {
               Logger.log("Gagal share folder " + folderId + ": " + driveErr.message);
             }
           }
-          var folderUrl = item.driveLink || ("https://drive.google.com/drive/folders/" + (folderId || ""));
+          var folderUrl = rawLink || ("https://drive.google.com/drive/folders/" + (folderId || ""));
           sharedLinksDuitku.push({
-            gameId: item.id,
+            gameId: item.productId || item.id,
             title: item.title,
             folderId: folderId,
             url: folderUrl
