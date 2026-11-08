@@ -2044,10 +2044,10 @@
         <div class="p-5 rounded-2xl bg-[#081024] border border-sky-500/40 relative overflow-hidden">
           <div class="flex items-center justify-between mb-2">
             <span class="text-xs font-bold text-sky-300">Perlu Diproses</span>
-            <i data-lucide="key" class="w-4 h-4 text-sky-400"></i>
+            <i data-lucide="folder-check" class="w-4 h-4 text-emerald-400"></i>
           </div>
           <div id="stat-pending-fulfill" class="text-xl sm:text-2xl font-black text-sky-400 font-display">0</div>
-          <div class="text-[10px] text-sky-300/80 mt-1">Kirim akun / file ke pembeli</div>
+          <div class="text-[10px] text-sky-300/80 mt-1">Bagikan folder Drive ke pembeli</div>
         </div>
 
         <div class="p-5 rounded-2xl bg-[#081024] border border-slate-800">
@@ -2086,7 +2086,7 @@
               <i data-lucide="clipboard-list" class="w-5 h-5 text-sky-400"></i>
               <span>Pusat Pemenuhan Order (Order Fulfillment)</span>
             </h3>
-            <p class="text-xs text-slate-400">Kirimkan akun PSN atau verifikasi pembayaran pembeli.</p>
+            <p class="text-xs text-slate-400">Bagikan akses folder Google Drive atau verifikasi pembayaran pesanan game.</p>
           </div>
 
           <div class="flex items-center gap-1.5 overflow-x-auto pb-1">
@@ -2559,6 +2559,12 @@
               <li>Tancapkan ke PS4 HEN, buka menu <strong>GoldHEN / HEN &gt; Package Installer</strong> &gt; Pasang file game.</li>
             </ol>
           </div>
+          <div id="fulfill-hen-notes-container" class="hidden mt-3 p-3.5 rounded-2xl bg-[#060a16] border border-emerald-500/30 text-xs">
+            <div class="font-bold text-emerald-400 mb-1 flex items-center gap-1.5">
+              <i data-lucide="message-square" class="w-4 h-4"></i> Catatan Khusus Admin:
+            </div>
+            <p id="fulfill-hen-notes" class="text-slate-300 text-[11px] leading-relaxed whitespace-pre-line"></p>
+          </div>
         </div>
 
         <!-- SEKSI 2: KREDENSIAL AKUN PSN (JIKA ADA) -->
@@ -2991,53 +2997,86 @@
     </div>
   </div>
 
-  <!-- MODAL: Admin Order Fulfillment -->
+  <!-- MODAL: Admin Order Fulfillment (PS4 HEN Google Drive) -->
   <div id="modal-admin-fulfill" class="app-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop-blur">
-    <div class="bg-[#080f24] border border-slate-700 rounded-3xl max-w-xl w-full max-h-[92vh] overflow-y-auto modal-custom-scroll shadow-2xl relative p-6" onclick="event.stopPropagation()">
-      <button onclick="closeModals()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+    <div class="bg-[#080f24] border border-slate-700 rounded-3xl max-w-xl w-full max-h-[92vh] flex flex-col shadow-2xl relative p-6" onclick="event.stopPropagation()">
+      <button onclick="closeModals()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors">
         <i data-lucide="x" class="w-4 h-4"></i>
       </button>
 
-      <div class="mb-5">
+      <div class="mb-4 shrink-0">
         <div class="flex items-center gap-2 mb-1">
-          <span class="w-2.5 h-2.5 rounded-full bg-sky-400 animate-ping"></span>
-          <h3 class="text-lg font-black text-white font-display">Pemenuhan Order (Kirim Akun PSN)</h3>
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+          <h3 class="text-lg font-black text-white font-display">Pemenuhan Order (Akses Google Drive PS4 HEN)</h3>
         </div>
-        <p class="text-xs text-slate-400">Kredensial ini akan langsung tampil di invoice pembeli.</p>
+        <p class="text-xs text-slate-400">Verifikasi link Google Drive file .PKG dan hak akses Viewer Gmail pembeli.</p>
       </div>
 
-      <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 mb-5 text-xs space-y-1">
-        <div class="flex justify-between"><span class="text-slate-400">No. Invoice:</span><span id="fulfill-target-invoice" class="font-bold text-sky-400 font-mono"></span></div>
-        <div class="flex justify-between"><span class="text-slate-400">Pembeli:</span><span id="fulfill-target-customer" class="font-bold text-white"></span></div>
-        <div class="flex justify-between"><span class="text-slate-400">Game:</span><span id="fulfill-target-items" class="font-bold text-emerald-400"></span></div>
+      <div class="overflow-y-auto modal-custom-scroll pr-1 -mr-1 flex-1 space-y-4">
+        <!-- Order Info Card -->
+        <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-xs space-y-2">
+          <div class="flex justify-between items-center"><span class="text-slate-400">No. Invoice:</span><span id="fulfill-target-invoice" class="font-bold text-sky-400 font-mono"></span></div>
+          <div class="flex justify-between items-center"><span class="text-slate-400">Pembeli:</span><span id="fulfill-target-customer" class="font-bold text-white"></span></div>
+          <div class="flex justify-between items-center">
+            <span class="text-slate-400">Target Gmail Akses:</span>
+            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono font-bold">
+              <i data-lucide="mail" class="w-3 h-3"></i>
+              <span id="fulfill-target-email"></span>
+            </span>
+          </div>
+          <div class="flex justify-between items-start pt-1.5 border-t border-slate-800/80">
+            <span class="text-slate-400 shrink-0">Game:</span>
+            <span id="fulfill-target-items" class="font-bold text-amber-300 text-right ml-2"></span>
+          </div>
+        </div>
+
+        <!-- Otomasi Drive Info Box -->
+        <div class="p-3.5 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 flex items-start gap-3">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+            <i data-lucide="shield-check" class="w-4 h-4"></i>
+          </div>
+          <div class="text-xs">
+            <div class="font-bold text-emerald-300">Hak Akses Viewer Otomatis Dibagikan</div>
+            <p class="text-slate-300 text-[11px] mt-0.5 leading-relaxed">
+              Sistem Google Apps Script otomatis menambahkan email pembeli di atas sebagai <b>Viewer</b> folder Google Drive game. Tidak diperlukan pengiriman akun atau password login PSN.
+            </p>
+          </div>
+        </div>
+
+        <!-- Drive Link Input -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
+            <span>Link Folder Google Drive (File .PKG) <span class="text-rose-400">*</span></span>
+            <span class="text-[10px] text-sky-400 font-normal">Otomatis dari data game</span>
+          </label>
+          <div class="flex items-center gap-2">
+            <input type="url" id="input-fulfill-drivelink" placeholder="https://drive.google.com/drive/folders/..." class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500 font-mono" />
+            <button type="button" onclick="openDriveLinkInNewTab()" class="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-400 hover:text-sky-300 text-xs font-bold border border-slate-700 shrink-0 flex items-center gap-1 transition-colors" title="Buka folder di tab baru">
+              <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Buka
+            </button>
+            <button type="button" onclick="copyDriveLinkFromInput()" class="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold border border-slate-700 shrink-0 flex items-center gap-1 transition-colors" title="Salin link">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i> Salin
+            </button>
+          </div>
+          <p class="text-[10px] text-slate-400 mt-1">Pastikan folder Google Drive ini berisi file .pkg game & update subtitle indonesia.</p>
+        </div>
+
+        <!-- Panduan Link Input -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1">Link Panduan Instalasi PKG PS4 HEN (Opsional)</label>
+          <input type="text" id="input-fulfill-guide" value="https://aliansistore.com/panduan-install-pkg-ps4-hen" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500 text-xs" />
+        </div>
+
+        <!-- Catatan / Instruksi Input -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1">Catatan Tambahan untuk Pembeli (WhatsApp & Invoice)</label>
+          <textarea id="input-fulfill-notes" rows="3" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500 text-xs leading-relaxed"></textarea>
+        </div>
       </div>
 
-      <div class="space-y-3 mb-6">
-        <div>
-          <label class="block text-xs font-bold text-slate-300 mb-1">Email Akun PSN <span class="text-rose-400">*</span></label>
-          <input type="email" id="input-fulfill-email" placeholder="aliansi.game@gmail.com" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500 font-mono" />
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-300 mb-1">Password Akun PSN <span class="text-rose-400">*</span></label>
-          <input type="text" id="input-fulfill-password" placeholder="PasswordAkun123!" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500 font-mono" />
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-300 mb-1">Kode Cadangan 2FA (Backup Codes)</label>
-          <input type="text" id="input-fulfill-backup" placeholder="849201, 773910" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500 font-mono" />
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-300 mb-1">Link Panduan Login</label>
-          <input type="text" id="input-fulfill-guide" value="https://aliansistore.com/tutorial-login-ps4" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500 text-xs" />
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-300 mb-1">Catatan Tambahan untuk Pembeli</label>
-          <textarea id="input-fulfill-notes" rows="2" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500">Dilarang mengganti email, password, atau nomor telepon akun agar garansi anti-revoke tetap berlaku.</textarea>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-3">
+      <div class="grid grid-cols-2 gap-3 pt-4 border-t border-slate-800 shrink-0 mt-4">
         <button onclick="closeModals()" class="py-2.5 px-4 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700">Batal</button>
-        <button onclick="submitOrderFulfillment()" class="py-2.5 px-4 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg flex items-center justify-center gap-1.5"><i data-lucide="send" class="w-4 h-4"></i> Simpan & Kirimkan</button>
+        <button onclick="submitOrderFulfillment()" class="py-2.5 px-4 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg flex items-center justify-center gap-1.5 shadow-emerald-950/40"><i data-lucide="folder-check" class="w-4 h-4"></i> Simpan & Kirim Akses Drive</button>
       </div>
     </div>
   </div>
@@ -4474,7 +4513,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261108_settings_v22"></script>
-  <script src="assets/app.js?v=20261108_settings_v22"></script>
+  <script src="assets/products-data.js?v=20261108_hen_fulfill_v24"></script>
+  <script src="assets/app.js?v=20261108_hen_fulfill_v24"></script>
 </body>
 </html>

@@ -2919,7 +2919,7 @@ function renderFulfillmentBox(fulfillment, order) {
     }
   }
 
-  // PSN Account section
+  // PSN Account section (legacy/optional fallback)
   if (fulfillment.psnEmail) {
     if (psnSection) psnSection.classList.remove('hidden');
     document.getElementById('fulfill-email').textContent = fulfillment.psnEmail || '-';
@@ -2928,6 +2928,23 @@ function renderFulfillmentBox(fulfillment, order) {
     document.getElementById('fulfill-notes').textContent = fulfillment.adminNotes || 'Gunakan akun dengan bijak dan ikuti panduan aktivasi.';
   } else {
     if (psnSection) psnSection.classList.add('hidden');
+  }
+
+  // HEN Notes section (for PS4 HEN PKG orders)
+  const henNotesContainer = document.getElementById('fulfill-hen-notes-container');
+  const henNotesEl = document.getElementById('fulfill-hen-notes');
+  if (henNotesContainer && henNotesEl) {
+    if (fulfillment.adminNotes) {
+      henNotesEl.textContent = fulfillment.adminNotes;
+      henNotesContainer.classList.remove('hidden');
+    } else {
+      henNotesContainer.classList.add('hidden');
+    }
+  }
+
+  const guideLinkEl = document.getElementById('fulfill-guide-link');
+  if (guideLinkEl) {
+    guideLinkEl.href = fulfillment.guideUrl || 'https://aliansistore.com/panduan-install-pkg-ps4-hen';
   }
 
   lucide.createIcons();
@@ -6461,8 +6478,8 @@ function renderAdminOrdersTable() {
         <td class="py-3 px-3 text-right">
           <div class="flex items-center justify-end gap-1.5">
             ${order.status === 'PROCESSING' || (order.paymentStatus === 'PAID' && order.status !== 'COMPLETED') ? `
-              <button onclick="openFulfillmentModal('${order.id}')" class="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-[11px] shadow-sm flex items-center gap-1">
-                <i data-lucide="key" class="w-3 h-3"></i> Kirim Akun
+              <button onclick="openFulfillmentModal('${order.id}')" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-[11px] shadow-sm flex items-center gap-1 shadow-emerald-950/40">
+                <i data-lucide="folder-check" class="w-3 h-3"></i> Akses Drive
               </button>
             ` : ''}
 
@@ -6499,6 +6516,24 @@ function adminVerifyPayment(orderId) {
   showToast(`Pesanan ${orderId} diverifikasi lunas & laporan penjualan dikirim ke Admin!`, 'success');
 }
 
+function openDriveLinkInNewTab() {
+  const link = (document.getElementById('input-fulfill-drivelink')?.value || '').trim();
+  if (link && link.startsWith('http')) {
+    window.open(link, '_blank');
+  } else {
+    showToast('Link Google Drive belum valid!', 'warning');
+  }
+}
+
+function copyDriveLinkFromInput() {
+  const link = (document.getElementById('input-fulfill-drivelink')?.value || '').trim();
+  if (link) {
+    copyText(link, 'Link Google Drive berhasil disalin!');
+  } else {
+    showToast('Link Google Drive belum diisi!', 'warning');
+  }
+}
+
 function openFulfillmentModal(orderId) {
   playSfx('click');
   const order = state.orders.find(o => o.id === orderId);
@@ -6508,21 +6543,54 @@ function openFulfillmentModal(orderId) {
   const modal = document.getElementById('modal-admin-fulfill');
   if (!modal) return;
 
-  document.getElementById('fulfill-target-invoice').textContent = order.id;
-  document.getElementById('fulfill-target-customer').textContent = `${order.customerName} (${order.customerPhone})`;
-  document.getElementById('fulfill-target-items').textContent = order.items.map(i => {
-    const prod = (state.products || []).find(p => p.id === (i.productId || i.id) || p.title === i.title);
-    const isHen = i.variant === 'PS4 HEN' || isHenProduct(prod);
-    const v = isHen ? 'PS4 HEN (PKG)' : (i.variant || 'Primary').toUpperCase();
-    return `${i.title} [${v}]`;
-  }).join(', ');
+  const invoiceEl = document.getElementById('fulfill-target-invoice');
+  if (invoiceEl) invoiceEl.textContent = order.id;
 
+  const custEl = document.getElementById('fulfill-target-customer');
+  if (custEl) custEl.textContent = `${order.customerName} (${order.customerPhone || '-'})`;
+
+  const emailEl = document.getElementById('fulfill-target-email');
+  if (emailEl) emailEl.textContent = order.customerEmail || '-';
+
+  const itemsEl = document.getElementById('fulfill-target-items');
+  if (itemsEl) {
+    itemsEl.textContent = (order.items || []).map(i => {
+      const prod = (state.products || []).find(p => p.id === (i.productId || i.id) || p.title === i.title);
+      const isHen = i.variant === 'PS4 HEN' || isHenProduct(prod);
+      const v = isHen ? 'PS4 HEN (PKG)' : (i.variant || 'PKG').toUpperCase();
+      return `${i.title} [${v}]`;
+    }).join(', ');
+  }
+
+  // Resolve Drive Link for this order from fulfillment or product catalog
   const f = order.fulfillment || {};
-  document.getElementById('input-fulfill-email').value = f.psnEmail || `aliansi.${order.items[0]?.title.toLowerCase().replace(/[^a-z0-9]/g, '') || 'psgame'}@gmail.com`;
-  document.getElementById('input-fulfill-password').value = f.psnPassword || `Aliansi#${Math.floor(1000 + Math.random() * 9000)}!Safe`;
-  document.getElementById('input-fulfill-backup').value = f.backupCodes || `${Math.floor(100000 + Math.random() * 900000)}, ${Math.floor(100000 + Math.random() * 900000)}`;
-  document.getElementById('input-fulfill-guide').value = f.guideUrl || 'https://aliansistore.com/tutorial-login-ps4';
-  document.getElementById('input-fulfill-notes').value = f.adminNotes || 'Dilarang mengganti email, password, atau nomor telepon akun agar garansi anti-revoke tetap berlaku.';
+  let defaultDriveLink = f.driveLink || '';
+  if (!defaultDriveLink && f.driveLinks && f.driveLinks.length > 0) {
+    defaultDriveLink = f.driveLinks[0].url || '';
+  }
+  if (!defaultDriveLink && order.items && order.items.length > 0) {
+    const firstItem = order.items[0];
+    const prod = (state.products || []).find(p => p.id === (firstItem.productId || firstItem.id) || p.title === firstItem.title);
+    if (prod && prod.driveLink) {
+      defaultDriveLink = prod.driveLink;
+    } else if (firstItem.driveLink) {
+      defaultDriveLink = firstItem.driveLink;
+    }
+  }
+
+  const driveInput = document.getElementById('input-fulfill-drivelink');
+  if (driveInput) driveInput.value = defaultDriveLink || 'https://drive.google.com/drive/folders/';
+
+  const guideInput = document.getElementById('input-fulfill-guide');
+  if (guideInput) guideInput.value = f.guideUrl || 'https://aliansistore.com/panduan-install-pkg-ps4-hen';
+
+  const notesInput = document.getElementById('input-fulfill-notes');
+  if (notesInput) {
+    notesInput.value = f.adminNotes ||
+`1. Pastikan konsol PS4 sudah mengaktifkan GoldHEN / HEN.
+2. Download seluruh part file .pkg dari Google Drive ke Flashdisk / Harddisk Eksternal berformat exFAT.
+3. Tancapkan ke PS4, buka menu GoldHEN > Package Installer, lalu instal file game dan update patch sub indo secara berurutan.`;
+  }
 
   modal.classList.remove('hidden');
   lucide.createIcons();
@@ -6530,58 +6598,85 @@ function openFulfillmentModal(orderId) {
 
 function submitOrderFulfillment() {
   if (!state.orderToFulfill) return;
+  const order = state.orderToFulfill;
 
-  const email = document.getElementById('input-fulfill-email').value.trim();
-  const password = document.getElementById('input-fulfill-password').value.trim();
-  const backupCodes = document.getElementById('input-fulfill-backup').value.trim();
-  const guideUrl = document.getElementById('input-fulfill-guide').value.trim();
-  const notes = document.getElementById('input-fulfill-notes').value.trim();
+  const driveLink = (document.getElementById('input-fulfill-drivelink')?.value || '').trim();
+  const guideUrl = (document.getElementById('input-fulfill-guide')?.value || '').trim();
+  const notes = (document.getElementById('input-fulfill-notes')?.value || '').trim();
 
-  if (!email || !password) {
-    showToast('Mohon isi Email PSN dan Password akun!', 'warning');
+  if (!driveLink || !driveLink.startsWith('http')) {
+    showToast('Mohon masukkan Link Google Drive yang valid!', 'warning');
     return;
   }
 
-  state.orderToFulfill.fulfillment = {
+  // Resolve drive links for all items
+  const driveLinks = (order.items || []).map(item => {
+    const prod = (state.products || []).find(p => p.id === (item.productId || item.id) || p.title === item.title);
+    return {
+      title: item.title,
+      url: (prod && prod.driveLink) ? prod.driveLink : driveLink
+    };
+  });
+  if (driveLinks.length === 0) {
+    driveLinks.push({ title: 'Game PS4 HEN', url: driveLink });
+  }
+
+  order.fulfillment = {
+    ...(order.fulfillment || {}),
     deliveredAt: new Date().toISOString(),
-    psnEmail: email,
-    psnPassword: password,
-    backupCodes: backupCodes,
-    guideUrl: guideUrl,
-    adminNotes: notes
+    customerEmail: order.customerEmail,
+    type: 'PS4_HEN_PKG',
+    driveLink: driveLink,
+    driveLinks: driveLinks,
+    guideUrl: guideUrl || 'https://aliansistore.com/panduan-install-pkg-ps4-hen',
+    adminNotes: notes,
+    gdrive_shared: true
   };
-  state.orderToFulfill.status = 'COMPLETED';
-  state.orderToFulfill.paymentStatus = 'PAID';
+
+  // Bersihkan data kredensial lama jika ada
+  delete order.fulfillment.psnEmail;
+  delete order.fulfillment.psnPassword;
+  delete order.fulfillment.backupCodes;
+
+  order.status = 'COMPLETED';
+  order.paymentStatus = 'PAID';
 
   saveOrders();
-  syncOrderToSupabase(state.orderToFulfill);
-  dispatchOrderCompletionEmails(state.orderToFulfill);
+  syncOrderToSupabase(order);
+  dispatchOrderCompletionEmails(order);
   closeModals();
   playSfx('success');
   renderAdminStats();
   renderAdminOrdersTable();
 
+  const driveLinksFormatted = driveLinks.map(d => `📁 *${d.title}:*\n${d.url}`).join('\n\n');
+
   const waMessage = encodeURIComponent(
-    `*PESANAN SELESAI - ALIANSI STORE* 🎮\n` +
-    `Halo kak ${state.orderToFulfill.customerName}, terima kasih atas pesanannya!\n\n` +
-    `*No. Invoice:* ${state.orderToFulfill.id}\n` +
-    `*Game:* ${state.orderToFulfill.items.map(i => i.title).join(', ')}\n\n` +
-    `*DETAIL AKUN PSN ANDA:*\n` +
-    `📧 *Email Login:* ${email}\n` +
-    `🔑 *Password:* ${password}\n` +
-    `🛡️ *Kode Backup 2FA:* ${backupCodes}\n` +
-    `📖 *Panduan Aktivasi:* ${guideUrl}\n\n` +
-    `*Catatan Penting:*\n` +
+    `*PESANAN SELESAI & AKSES GOOGLE DRIVE DIBERIKAN - ALIANSI STORE* 🎮\n` +
+    `Halo kak ${order.customerName}, pesanan game PS4 HEN Anda telah selesai diproses!\n\n` +
+    `*No. Invoice:* ${order.id}\n` +
+    `*Game:* ${order.items.map(i => i.title).join(', ')}\n` +
+    `*Format:* Softfile .PKG Digital (PS4 HEN)\n` +
+    `*Email Gmail Akses:* ${order.customerEmail || '-'}\n\n` +
+    `📂 *LINK DOWNLOAD GOOGLE DRIVE (FILE .PKG):*\n` +
+    `${driveLinksFormatted}\n\n` +
+    `📖 *PANDUAN INSTALASI (PKG & GOLDHEN):*\n` +
+    `${guideUrl || 'https://aliansistore.com/panduan-install-pkg-ps4-hen'}\n\n` +
+    `💡 *Catatan & Langkah Instalasi:*\n` +
     `${notes}\n\n` +
-    `Cek invoice lengkap Anda di: http://localhost:5500\n` +
+    `_Hak akses Viewer telah otomatis dibagikan ke Gmail Anda. Anda juga dapat memeriksa menu "Dibagikan dengan saya" di Google Drive atau cek email masuk/spam._\n\n` +
+    `Cek invoice resmi Anda kapan saja di: ${window.location.origin}\n` +
     `Selamat bermain & have fun! 🚀`
   );
 
-  showToast(`Order ${state.orderToFulfill.id} selesai! Data akun tersimpan.`, 'success', 'Fulfillment Sukses');
+  showToast(`Order ${order.id} selesai! Akses Google Drive tercatat.`, 'success', 'Fulfillment Sukses');
 
-  const openWa = confirm(`Order berhasil diselesaikan!\n\nApakah ingin langsung mengirimkan data akun ke WhatsApp pembeli (${state.orderToFulfill.customerPhone})?`);
-  if (openWa) {
-    window.open(`https://wa.me/${state.orderToFulfill.customerPhone.replace(/[^0-9]/g, '')}?text=${waMessage}`, '_blank');
+  const phone = (order.customerPhone || '').replace(/[^0-9]/g, '');
+  if (phone) {
+    const openWa = confirm(`Order berhasil diselesaikan!\n\nApakah ingin langsung mengirimkan link download Google Drive & panduan ke WhatsApp pembeli (${order.customerPhone})?`);
+    if (openWa) {
+      window.open(`https://wa.me/${phone}?text=${waMessage}`, '_blank');
+    }
   }
 }
 
