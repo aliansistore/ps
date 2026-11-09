@@ -6263,6 +6263,14 @@ function checkUrlForActions() {
   const urlParams = new URLSearchParams(window.location.search);
   const action = urlParams.get('action');
 
+  // Direct Invoice / Tracking lookup via URL query (?invoice=ALN-... or ?order=ALN-...)
+  const invoiceId = urlParams.get('invoice') || urlParams.get('order') || urlParams.get('orderId');
+  if (invoiceId) {
+    setTimeout(() => {
+      openInvoiceModal(invoiceId.trim());
+    }, 600);
+  }
+
   if (action === 'open-chat') {
     const email = urlParams.get('email');
     if (email) {
