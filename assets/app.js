@@ -8055,12 +8055,16 @@ function openAddProductModal() {
   const modal = document.getElementById('modal-admin-add-product');
   if (!modal) return;
   document.getElementById('new-game-title').value = '';
-  const discountEl = document.getElementById('new-game-price-discount');
-  if (discountEl) discountEl.value = '';
   const normalEl = document.getElementById('new-game-price-normal');
   if (normalEl) normalEl.value = '';
-  const preview = document.getElementById('new-game-discount-preview');
-  if (preview) preview.classList.add('hidden');
+  const discCheckEl = document.getElementById('new-game-has-discount');
+  if (discCheckEl) discCheckEl.checked = false;
+  const discContainer = document.getElementById('new-discount-fields-container');
+  if (discContainer) discContainer.classList.add('hidden');
+  const newRateEl = document.getElementById('new-game-discount-rate');
+  if (newRateEl) newRateEl.value = '';
+  const discountedEl = document.getElementById('new-game-price-discounted');
+  if (discountedEl) discountedEl.value = '';
   const newDriveEl = document.getElementById('new-game-drive-link');
   if (newDriveEl) newDriveEl.value = '';
   document.getElementById('new-game-poster').value = '';
@@ -8069,51 +8073,167 @@ function openAddProductModal() {
   document.getElementById('new-game-desc').value = '';
   const descLabel = document.getElementById('new-desc-btn-label');
   if (descLabel) descLabel.textContent = 'Generate AI';
+  const preview = document.getElementById('new-game-discount-preview');
+  if (preview) preview.classList.add('hidden');
   updateImagePreview('new', 'poster');
   updateImagePreview('new', 'backdrop');
   modal.classList.remove('hidden');
   lucide.createIcons();
 }
 
-// Live Interactive Discount Percentage & Savings Calculator (prefix: 'new' | 'edit')
-// When user enters Harga (Rp) and Harga Diskon (Rp) and they differ, automatically displays -XX% badge
-function calculateAdminDiscount(prefix) {
-  const discountVal = parseRupiah(document.getElementById(`${prefix}-game-price-discount`)?.value);
-  const normalVal = parseRupiah(document.getElementById(`${prefix}-game-price-normal`)?.value);
+// Two-Way Interactive Discount Calculator with Checkbox & Rupiah Dot Formatting (prefix: 'new' | 'edit')
+function toggleDiscountSection(prefix) {
+  playSfx('click');
+  const checkEl = document.getElementById(`${prefix}-game-has-discount`);
+  const container = document.getElementById(`${prefix}-discount-fields-container`);
+  if (!checkEl || !container) return;
+
+  if (checkEl.checked) {
+    container.classList.remove('hidden');
+    const normalVal = parseRupiah(document.getElementById(`${prefix}-game-price-normal`)?.value);
+    const discEl = document.getElementById(`${prefix}-game-price-discounted`);
+    const rateEl = document.getElementById(`${prefix}-game-discount-rate`);
+    if (normalVal > 0 && (!discEl.value || parseRupiah(discEl.value) >= normalVal)) {
+      rateEl.value = '20';
+      const discounted = Math.round(normalVal * 0.8);
+      discEl.value = formatNumberWithDots(discounted);
+    }
+    updateDiscountCalc(prefix);
+  } else {
+    container.classList.add('hidden');
+    const preview = document.getElementById(`${prefix}-game-discount-preview`);
+    if (preview) preview.classList.add('hidden');
+  }
+}
+
+function onPriceNormalInput(prefix) {
+  const checkEl = document.getElementById(`${prefix}-game-has-discount`);
+  if (!checkEl || !checkEl.checked) return;
+
+  const normal = parseRupiah(document.getElementById(`${prefix}-game-price-normal`)?.value);
+  const rateEl = document.getElementById(`${prefix}-game-discount-rate`);
+  const discEl = document.getElementById(`${prefix}-game-price-discounted`);
+  if (!rateEl || !discEl) return;
+
+  const rate = parseFloat(rateEl.value) || 0;
+  if (normal > 0 && rate > 0) {
+    const discounted = Math.round(normal * (1 - rate / 100));
+    discEl.value = formatNumberWithDots(discounted);
+  } else if (normal > 0 && discEl.value) {
+    const discounted = parseRupiah(discEl.value);
+    if (discounted < normal && discounted > 0) {
+      rateEl.value = Math.round((1 - discounted / normal) * 100);
+    }
+  }
+  updateDiscountCalc(prefix);
+}
+
+function onDiscountRateInput(prefix) {
+  const normal = parseRupiah(document.getElementById(`${prefix}-game-price-normal`)?.value);
+  const rateEl = document.getElementById(`${prefix}-game-discount-rate`);
+  const discEl = document.getElementById(`${prefix}-game-price-discounted`);
+  if (!rateEl || !discEl) return;
+
+  const rateStr = rateEl.value.trim();
+  if (rateStr === '') {
+    updateDiscountCalc(prefix);
+    return;
+  }
+
+  let rate = parseFloat(rateStr);
+  if (isNaN(rate)) return;
+  if (rate < 0) rate = 0;
+  if (rate > 99) rate = 99;
+
+  if (normal > 0) {
+    const discounted = Math.round(normal * (1 - rate / 100));
+    discEl.value = formatNumberWithDots(discounted);
+  }
+  updateDiscountCalc(prefix);
+}
+
+function onPriceDiscountedInput(prefix) {
+  const normal = parseRupiah(document.getElementById(`${prefix}-game-price-normal`)?.value);
+  const rateEl = document.getElementById(`${prefix}-game-discount-rate`);
+  const discEl = document.getElementById(`${prefix}-game-price-discounted`);
+  if (!rateEl || !discEl) return;
+
+  const discounted = parseRupiah(discEl.value);
+  if (normal > 0) {
+    if (discounted < normal && discounted > 0) {
+      rateEl.value = Math.round((1 - discounted / normal) * 100);
+    } else {
+      rateEl.value = 0;
+    }
+  } else {
+    rateEl.value = '';
+  }
+  updateDiscountCalc(prefix);
+}
+
+function updateDiscountCalc(prefix) {
+  const normal = parseRupiah(document.getElementById(`${prefix}-game-price-normal`)?.value);
+  const discounted = parseRupiah(document.getElementById(`${prefix}-game-price-discounted`)?.value);
+  const rateEl = document.getElementById(`${prefix}-game-discount-rate`);
   const preview = document.getElementById(`${prefix}-game-discount-preview`);
   const diffEl = document.getElementById(`${prefix}-game-discount-diff`);
   const pctEl = document.getElementById(`${prefix}-game-discount-percent`);
+  const checkEl = document.getElementById(`${prefix}-game-has-discount`);
   if (!preview) return;
 
-  // If both normal price and discount price are filled and different (discountVal < normalVal)
-  if (normalVal > 0 && discountVal > 0 && normalVal > discountVal) {
-    const diff = normalVal - discountVal;
-    const pct = Math.round(((normalVal - discountVal) / normalVal) * 100);
+  if (checkEl && !checkEl.checked) {
+    preview.classList.add('hidden');
+    return;
+  }
+
+  const pct = getDiscountPercent(normal, discounted);
+  if (pct > 0 && normal > discounted) {
+    const diff = normal - discounted;
     if (diffEl) diffEl.textContent = `Hemat ${formatRupiah(diff)}`;
     if (pctEl) pctEl.textContent = `-${pct}% (Diskon ${pct}%)`;
     preview.classList.remove('hidden');
+    if (rateEl && (!rateEl.value || rateEl.value === '0')) {
+      rateEl.value = pct;
+    }
   } else {
     preview.classList.add('hidden');
+    if (rateEl && discounted >= normal && normal > 0) {
+      rateEl.value = normal > 0 ? 0 : '';
+    }
   }
+}
+
+// Fallback alias for backward compatibility
+function calculateAdminDiscount(prefix) {
+  updateDiscountCalc(prefix);
 }
 
 function submitNewProduct() {
   const title = document.getElementById('new-game-title').value.trim();
   const category = document.getElementById('new-game-category').value;
   const platformChecked = Array.from(document.querySelectorAll('input[name="new-game-platform"]:checked')).map(cb => cb.value);
-  const priceDiscount = parseRupiah(document.getElementById('new-game-price-discount')?.value);
   const priceNormal = parseRupiah(document.getElementById('new-game-price-normal')?.value);
+  const hasDiscount = document.getElementById('new-game-has-discount')?.checked;
+  const priceDiscounted = parseRupiah(document.getElementById('new-game-price-discounted')?.value);
 
-  if (!title || platformChecked.length === 0 || priceDiscount <= 0) {
-    showToast('Lengkapi judul, platform, dan Harga Diskon (Rp) game!', 'warning');
+  if (!title || platformChecked.length === 0 || priceNormal <= 0) {
+    showToast('Lengkapi judul, platform, dan Harga Normal (Rp) game!', 'warning');
     return;
   }
 
-  // If normal price is filled and greater than discount price, normal is original (strikethrough) and discount is primary
-  let pricePrimary = priceDiscount;
+  let pricePrimary = priceNormal;
   let priceOriginal = 0;
-  if (priceNormal > 0 && priceNormal > priceDiscount) {
+
+  if (hasDiscount) {
+    if (priceDiscounted <= 0 || priceDiscounted >= priceNormal) {
+      showToast('Harga promo diskon harus lebih murah dari harga normal!', 'warning');
+      return;
+    }
+    pricePrimary = priceDiscounted;
     priceOriginal = priceNormal;
+  } else {
+    pricePrimary = priceNormal;
+    priceOriginal = 0; // Game dijual dengan harga normal tanpa harga coret
   }
 
   const driveLink = document.getElementById('new-game-drive-link') ? document.getElementById('new-game-drive-link').value.trim() : '';
@@ -8190,12 +8310,29 @@ function openEditProductModal(productId) {
     cb.checked = Array.isArray(p.platform) && p.platform.includes(cb.value);
   });
 
-  const discountEl = document.getElementById('edit-game-price-discount');
+  const hasDiscount = !!(p.prices && p.prices.original && p.prices.original > p.prices.primary);
+  const checkEl = document.getElementById('edit-game-has-discount');
+  const container = document.getElementById('edit-discount-fields-container');
   const normalEl = document.getElementById('edit-game-price-normal');
-  const hasDiscount = !!(p.prices.original && p.prices.original > p.prices.primary);
+  const discEl = document.getElementById('edit-game-price-discounted');
+  const rateEl = document.getElementById('edit-game-discount-rate');
+  const preview = document.getElementById('edit-game-discount-preview');
 
-  if (discountEl) discountEl.value = formatNumberWithDots(p.prices.primary);
-  if (normalEl) normalEl.value = hasDiscount ? formatNumberWithDots(p.prices.original) : '';
+  if (hasDiscount) {
+    if (checkEl) checkEl.checked = true;
+    if (container) container.classList.remove('hidden');
+    if (normalEl) normalEl.value = formatNumberWithDots(p.prices.original);
+    if (discEl) discEl.value = formatNumberWithDots(p.prices.primary);
+    if (rateEl) rateEl.value = getDiscountPercent(p.prices.original, p.prices.primary);
+    updateDiscountCalc('edit');
+  } else {
+    if (checkEl) checkEl.checked = false;
+    if (container) container.classList.add('hidden');
+    if (normalEl) normalEl.value = formatNumberWithDots(p.prices.primary);
+    if (discEl) discEl.value = '';
+    if (rateEl) rateEl.value = '';
+    if (preview) preview.classList.add('hidden');
+  }
 
   const editDriveEl = document.getElementById('edit-game-drive-link');
   if (editDriveEl) editDriveEl.value = p.driveLink || '';
@@ -8211,7 +8348,6 @@ function openEditProductModal(productId) {
   updateImagePreview('edit', 'backdrop');
 
   modal.classList.remove('hidden');
-  calculateAdminDiscount('edit');
   lucide.createIcons();
 }
 
@@ -8226,20 +8362,27 @@ function submitEditProduct() {
   const editPlatCbs = Array.from(document.querySelectorAll('input[name="edit-game-platform"]:checked')).map(cb => cb.value);
   if (editPlatCbs.length > 0) p.platform = editPlatCbs;
 
-  const priceDiscount = parseRupiah(document.getElementById('edit-game-price-discount')?.value);
   const priceNormal = parseRupiah(document.getElementById('edit-game-price-normal')?.value);
+  const hasDiscount = document.getElementById('edit-game-has-discount')?.checked;
+  const priceDiscounted = parseRupiah(document.getElementById('edit-game-price-discounted')?.value);
 
-  if (priceDiscount <= 0) {
-    showToast('Harga Diskon (Rp) wajib diisi!', 'warning');
+  if (priceNormal <= 0) {
+    showToast('Harga Normal (Rp) wajib diisi!', 'warning');
     return;
   }
 
-  p.prices.primary = priceDiscount;
-  p.prices.secondary = priceDiscount;
-  if (priceNormal > 0 && priceNormal > priceDiscount) {
+  if (hasDiscount) {
+    if (priceDiscounted <= 0 || priceDiscounted >= priceNormal) {
+      showToast('Harga promo diskon harus lebih murah dari harga normal!', 'warning');
+      return;
+    }
+    p.prices.primary = priceDiscounted;
+    p.prices.secondary = priceDiscounted;
     p.prices.original = priceNormal;
   } else {
-    p.prices.original = 0;
+    p.prices.primary = priceNormal;
+    p.prices.secondary = priceNormal;
+    p.prices.original = 0; // Game dijual dengan harga normal tanpa harga coret
   }
 
   const editDriveEl = document.getElementById('edit-game-drive-link');
