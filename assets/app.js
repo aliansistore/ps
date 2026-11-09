@@ -2311,6 +2311,7 @@ async function submitOrder() {
     const isHen = item.variant === 'PS4 HEN' || isHenProduct(prod);
     return {
       ...item,
+      driveLink: (prod && prod.driveLink) ? prod.driveLink : (item.driveLink || ''),
       variant: isHen ? 'PS4 HEN' : (item.variant || 'Primary')
     };
   });
@@ -2890,11 +2891,9 @@ function renderFulfillmentBox(fulfillment, order) {
     });
   } else if (driveLinks && driveLinks.length > 0) {
     driveLinks = driveLinks.map(link => {
-      if (!link.url || link.url === 'https://drive.google.com/drive/shared-with-me') {
-        const prod = (state.products || []).find(p => p.id === link.gameId || p.title === link.title);
-        if (prod && prod.driveLink) {
-          return { ...link, url: prod.driveLink };
-        }
+      const prod = (state.products || []).find(p => p.id === link.gameId || p.title === link.title);
+      if (prod && prod.driveLink) {
+        return { ...link, url: prod.driveLink };
       }
       return link;
     });
@@ -6594,13 +6593,10 @@ function openFulfillmentModal(orderId) {
     }).join(', ');
   }
 
-  // Resolve Drive Link for this order from fulfillment or product catalog
+  // Resolve Drive Link for this order directly from the latest Product Catalog first
   const f = order.fulfillment || {};
-  let defaultDriveLink = f.driveLink || '';
-  if (!defaultDriveLink && f.driveLinks && f.driveLinks.length > 0) {
-    defaultDriveLink = f.driveLinks[0].url || '';
-  }
-  if (!defaultDriveLink && order.items && order.items.length > 0) {
+  let defaultDriveLink = '';
+  if (order.items && order.items.length > 0) {
     const firstItem = order.items[0];
     const prod = (state.products || []).find(p => p.id === (firstItem.productId || firstItem.id) || p.title === firstItem.title);
     if (prod && prod.driveLink) {
@@ -6608,6 +6604,9 @@ function openFulfillmentModal(orderId) {
     } else if (firstItem.driveLink) {
       defaultDriveLink = firstItem.driveLink;
     }
+  }
+  if (!defaultDriveLink) {
+    defaultDriveLink = f.driveLink || ((f.driveLinks && f.driveLinks.length > 0) ? f.driveLinks[0].url : '');
   }
 
   const driveInput = document.getElementById('input-fulfill-drivelink');

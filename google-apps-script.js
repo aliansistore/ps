@@ -3,20 +3,22 @@
  * ALIANSI STORE - Google Apps Script Webhook (Auto-Share Google Drive & Email)
  * ============================================================================
  * 
- * CARA PAKAI:
+ * CARA PAKAI (CUKUP SETTING 1 KALI SAJA SEUMUR HIDUP!):
  * 1. Buka https://script.google.com/ lalu klik "Project Baru" (New Project).
  * 2. Hapus semua kode default, lalu Paste seluruh isi file ini.
- * 3. Isi ID Folder Google Drive Anda di bagian "GDRIVE_FOLDER_MAP" di bawah.
+ * 3. TIDAK PERLU mengubah kode ini lagi meskipun Anda mengganti Link Google Drive
+ *    pada produk atau menambah game baru di Admin Website, karena script ini
+ *    SUDAH OTOMATIS membaca Link Google Drive terbaru langsung dari database produk!
  * 4. Klik "Deploy" (Terapkan) di kanan atas > "Deployment baru" (New deployment).
  * 5. Pilih jenis: "Aplikasi Web" (Web app).
  * 6. Konfigurasi:
- *    - Deskripsi: Aliansi Store Duitku Webhook
+ *    - Deskripsi: Aliansi Store Webhook
  *    - Jalankan sebagai: Saya (email Anda)
- *    - Yang memiliki akses: Siapa saja (Anyone) -> SANGAT PENTING agar Duitku bisa kirim notifikasi!
+ *    - Yang memiliki akses: Siapa saja (Anyone)
  * 7. Klik "Deploy", beri izin (Grant Access), lalu Salin URL Aplikasi Web yang diberikan:
  *    Contoh: https://script.google.com/macros/s/AKfycb.../exec
- * 8. Masukkan URL tersebut ke Dashboard Duitku > Proyek Anda > Callback URL
- *    (atau otomatis dikirim oleh website Aliansi Store).
+ * 8. Tempelkan URL tersebut 1 KALI SAJA di Website Aliansi Store > Admin > Pengaturan Toko.
+ *    Selesai selamanya!
  * ============================================================================
  */
 
@@ -138,21 +140,18 @@ function doPost(e) {
       var items = Array.isArray(ord.items) ? ord.items : [];
       var sharedLinks = [];
       
-      // Auto-share Google Drive & Siapkan Link Akses
+      // Auto-share Google Drive & Siapkan Link Akses (Otomatis ambil link terbaru dari Produk!)
       if (cEmail && cEmail.indexOf("@") !== -1) {
         var fulfill = ord.fulfillment || params.fulfillment || {};
-        if (Array.isArray(fulfill.driveLinks) && fulfill.driveLinks.length > 0) {
-          fulfill.driveLinks.forEach(function(dl) {
-            sharedLinks.push({
-              title: dl.title,
-              url: dl.url
-            });
-          });
-        }
 
         items.forEach(function(item) {
-          var rawLink = item.driveLink || (item.images && item.images.driveLink) || "";
-          var folderId = extractDriveFolderId(rawLink) || GDRIVE_FOLDER_MAP[item.productId || item.id] || GDRIVE_FOLDER_MAP["default"];
+          var prodId = item.productId || item.id || "";
+          // 1. Cek link terbaru langsung dari tabel products di Supabase (jika Admin baru saja ganti link di produk!)
+          var liveDbLink = fetchProductDriveLinkFromSupabase(prodId, item.title);
+          // 2. Fallback ke link dari item order atau fulfillment
+          var rawLink = liveDbLink || item.driveLink || (item.images && item.images.driveLink) || fulfill.driveLink || "";
+          var folderId = extractDriveFolderId(rawLink) || GDRIVE_FOLDER_MAP[prodId] || GDRIVE_FOLDER_MAP["default"];
+          
           if (folderId && folderId.indexOf("1ABCxyz") === -1) {
             try {
               var folder = DriveApp.getFolderById(folderId);
@@ -161,15 +160,28 @@ function doPost(e) {
               Logger.log("Drive share notice: " + dErr.message);
             }
           }
-          if (sharedLinks.length === 0) {
-            sharedLinks.push({
-              gameId: item.productId || item.id,
-              title: item.title,
-              folderId: folderId,
-              url: rawLink || ("https://drive.google.com/drive/folders/" + (folderId || ""))
-            });
-          }
+          sharedLinks.push({
+            gameId: prodId,
+            title: item.title,
+            folderId: folderId,
+            url: rawLink || ("https://drive.google.com/drive/folders/" + (folderId || ""))
+          });
         });
+
+        if (sharedLinks.length === 0 && Array.isArray(fulfill.driveLinks) && fulfill.driveLinks.length > 0) {
+          fulfill.driveLinks.forEach(function(dl) {
+            var fId = extractDriveFolderId(dl.url);
+            if (fId) {
+              try {
+                DriveApp.getFolderById(fId).addViewer(cEmail);
+              } catch (e) {}
+            }
+            sharedLinks.push({
+              title: dl.title,
+              url: dl.url
+            });
+          });
+        }
         
         // 1. Kirim Panduan Instalasi & Akses Google Drive ke Gmail Customer
         sendCustomerReceiptEmail(cEmail, cName, ord, sharedLinks);
@@ -246,12 +258,14 @@ function doPost(e) {
       var customerName = order.customer_name || "Pelanggan Setia";
       var orderItems = Array.isArray(order.items) ? order.items : [];
       
-      // 4. Bagikan Folder Google Drive ke Email Pembeli
+      // 4. Bagikan Folder Google Drive ke Email Pembeli (Otomatis ambil link terbaru dari Produk!)
       var sharedLinksDuitku = [];
       if (customerEmail && customerEmail.indexOf("@") !== -1) {
         orderItems.forEach(function(item) {
-          var rawLink = item.driveLink || (item.images && item.images.driveLink) || "";
-          var folderId = extractDriveFolderId(rawLink) || GDRIVE_FOLDER_MAP[item.productId || item.id] || GDRIVE_FOLDER_MAP["default"];
+          var prodId = item.productId || item.id || "";
+          var liveDbLink = fetchProductDriveLinkFromSupabase(prodId, item.title);
+          var rawLink = liveDbLink || item.driveLink || (item.images && item.images.driveLink) || "";
+          var folderId = extractDriveFolderId(rawLink) || GDRIVE_FOLDER_MAP[prodId] || GDRIVE_FOLDER_MAP["default"];
           
           if (folderId && folderId.indexOf("1ABCxyz") === -1) {
             try {
@@ -263,7 +277,7 @@ function doPost(e) {
           }
           var folderUrl = rawLink || ("https://drive.google.com/drive/folders/" + (folderId || ""));
           sharedLinksDuitku.push({
-            gameId: item.productId || item.id,
+            gameId: prodId,
             title: item.title,
             folderId: folderId,
             url: folderUrl
@@ -322,6 +336,45 @@ function fetchOrderFromSupabase(orderId) {
     if (arr && arr.length > 0) return arr[0];
   }
   return null;
+}
+
+/**
+ * Helper: Ambil Link Google Drive TERBARU langsung dari tabel products di Supabase
+ * Sehingga jika Admin mengganti link GDrive pada produk di Website, script ini
+ * OTOMATIS membaca link baru tersebut tanpa perlu diedit lagi!
+ */
+function fetchProductDriveLinkFromSupabase(productId, productTitle) {
+  try {
+    var url = CONFIG.SUPABASE_URL + "/rest/v1/products?select=id,title,images";
+    if (productId) {
+      url += "&id=eq." + encodeURIComponent(productId);
+    } else if (productTitle) {
+      url += "&title=eq." + encodeURIComponent(productTitle);
+    } else {
+      return "";
+    }
+    var options = {
+      method: "get",
+      headers: {
+        "apikey": CONFIG.SUPABASE_KEY,
+        "Authorization": "Bearer " + CONFIG.SUPABASE_KEY
+      },
+      muteHttpExceptions: true
+    };
+    var res = UrlFetchApp.fetch(url, options);
+    if (res.getResponseCode() === 200) {
+      var arr = JSON.parse(res.getContentText());
+      if (arr && arr.length > 0) {
+        var prod = arr[0];
+        if (prod.images && prod.images.driveLink) {
+          return String(prod.images.driveLink).trim();
+        }
+      }
+    }
+  } catch (e) {
+    Logger.log("fetchProductDriveLinkFromSupabase notice: " + e.message);
+  }
+  return "";
 }
 
 /**
