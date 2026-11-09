@@ -398,8 +398,13 @@ function loadStoredData() {
         if (ip.driveLink && !existing.driveLink) {
           existing.driveLink = ip.driveLink;
         }
-        // Auto-upgrade local cache if INITIAL_PRODUCTS baseline has newer updatedAt
-        if (ip.updatedAt) {
+        // Auto-upgrade local cache if existing has stale baseline dummy prices (<= 25.000)
+        const existingPrimary = (existing.prices && existing.prices.primary) || 0;
+        if (existingPrimary <= 25000 && ip.prices && ip.prices.primary > 25000) {
+          existing.prices = { ...ip.prices };
+          if (ip.driveLink) existing.driveLink = ip.driveLink;
+          existing.updatedAt = ip.updatedAt || '2026-11-09T05:30:00.000Z';
+        } else if (ip.updatedAt) {
           const localTime = existing.updatedAt ? new Date(existing.updatedAt).getTime() : 0;
           const initialTime = new Date(ip.updatedAt).getTime();
           if (initialTime > localTime) {
@@ -725,13 +730,19 @@ async function syncFromSupabase() {
           const localProd = mergedProducts[localIdx];
           const localTime = localProd.updatedAt ? new Date(localProd.updatedAt).getTime() : 0;
           const cloudTime = cp.updatedAt ? new Date(cp.updatedAt).getTime() : 0;
-          if (cloudTime >= localTime || !localProd.updatedAt) {
+
+          // Protection: never let stale dummy cloud prices (<= 25000) overwrite valid local prices (> 25000)
+          const cloudPrice = (cp.prices && cp.prices.primary) || 0;
+          const localPrice = (localProd.prices && localProd.prices.primary) || 0;
+          const isCloudStaleDummy = cloudPrice <= 25000 && localPrice > 25000;
+
+          if (!isCloudStaleDummy && (cloudTime >= localTime || !localProd.updatedAt)) {
             mergedProducts[localIdx] = {
               ...cp,
               driveLink: cp.driveLink || localProd.driveLink || ''
             };
           } else {
-            // Local change is newer; keep local and sync up to cloud
+            // Local change is newer or cloud has stale dummy price; keep local and heal cloud!
             syncProductToSupabase(localProd);
           }
         }
@@ -1266,25 +1277,6 @@ function updateSpotlightDisplay(index) {
       openProductDetail(game.id);
     };
   }
-
-  // Update thumbnail active states
-  const thumbs = document.querySelectorAll('.spotlight-thumb');
-  thumbs.forEach((thumb, idx) => {
-    const badge = thumb.querySelector('.spotlight-badge');
-    if (idx === index) {
-      thumb.className = 'spotlight-thumb active group w-full p-2 sm:p-2.5 rounded-2xl flex items-center gap-3 transition-all duration-300 text-left cursor-pointer border bg-sky-950/80 border-sky-400 ring-2 ring-sky-400/30 shadow-lg shadow-sky-500/20';
-      if (badge) {
-        badge.className = 'spotlight-badge text-[9px] px-1.5 py-0.5 rounded-full font-bold bg-sky-500 text-white';
-        badge.textContent = '★ SEDANG TAMPIL';
-      }
-    } else {
-      thumb.className = 'spotlight-thumb group w-full p-2 sm:p-2.5 rounded-2xl flex items-center gap-3 transition-all duration-300 text-left cursor-pointer border bg-slate-950/50 border-slate-800/80 hover:bg-slate-800/60 hover:border-slate-700';
-      if (badge) {
-        badge.className = 'spotlight-badge text-[9px] px-1.5 py-0.5 rounded-full font-bold bg-slate-800 text-slate-400';
-        badge.textContent = `#${idx + 1} PILIHAN`;
-      }
-    }
-  });
 
   lucide.createIcons();
 }

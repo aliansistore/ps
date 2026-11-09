@@ -28,9 +28,9 @@ const INITIAL_PRODUCTS = [
       ]
     },
     prices: {
-      primary: 10000,
-      secondary: 10000,
-      original: 15000
+      primary: 120000,
+      secondary: 120000,
+      original: 479000
     },
     description: "Mainkan mahakarya petualangan co-op 2 pemain paling seru 'It Takes Two' dengan Full Subtitle Bahasa Indonesia. Sangat cocok dimainkan berdua bersama pasangan atau teman dengan jalan cerita komedi emosional yang kini 100% mudah dipahami!",
     features: [
@@ -42,7 +42,7 @@ const INITIAL_PRODUCTS = [
     ],
     driveLink: "https://drive.google.com/drive/folders/1Pw4Fe24O0LAAsV6Affwp_Ef4C0isK6JQ?usp=sharing",
     inStock: true,
-    updatedAt: "2026-11-07T09:11:48.513Z"
+    updatedAt: "2026-11-09T05:30:00.000Z"
   },
   {
     id: "game-gow-ragnarok-subindo",
@@ -111,9 +111,9 @@ const INITIAL_PRODUCTS = [
       ]
     },
     prices: {
-      primary: 15000,
-      secondary: 15000,
-      original: 20000
+      primary: 195000,
+      secondary: 195000,
+      original: 729000
     },
     description: "Rasakan keindahan pulau Tsushima era feodal Jepang dalam kisah Jin Sakai yang berkorban mempertahankan tanah kelahirannya dari invasi Mongol. Lengkap dengan Subtitle Indonesia rapi dan ekspansi Iki Island.",
     features: [
@@ -125,7 +125,7 @@ const INITIAL_PRODUCTS = [
     ],
     driveLink: "https://drive.google.com/drive/folders/1P0VCc2I_vcNbOnFz7WbK6UaL6a9PRJlZ?usp=drive_link",
     inStock: true,
-    updatedAt: "2026-11-07T09:13:12.998Z"
+    updatedAt: "2026-11-09T05:30:00.000Z"
   },
   {
     id: "game-tlou-part2-subindo",
@@ -153,9 +153,9 @@ const INITIAL_PRODUCTS = [
       ]
     },
     prices: {
-      primary: 15000,
-      secondary: 15000,
-      original: 20000
+      primary: 180000,
+      secondary: 180000,
+      original: 579000
     },
     description: "Lanjutan perjalanan emosional Ellie melintasi Seattle pasca-pandemi dalam misi membalas dendam. Diterjemahkan secara mendalam ke dalam Bahasa Indonesia sehingga setiap nuansa dilema moral terasa begitu nyata.",
     features: [
@@ -167,7 +167,7 @@ const INITIAL_PRODUCTS = [
     ],
     driveLink: "https://drive.google.com/drive/folders/1uxBTDu14Dez9CDB1H6UTDBJjc1vU25Id?usp=drive_link",
     inStock: true,
-    updatedAt: "2026-11-07T09:15:39.015Z"
+    updatedAt: "2026-11-09T05:30:00.000Z"
   },
   {
     id: "game-gta5-subindo",
