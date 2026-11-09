@@ -21,10 +21,10 @@ const INITIAL_PRODUCTS = [
     tagline: "Petualangan Co-op Terbaik Pemenang Game of the Year dengan Subtitle Indonesia Rapi",
     images: {
       poster: "assets/covers/it-takes-two.jpg",
-      backdrop: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85",
+      backdrop: "assets/backdrops/it-takes-two.jpg",
       cover: "assets/covers/it-takes-two.jpg",
       screenshots: [
-        "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80"
+        "assets/backdrops/it-takes-two.jpg"
       ]
     },
     prices: {
@@ -63,10 +63,10 @@ const INITIAL_PRODUCTS = [
     tagline: "Perjalanan Terakhir Kratos & Atreus Menghadapi Takdir 9 Alam dalam Bahasa Indonesia",
     images: {
       poster: "assets/covers/gow-ragnarok.jpg",
-      backdrop: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1920&q=85",
+      backdrop: "assets/backdrops/gow-ragnarok.jpg",
       cover: "assets/covers/gow-ragnarok.jpg",
       screenshots: [
-        "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80"
+        "assets/backdrops/gow-ragnarok.jpg"
       ]
     },
     prices: {
@@ -104,10 +104,10 @@ const INITIAL_PRODUCTS = [
     tagline: "Kisah Perjuangan Jin Sakai Menjadi Sang Hantu Tsushima dengan Subtitle Indonesia",
     images: {
       poster: "assets/covers/ghost-tsushima.jpg",
-      backdrop: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85",
+      backdrop: "assets/backdrops/ghost-tsushima.jpg",
       cover: "assets/covers/ghost-tsushima.jpg",
       screenshots: [
-        "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80"
+        "assets/backdrops/ghost-tsushima.jpg"
       ]
     },
     prices: {
@@ -146,10 +146,10 @@ const INITIAL_PRODUCTS = [
     tagline: "Kisah Balas Dendam Penuh Emosi Ellie & Abby dengan Subtitle Indonesia Lengkap",
     images: {
       poster: "assets/covers/tlou-part2.jpg",
-      backdrop: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85",
+      backdrop: "assets/backdrops/tlou-part2.jpg",
       cover: "assets/covers/tlou-part2.jpg",
       screenshots: [
-        "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80"
+        "assets/backdrops/tlou-part2.jpg"
       ]
     },
     prices: {
@@ -188,10 +188,10 @@ const INITIAL_PRODUCTS = [
     tagline: "Grand Theft Auto V Edisi Khusus: Subtitle Indonesia + Mod Kendaraan & Sound Lokal",
     images: {
       poster: "assets/covers/gta-v.jpg",
-      backdrop: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1920&q=85",
+      backdrop: "assets/backdrops/gta-v.jpg",
       cover: "assets/covers/gta-v.jpg",
       screenshots: [
-        "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80"
+        "assets/backdrops/gta-v.jpg"
       ]
     },
     prices: {
@@ -229,10 +229,10 @@ const INITIAL_PRODUCTS = [
     tagline: "Edisi Terlengkap Mortal Kombat 11: Semua Karakter DLC & Story Aftermath Sub Indo",
     images: {
       poster: "assets/covers/mortal-kombat-11.jpg",
-      backdrop: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85",
+      backdrop: "assets/backdrops/mortal-kombat-11.jpg",
       cover: "assets/covers/mortal-kombat-11.jpg",
       screenshots: [
-        "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80"
+        "assets/backdrops/mortal-kombat-11.jpg"
       ]
     },
     prices: {
@@ -270,10 +270,10 @@ const INITIAL_PRODUCTS = [
     tagline: "Jadilah Murid Sekolah Sihir Hogwarts Abad ke-19 dengan Subtitle Bahasa Indonesia",
     images: {
       poster: "assets/covers/hogwarts-legacy.jpg",
-      backdrop: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1920&q=85",
+      backdrop: "assets/backdrops/hogwarts-legacy.jpg",
       cover: "assets/covers/hogwarts-legacy.jpg",
       screenshots: [
-        "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80"
+        "assets/backdrops/hogwarts-legacy.jpg"
       ]
     },
     prices: {
@@ -311,10 +311,10 @@ const INITIAL_PRODUCTS = [
     tagline: "Petualangan Terakhir Nathan Drake Berburu Harta Karun Bajak Laut dalam Sub Indo",
     images: {
       poster: "assets/covers/uncharted-4.jpg",
-      backdrop: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85",
+      backdrop: "assets/backdrops/uncharted-4.jpg",
       cover: "assets/covers/uncharted-4.jpg",
       screenshots: [
-        "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80"
+        "assets/backdrops/uncharted-4.jpg"
       ]
     },
     prices: {
@@ -352,10 +352,10 @@ const INITIAL_PRODUCTS = [
     tagline: "Petualangan Kucing Oranye Menguak Rahasia Kota Cyberpunk dengan Subtitle Indonesia",
     images: {
       poster: "assets/covers/stray.jpg",
-      backdrop: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1920&q=85",
+      backdrop: "assets/backdrops/stray.jpg",
       cover: "assets/covers/stray.jpg",
       screenshots: [
-        "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80"
+        "assets/backdrops/stray.jpg"
       ]
     },
     prices: {
@@ -393,10 +393,10 @@ const INITIAL_PRODUCTS = [
     tagline: "Pilih Takdirmu sebagai Alexios atau Kassandra di Yunani Kuno dengan Teks Sub Indo",
     images: {
       poster: "assets/covers/ac-odyssey.jpg",
-      backdrop: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85",
+      backdrop: "assets/backdrops/ac-odyssey.jpg",
       cover: "assets/covers/ac-odyssey.jpg",
       screenshots: [
-        "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80"
+        "assets/backdrops/ac-odyssey.jpg"
       ]
     },
     prices: {
@@ -434,10 +434,10 @@ const INITIAL_PRODUCTS = [
     tagline: "Petualangan Epik Kru Bajak Laut Topi Jerami di Pulau Misterius dalam Subtitle Indonesia",
     images: {
       poster: "assets/covers/one-piece-odyssey.jpg",
-      backdrop: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=85",
+      backdrop: "assets/backdrops/one-piece-odyssey.jpg",
       cover: "assets/covers/one-piece-odyssey.jpg",
       screenshots: [
-        "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80"
+        "assets/backdrops/one-piece-odyssey.jpg"
       ]
     },
     prices: {
@@ -475,10 +475,10 @@ const INITIAL_PRODUCTS = [
     tagline: "Retas Seluruh Kota Chicago sebagai Aiden Pearce dengan Dialog Subtitle Indonesia",
     images: {
       poster: "assets/covers/watch-dogs.jpg",
-      backdrop: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1920&q=85",
+      backdrop: "assets/backdrops/watch-dogs.jpg",
       cover: "assets/covers/watch-dogs.jpg",
       screenshots: [
-        "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80"
+        "assets/backdrops/watch-dogs.jpg"
       ]
     },
     prices: {
@@ -516,10 +516,10 @@ const INITIAL_PRODUCTS = [
     tagline: "Berayun di Kota New York Melawan Sinister Six dengan Terjemahan Sub Indo Lengkap",
     images: {
       poster: "assets/covers/spiderman.jpg",
-      backdrop: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85",
+      backdrop: "assets/backdrops/spiderman.jpg",
       cover: "assets/covers/spiderman.jpg",
       screenshots: [
-        "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80"
+        "assets/backdrops/spiderman.jpg"
       ]
     },
     prices: {
@@ -557,10 +557,10 @@ const INITIAL_PRODUCTS = [
     tagline: "Patch Musim Panas Terbaru: Jersey 2026/2027, Bursa Transfer Eropa, BRI Liga 1 & Timnas",
     images: {
       poster: "assets/covers/pes-2027.jpg",
-      backdrop: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1920&q=85",
+      backdrop: "assets/backdrops/pes-2027.jpg",
       cover: "assets/covers/pes-2027.jpg",
       screenshots: [
-        "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80"
+        "assets/backdrops/pes-2027.jpg"
       ]
     },
     prices: {
