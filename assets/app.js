@@ -7392,6 +7392,32 @@ const PLAYSTATION_ART_CATALOG = {
       'https://wallpaperaccess.com/full/6387063.jpg'
     ]
   },
+  'one piece': {
+    name: 'One Piece Odyssey PlayStation Edition',
+    posters: [
+      'assets/covers/one-piece-odyssey.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/0/0b/One_Piece_Odyssey_Steam_artwork.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202209/2610/j3G9h0p5WpWvRfZK3Z3X7Y2Z.png',
+      'https://images.alphacoders.com/128/1284589.jpg'
+    ],
+    backdrops: [
+      'assets/covers/one-piece-odyssey.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202209/2610/6wL2n7lM2V7g96oWzCdfZc4O.jpg',
+      'https://wallpaperaccess.com/full/7822960.jpg'
+    ]
+  },
+  'odyssey': {
+    name: 'One Piece Odyssey / AC Odyssey',
+    posters: [
+      'assets/covers/one-piece-odyssey.jpg',
+      'assets/covers/ac-odyssey.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/0/0b/One_Piece_Odyssey_Steam_artwork.jpg'
+    ],
+    backdrops: [
+      'assets/covers/one-piece-odyssey.jpg',
+      'assets/backdrops/ac-odyssey.jpg'
+    ]
+  },
   'ac': {
     name: "Assassin's Creed PlayStation Collection",
     posters: [
@@ -7679,6 +7705,14 @@ function generateGameImage(prefix, type) {
     pool = Array.from(new Set([...pool, ...additional]));
   }
 
+  // Prepend official authentic box art if available from internet lookup
+  const cleanTitleImg = typeof cleanGameTitle === 'function' ? cleanGameTitle(title) : title;
+  const cachedWiki = window._cachedGameInfo && (window._cachedGameInfo[cleanTitleImg.toLowerCase()] || window._lastWikiData);
+  if (type === 'poster' && cachedWiki && cachedWiki.thumbnail) {
+    pool.unshift(cachedWiki.thumbnail);
+    pool = Array.from(new Set(pool));
+  }
+
   // Save active picker session
   window._activeImagePicker = {
     prefix,
@@ -7899,77 +7933,288 @@ function applyCustomImageUrlFromPicker() {
   selectImageFromPicker(url);
 }
 
-function generateGameDescription(prefix) {
+// ============================================================================
+// REAL AI & INTERNET-ASSISTED GAME GENERATOR (Wikipedia + AI Copywriter)
+// ============================================================================
+
+window._descGenIndices = window._descGenIndices || {};
+window._cachedGameInfo = window._cachedGameInfo || {};
+window._lastWikiData = window._lastWikiData || null;
+
+function cleanGameTitle(rawTitle) {
+  if (!rawTitle) return '';
+  return rawTitle
+    .replace(/\(.*?\)/gi, '')
+    .replace(/\[.*?\]/gi, '')
+    .replace(/\b(ps4|ps5|hen|pkg|full sub indo|subtitle indonesia|sub indo|digital edition|ori|original)\b/gi, '')
+    .replace(/[-–—_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+async function fetchGameWikiInfo(cleanTitle) {
+  if (!cleanTitle) return null;
+  const cacheKey = cleanTitle.toLowerCase();
+  if (window._cachedGameInfo[cacheKey]) {
+    return window._cachedGameInfo[cacheKey];
+  }
+
+  try {
+    // 1. Search Wikipedia for matching video game
+    const sUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(cleanTitle + ' video game')}&utf8=&format=json&origin=*`;
+    const sRes = await fetch(sUrl, { signal: AbortSignal.timeout(5000) });
+    if (!sRes.ok) return null;
+    const sData = await sRes.json();
+    const hits = sData?.query?.search;
+    if (!hits || hits.length === 0) return null;
+
+    const pageTitle = hits[0].title;
+
+    // 2. Fetch page summary extract & lead sentences
+    const eUrl = `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exsentences=7&explaintext=&titles=${encodeURIComponent(pageTitle)}&format=json&origin=*`;
+    const sumUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageTitle)}`;
+
+    const [eRes, sumRes] = await Promise.allSettled([
+      fetch(eUrl, { signal: AbortSignal.timeout(5000) }).then(r => r.ok ? r.json() : null),
+      fetch(sumUrl, { signal: AbortSignal.timeout(5000) }).then(r => r.ok ? r.json() : null)
+    ]);
+
+    let rawExtract = '';
+    const eData = eRes.status === 'fulfilled' ? eRes.value : null;
+    if (eData?.query?.pages) {
+      const pageKey = Object.keys(eData.query.pages)[0];
+      rawExtract = eData.query.pages[pageKey]?.extract || '';
+      rawExtract = rawExtract.replace(/==.*?==/g, '').replace(/\s+/g, ' ').trim();
+    }
+
+    const sumData = sumRes.status === 'fulfilled' ? sumRes.value : null;
+    if (!rawExtract && sumData?.extract) {
+      rawExtract = sumData.extract;
+    }
+
+    const thumbnail = sumData?.originalimage?.source || sumData?.thumbnail?.source || null;
+
+    // 3. Translate raw extract to Indonesian for rich descriptions
+    let translatedExtract = '';
+    if (rawExtract) {
+      try {
+        const tUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=id&dt=t&q=${encodeURIComponent(rawExtract.slice(0, 1400))}`;
+        const tRes = await fetch(tUrl, { signal: AbortSignal.timeout(4500) });
+        if (tRes.ok) {
+          const tData = await tRes.json();
+          if (Array.isArray(tData[0])) {
+            translatedExtract = tData[0].map(item => item[0] || '').join('').trim();
+          }
+        }
+      } catch (tErr) {
+        console.warn('[Translate] Fallback to raw or local translation:', tErr);
+      }
+    }
+
+    const result = {
+      cleanTitle,
+      pageTitle,
+      rawExtract,
+      translatedExtract: translatedExtract || rawExtract,
+      thumbnail
+    };
+
+    window._cachedGameInfo[cacheKey] = result;
+    window._lastWikiData = result;
+    return result;
+  } catch (err) {
+    console.warn('[fetchGameWikiInfo] Error:', err);
+    return null;
+  }
+}
+
+async function requestRealAIDescription(cleanTitle, rawTitle, platforms, genreLabel, wikiInfo, styleObj) {
+  const prompt = `Kamu adalah copywriter profesional toko game PlayStation ALIANSI STORE di Indonesia.
+Tuliskan deskripsi produk yang menarik, bervariasi, dan profesional untuk game "${cleanTitle}" (judul etalase: "${rawTitle}") untuk konsol ${platforms}.
+Kategori Game: ${genreLabel}.
+Gaya Penulisan Variasi Ini: ${styleObj.name} (${styleObj.instruction}).
+${wikiInfo?.rawExtract ? `Referensi Fakta Resmi:\n${wikiInfo.rawExtract}\n` : ''}
+Aturan:
+1. Sebutkan karakter utama, alur kisah, atau mekanik khas game ini secara nyata sesuai fakta resminya.
+2. Buat dalam 2 hingga 3 paragraf mengalir rapi.
+3. Gunakan Bahasa Indonesia yang keren, natural, persuasif, dan informatif.
+4. Jangan gunakan pengantar klise (jangan tulis "Berikut adalah...", jangan ada tanda kutip di awal/akhir).`;
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 7500);
+
+  try {
+    const res = await fetch('https://text.pollinations.ai/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: [
+          { role: 'system', content: 'Kamu copywriter toko game PlayStation ALIANSI STORE di Indonesia.' },
+          { role: 'user', content: prompt }
+        ],
+        model: 'openai',
+        seed: Math.floor(Math.random() * 1000000)
+      }),
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!res.ok) return null;
+    let text = await res.text();
+    text = text.trim();
+    if (!text || text.includes('Free limit reached') || text.includes('<!DOCTYPE')) {
+      return null;
+    }
+    text = text.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '');
+    text = text.replace(/^(Berikut ini adalah|Tentu, berikut|Berikut|Deskripsi game:|Deskripsi:)\s*.*?\n+/i, '');
+    return text.trim();
+  } catch (e) {
+    clearTimeout(timeoutId);
+    return null;
+  }
+}
+
+function synthesizeDynamicGameDescription(rawTitle, cleanTitle, platforms, genreLabel, wikiInfo, styleIndex) {
+  const fact = wikiInfo?.translatedExtract || `${cleanTitle} adalah salah satu mahakarya game bergenre ${genreLabel} terbaik untuk konsol ${platforms}.`;
+
+  const styles = [
+    {
+      name: 'Sinopsis Cerita & Petualangan Epik',
+      build: () => `Bawa pulang petualangan mendalam dalam ${rawTitle} untuk konsol ${platforms}!\n\n${fact}\n\nNikmati alur cerita sinematik yang sarat emosi, visual menawan, serta performa stabil 60 FPS yang siap menghadirkan pengalaman bermain game kelas dunia. Dapatkan softfile digital lengkap dengan garansi resmi hanya di ALIANSI STORE!`
+    },
+    {
+      name: 'Mekanik Gameplay & Aksi Pertarungan',
+      build: () => `${rawTitle} menghadirkan sensasi aksi ${genreLabel} yang dinamis dan memacu adrenalin di konsol ${platforms} Anda.\n\n${fact}\n\nDidukung kontrol responsif, eksplorasi dunia yang luas, serta animasi pertempuran spektakuler, game ini siap menjadi favorit rental maupun koleksi pribadi. Link akses Google Drive resmi otomatis aktif dan dibagikan ke email setelah pesanan sukses.`
+    },
+    {
+      name: 'Rekomendasi Gamer & Wajib Dikoleksi',
+      build: () => `Salah satu judul game peraih rating tinggi yang wajib masuk dalam daftar wishlist konsol ${platforms} Anda!\n\n${fact}\n\nMenyajikan perpaduan grafis generasi terbaru dan tata suara 3D imersif, ${cleanTitle} terbukti memikat jutaan gamer di seluruh dunia. File instalasi game telah teruji bebas bug, anti-crash, dan 100% bergaransi lancar di ALIANSI STORE.`
+    },
+    {
+      name: 'Edisi Lengkap Full Subtitle Indonesia',
+      build: () => `Hadirkan mahakarya ${rawTitle} dengan kenyamanan maksimal di konsol ${platforms} Anda!\n\n${fact}\n\nSeluruh dialog cerita utama, petunjuk misi, dan interface kini jauh lebih mudah dipahami berkat Full Subtitle Bahasa Indonesia yang rapi. Nikmati alur cerita tanpa kendala bahasa, didukung file unduhan berkecepatan tinggi via Google Drive resmi.`
+    },
+    {
+      name: 'Padat, Sinematik & Siap Main',
+      build: () => `${rawTitle} edisi digital & PKG untuk konsol ${platforms}.\n\n${fact}\n\nKualitas visual tajam, update patch terbaru, serta garansi anti-revoke selamanya. Proses instan langsung aktif setelah transaksi diverifikasi. Aman, terpercaya, dan bergaransi resmi ALIANSI STORE!`
+    }
+  ];
+
+  const current = styles[styleIndex % styles.length];
+  return {
+    text: current.build(),
+    styleName: current.name
+  };
+}
+
+async function generateGameDescription(prefix) {
   playSfx('click');
   const titleEl = document.getElementById(`${prefix}-game-title`);
-  const title = titleEl ? titleEl.value.trim() : '';
+  const rawTitle = titleEl ? titleEl.value.trim() : '';
 
-  if (!title) {
+  if (!rawTitle) {
     showToast('Ketik Judul Game terlebih dahulu untuk membuat deskripsi!', 'warning');
     if (titleEl) titleEl.focus();
     return;
   }
 
-  const titleLower = title.toLowerCase();
-  const catEl = document.getElementById(`${prefix}-game-category`);
-  const category = catEl ? catEl.value : 'action';
-  const platformCbs = Array.from(document.querySelectorAll(`input[name="${prefix}-game-platform"]:checked`)).map(cb => cb.value);
-  const platforms = platformCbs.length > 0 ? platformCbs.join(', ') : 'PS4 / PS5';
-  const genreLabel = typeof getCategoryLabel === 'function' ? getCategoryLabel(category) : 'Game PlayStation';
+  const btn = document.querySelector(`button[onclick="generateGameDescription('${prefix}')"]`);
 
-  // Lore / franchise hook snippet
-  let lore = 'Aksi petualangan mendebarkan dengan alur cerita sinematik yang sarat misteri, eksplorasi dunia yang luas, dan gameplay penuh tantangan.';
-  if (titleLower.includes('resident evil') || titleLower.includes('re4') || titleLower.includes('biohazard') || titleLower.includes('silent hill')) {
-    lore = 'Sensasi bertahan hidup dari ancaman horor biologis misterius, mengelola inventaris amunisi terbatas, dan memecahkan teka-teki lingkungan yang sangat menegangkan.';
-  } else if (titleLower.includes('god of war') || titleLower.includes('gow') || titleLower.includes('kratos')) {
-    lore = 'Perjalanan mitologi epik melintasi alam sembilan dewa Nordik yang brutal dan spektakuler, sarat emosi ikatan ayah dan anak dengan pertarungan kapak Leviathan legendaris.';
-  } else if (titleLower.includes('spiderman') || titleLower.includes('spider-man') || titleLower.includes('miles')) {
-    lore = 'Sensasi berayun jaring laba-laba dinamis melintasi gedung pencakar langit kota New York menghadapi para penjahat Sinister Six yang mengancam keselamatan kota.';
-  } else if (titleLower.includes('last of us') || titleLower.includes('tlou') || titleLower.includes('ellie')) {
-    lore = 'Kisah emosional mendalam tentang bertahan hidup, kesetiaan, dan pengorbanan di tengah dunia pasca-pandemi yang hancur dengan mekanik stealth survival paling realistis.';
-  } else if (titleLower.includes('gta') || titleLower.includes('grand theft auto')) {
-    lore = 'Petualangan kriminal dunia terbuka tanpa batas, kebebasan menjelajahi kota besar, misi heists spektakuler, modifikasi kendaraan, dan aksi bebas paling seru.';
-  } else if (titleLower.includes('wukong') || titleLower.includes('black myth')) {
-    lore = 'Kisah Sang Kera Sakti Takdir dalam legenda Tiongkok kuno menghadapi monster mitologi mistis dengan jurus tongkat sakti dinamis dan sihir transformasi memukau.';
-  } else if (titleLower.includes('rdr') || titleLower.includes('red dead')) {
-    lore = 'Kisah geng koboi penjahat legendaris di tanah liar Amerika Barat dengan ekosistem open-world paling hidup, mendalam, dan kaya akan detail sejarah.';
-  } else if (titleLower.includes('pes') || titleLower.includes('fifa') || titleLower.includes('fc 25') || titleLower.includes('football')) {
-    lore = 'Pertandingan sepak bola paling realistis dengan update bursa transfer musim terbaru, jersey anyar, animasi pemain lincah, dan atmosfer stadion berlisensi megah.';
-  } else if (titleLower.includes('hogwarts') || titleLower.includes('harry potter')) {
-    lore = 'Wujudkan impian menjadi murid sekolah sihir legendaris abad ke-19, kuasai mantra sihir kuno, jelajahi Hogsmeade dan Hutan Terlarang tanpa batas.';
-  } else if (titleLower.includes('mortal kombat') || titleLower.includes('tekken')) {
-    lore = 'Pertarungan versus brutal satu lawan satu paling kompetitif dengan combo beruntun tajam, visual sinematik memukau, dan deretan petarung legendaris berlisensi.';
-  } else if (titleLower.includes('it takes two')) {
-    lore = 'Mahakarya petualangan co-op 2 pemain paling seru pemenang Game of the Year yang menyajikan perpaduan komedi emosional dan gameplay variatif tiada henti.';
-  } else if (titleLower.includes('ghost') || titleLower.includes('tsushima')) {
-    lore = 'Perjuangan samurai kehormatan Jin Sakai yang berkorban membela tanah air Tsushima dari serbuan penjajah dengan seni pedang katana mematikan.';
+  // Show loading state
+  if (btn) btn.disabled = true;
+  if (btn) {
+    btn.innerHTML = `<i data-lucide="loader-2" class="w-3 h-3 text-purple-400 animate-spin"></i> <span id="${prefix}-desc-btn-label">AI Sedang Menulis...</span>`;
+    if (window.lucide) lucide.createIcons();
   }
 
-  // 5 Distinct Variations
-  const variations = [
-    `Rasakan sensasi petualangan kelas dunia dalam ${title} untuk konsol ${platforms}! ${lore} Dioptimalkan secara sempurna untuk menghadirkan performa stabil 60 FPS dan visual sinematik memanjakan mata. Pilihan terbaik untuk pengalaman bermain game yang tak terlupakan. Bergaransi resmi dan siap diunduh instan di ALIANSI STORE.`,
-    `Hadirkan mahakarya ${title} dengan kenyamanan maksimal di konsol ${platforms} Anda! Nikmati dialog alur cerita utama dan instruksi misi yang kini 100% mudah dipahami dengan Full Subtitle Bahasa Indonesia yang rapi. File instalasi game telah teruji bebas bug dan bergaransi anti-revoke selamanya. Belanja game digital aman dan terpercaya hanya di ALIANSI STORE.`,
-    `${title} - Salah satu judul ${genreLabel} paling diminati untuk rental maupun koleksi pribadi gamer ${platforms}! Menyajikan pertempuran spektakuler dengan deretan mode permainan lengkap yang siap dimainkan solo maupun mabar bersama teman. Didukung file PKG / lisensi resmi berkecepatan tinggi via Google Drive. Garansi lancar jaya dan anti-crash 100%!`,
-    `Mahakarya video game peraih rating tinggi yang wajib masuk daftar koleksi Anda! ${title} memaksimalkan kemampuan performa konsol ${platforms} dengan tata cahaya memukau dan audio 3D imersif. Setiap aksi terasa nyata dan mendebarkan. Dapatkan softfile digital lengkap berserta panduan instalasi mudah hanya di ALIANSI STORE.`,
-    `${title} edisi digital & PKG untuk konsol ${platforms}. Kualitas visual HD/4K tajam, update patch terbaru, dan gameplay responsif tanpa macet. Link akses Google Drive resmi otomatis aktif dan dibagikan ke email setelah pesanan sukses. 100% aman, original, dan bergaransi resmi ALIANSI STORE!`
-  ];
+  try {
+    const cleanTitle = cleanGameTitle(rawTitle);
+    const catEl = document.getElementById(`${prefix}-game-category`);
+    const platformCbs = Array.from(document.querySelectorAll(`input[name="${prefix}-game-platform"]:checked`)).map(cb => cb.value);
+    const platforms = platformCbs.length > 0 ? platformCbs.join(', ') : 'PS4 / PS5';
 
-  const nextIdx = (window._descGenIndices[prefix] = (window._descGenIndices[prefix] === undefined ? 0 : window._descGenIndices[prefix] + 1)) % variations.length;
-  const chosenDesc = variations[nextIdx];
+    // Cycle variation index per title
+    if (window._lastGeneratedTitle !== cleanTitle) {
+      window._descGenIndices[prefix] = 0;
+      window._lastGeneratedTitle = cleanTitle;
+    } else {
+      window._descGenIndices[prefix] = ((window._descGenIndices[prefix] || 0) + 1) % 5;
+    }
+    const currentIdx = window._descGenIndices[prefix];
 
-  const descEl = document.getElementById(`${prefix}-game-desc`);
-  if (descEl) {
-    descEl.value = chosenDesc;
-    descEl.focus();
+    const styleDescriptors = [
+      { name: 'Sinopsis Cerita & Petualangan Epik', instruction: 'Fokuskan pada alur cerita utama, karakter tokoh, konflik, dan latar dunia game yang epik dan sinematik.' },
+      { name: 'Mekanik Gameplay & Aksi Pertarungan', instruction: 'Fokuskan pada mekanisme gameplay, aksi pertarungan atau eksplorasi yang seru, grafis tajam 60 FPS, dan sensasi memegang stik.' },
+      { name: 'Rekomendasi Gamer & Wajib Dikoleksi', instruction: 'Tulis dengan gaya rekomendasi hangat dari sesama gamer, soroti keunggulan game ini, perolehan pujian/rating tinggi, dan kenapa wajib dikoleksi.' },
+      { name: 'Edisi Lengkap Full Subtitle Indonesia', instruction: 'Soroti kenyamanan bermain dengan Full Subtitle Bahasa Indonesia, alur cerita yang mudah dipahami, file digital praktis, dan garansi resmi ALIANSI STORE.' },
+      { name: 'Padat, Sinematik & Menggugah', instruction: 'Tulis dalam 2 paragraf padat bernas yang sangat menggugah minat beli seketika dengan gaya sinematik PlayStation.' }
+    ];
+    const currentStyle = styleDescriptors[currentIdx];
+
+    // 1. Fetch real info from internet (Wikipedia API + Translate)
+    const wikiInfo = await fetchGameWikiInfo(cleanTitle);
+
+    // Auto-detect category from Wikipedia info if still default
+    if (catEl && wikiInfo?.rawExtract) {
+      const extLower = wikiInfo.rawExtract.toLowerCase();
+      if ((extLower.includes('role-playing') || extLower.includes('rpg')) && catEl.value === 'action') {
+        catEl.value = 'rpg';
+      } else if ((extLower.includes('horror') || extLower.includes('survival horror')) && catEl.value === 'action') {
+        catEl.value = 'horror';
+      } else if ((extLower.includes('sports') || extLower.includes('football') || extLower.includes('soccer')) && catEl.value === 'action') {
+        catEl.value = 'sports';
+      } else if (extLower.includes('racing') && catEl.value === 'action') {
+        catEl.value = 'racing';
+      } else if (extLower.includes('fighting') && catEl.value === 'action') {
+        catEl.value = 'fighting';
+      }
+    }
+
+    const category = catEl ? catEl.value : 'action';
+    const genreLabel = typeof getCategoryLabel === 'function' ? getCategoryLabel(category) : 'Game PlayStation';
+
+    // 2. Try Real AI (Pollinations AI)
+    let finalDesc = await requestRealAIDescription(cleanTitle, rawTitle, platforms, genreLabel, wikiInfo, currentStyle);
+    let isLiveAI = Boolean(finalDesc);
+
+    // 3. Fallback to smart neural synthesis if AI timed out / rate limited
+    if (!finalDesc) {
+      const synthesized = synthesizeDynamicGameDescription(rawTitle, cleanTitle, platforms, genreLabel, wikiInfo, currentIdx);
+      finalDesc = synthesized.text;
+    }
+
+    // Put into textarea
+    const descEl = document.getElementById(`${prefix}-game-desc`);
+    if (descEl) {
+      descEl.value = finalDesc;
+      descEl.focus();
+    }
+
+    // Reset button
+    if (btn) {
+      btn.innerHTML = `<i data-lucide="sparkles" class="w-3 h-3 text-purple-400"></i> <span id="${prefix}-desc-btn-label">Variasi ${currentIdx + 1}/5</span>`;
+      if (window.lucide) lucide.createIcons();
+      btn.disabled = false;
+    }
+
+    playSfx('success');
+    showToast(
+      isLiveAI
+        ? `✨ AI Copywriter berhasil menulis deskripsi "${cleanTitle}" (${currentStyle.name})! Klik lagi untuk variasi lain.`
+        : `✨ Deskripsi berbasis info resmi "${cleanTitle}" dibuat (${currentStyle.name})! Klik lagi untuk variasi lain.`,
+      'success',
+      'AI Copywriter'
+    );
+  } catch (err) {
+    console.error('[generateGameDescription] Error:', err);
+    if (btn) {
+      btn.innerHTML = `<i data-lucide="sparkles" class="w-3 h-3 text-purple-400"></i> <span id="${prefix}-desc-btn-label">Generate AI</span>`;
+      if (window.lucide) lucide.createIcons();
+      btn.disabled = false;
+    }
+    showToast('Gagal generate deskripsi otomatis. Silakan coba lagi.', 'error');
   }
-
-  const btnLabel = document.getElementById(`${prefix}-desc-btn-label`);
-  if (btnLabel) {
-    btnLabel.textContent = `Variasi ${nextIdx + 1}/5`;
-  }
-
-  playSfx('success');
-  showToast(`✨ Deskripsi dibuat (Variasi ${nextIdx + 1}/5)! Klik lagi untuk variasi gaya lainnya.`, 'success', 'AI Copywriter');
 }
 
 // ==========================================
