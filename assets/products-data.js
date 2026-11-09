@@ -622,7 +622,7 @@ const INITIAL_CONFIG = {
   whatsappFormatted: "+62 812-3456-7890",
   adminEmail: "aliansistore.id@gmail.com",
   adminPin: "1234",
-  appsScriptUrl: "",
+  appsScriptUrl: "https://script.google.com/macros/s/AKfycbzRbjQSYGQ6Z3BRrjAT-dGYtT_XhV9N9uXm2NXPJtLRF2ZH0SOcK34VBPsWcuNrrJ1uGw/exec",
   bankAccounts: [
     { bank: "BCA", number: "8830192831", name: "ALIANSI STORE INDONESIA" },
     { bank: "MANDIRI", number: "1370019283741", name: "ALIANSI STORE INDONESIA" },

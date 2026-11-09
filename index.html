@@ -2616,19 +2616,24 @@
 
       <!-- Status Konfirmasi Pengiriman Bukti Pembelian & Akses Game (Customer Only) -->
       <div id="inv-email-dispatch-card" class="hidden mb-5 p-3.5 rounded-2xl bg-gradient-to-r from-sky-950/50 via-[#070e24] to-emerald-950/50 border border-emerald-500/30 text-xs no-print">
-        <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0">
-            <i data-lucide="mail-check" class="w-4 h-4 text-emerald-400"></i>
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2">
-              <span class="font-bold text-white text-xs">Bukti Pembelian & Akses Game Dikirim Otomatis</span>
-              <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 font-extrabold border border-emerald-500/30">OTOMATIS SISTEM</span>
+        <div class="flex items-center justify-between gap-3 flex-wrap">
+          <div class="flex items-center gap-3 flex-1 min-w-0">
+            <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0">
+              <i data-lucide="mail-check" class="w-4 h-4 text-emerald-400"></i>
             </div>
-            <p class="text-[11px] text-slate-400 mt-0.5">
-              Faktur resmi & tautan folder Google Drive otomatis dikirim ke <strong id="inv-dispatch-customer-email" class="text-sky-400 font-mono font-bold"></strong> berlabel <span class="text-amber-300 font-bold bg-amber-950/80 px-1 py-0.2 rounded border border-amber-500/30 text-[10px]">NO-REPLY</span>.
-            </p>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-white text-xs">Bukti Pembelian & Akses Game Dikirim Otomatis</span>
+                <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 font-extrabold border border-emerald-500/30">OTOMATIS SISTEM</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-0.5">
+                Faktur resmi & tautan folder Google Drive otomatis dikirim ke <strong id="inv-dispatch-customer-email" class="text-sky-400 font-mono font-bold"></strong> berlabel <span class="text-amber-300 font-bold bg-amber-950/80 px-1 py-0.2 rounded border border-amber-500/30 text-[10px]">NO-REPLY</span>.
+              </p>
+            </div>
           </div>
+          <button type="button" onclick="resendInvoiceEmail()" class="px-3 py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold flex items-center gap-1.5 shrink-0 transition-all cursor-pointer">
+            <i data-lucide="send" class="w-3.5 h-3.5"></i> Kirim Ulang ke Email
+          </button>
         </div>
       </div>
 
@@ -4465,7 +4470,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261109_native_rest_v5"></script>
-  <script src="assets/app.js?v=20261109_native_rest_v5"></script>
+  <script src="assets/products-data.js?v=20261109_email_dispatch_v6"></script>
+  <script src="assets/app.js?v=20261109_email_dispatch_v6"></script>
 </body>
 </html>

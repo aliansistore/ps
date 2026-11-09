@@ -2825,6 +2825,11 @@ function renderInvoiceDetails(order) {
       const custEmailEl = document.getElementById('inv-dispatch-customer-email');
       if (custEmailEl) custEmailEl.textContent = order.customerEmail || '-';
     }
+
+    // Auto-dispatch email & Drive access if not yet dispatched for this paid order
+    if (!order.fulfillment || !order.fulfillment.emails_dispatched) {
+      dispatchOrderCompletionEmails(order);
+    }
   } else {
     fulfillmentBox.classList.add('hidden');
     if (dispatchCard) dispatchCard.classList.add('hidden');
@@ -3190,6 +3195,21 @@ function buildOrderDriveLinksText(order) {
   return links.map(l => `• ${l.title}:\n  ${l.url || 'https://drive.google.com/drive/shared-with-me'}`).join('\n');
 }
 
+const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzRbjQSYGQ6Z3BRrjAT-dGYtT_XhV9N9uXm2NXPJtLRF2ZH0SOcK34VBPsWcuNrrJ1uGw/exec';
+
+async function resendInvoiceEmail() {
+  playSfx('click');
+  const order = state.currentInvoice;
+  if (!order) {
+    showToast('Tidak ada invoice yang sedang dibuka.', 'warning');
+    return;
+  }
+  showToast(`Mengirim ulang faktur & akses Google Drive ke ${order.customerEmail || 'email pembeli'}...`, 'info', 'Mengirim Email');
+  await dispatchOrderCompletionEmails(order);
+  playSfx('success');
+  showToast(`Faktur resmi & akses Google Drive telah dikirim ke ${order.customerEmail}! Silakan cek Inbox / Spam.`, 'success', 'Email Terkirim');
+}
+
 async function dispatchOrderCompletionEmails(order) {
   if (!order) return;
 
@@ -3198,7 +3218,7 @@ async function dispatchOrderCompletionEmails(order) {
   const adminEmail = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
   const customerEmail = (order.customerEmail || '').trim();
   const customerName = order.customerName || 'Pelanggan Setia';
-  const appsScriptUrl = (state.config && state.config.appsScriptUrl) || '';
+  const appsScriptUrl = (state.config && state.config.appsScriptUrl) || DEFAULT_APPS_SCRIPT_URL;
 
   // Mark in order fulfillment state
   order.fulfillment.emails_dispatched = {
