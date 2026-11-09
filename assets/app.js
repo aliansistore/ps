@@ -784,19 +784,30 @@ async function syncFromSupabase() {
     // 3. Fetch Store Config from Cloud
     const { data: cfg, error: cErr } = await supabaseClient.from('store_config').select('*').eq('id', 'main').single();
     if (!cErr && cfg) {
+      const rawVouchers = Array.isArray(cfg.vouchers) ? cfg.vouchers : [];
+      const sysMeta = rawVouchers.find(v => v && v.code === '__SYSTEM_CONFIG__') || {};
+      const cleanVouchers = rawVouchers.filter(v => v && v.code !== '__SYSTEM_CONFIG__');
+      const localAppsScriptUrl = (state.config && state.config.appsScriptUrl) || '';
+      const cloudAppsScriptUrl = cfg.apps_script_url || sysMeta.appsScriptUrl || '';
+
       state.config = {
         storeName: cfg.store_name || state.config.storeName,
         tagline: cfg.tagline || state.config.tagline,
         whatsappNumber: cfg.whatsapp_number || state.config.whatsappNumber,
         whatsappFormatted: cfg.whatsapp_formatted || state.config.whatsappFormatted,
-        adminEmail: cfg.admin_email || state.config.adminEmail || 'aliansistore.id@gmail.com',
+        adminEmail: cfg.admin_email || sysMeta.adminEmail || state.config.adminEmail || 'aliansistoreofficial@gmail.com',
         adminPin: cfg.admin_pin || state.config.adminPin || '1234',
-        appsScriptUrl: cfg.apps_script_url || state.config.appsScriptUrl || '',
+        appsScriptUrl: cloudAppsScriptUrl || localAppsScriptUrl || '',
         bankAccounts: cfg.bank_accounts || state.config.bankAccounts,
-        vouchers: cfg.vouchers || state.config.vouchers
+        vouchers: cleanVouchers.length > 0 ? cleanVouchers : (state.config.vouchers || []).filter(v => v && v.code !== '__SYSTEM_CONFIG__')
       };
       localStorage.setItem(APP_STORAGE_KEYS.CONFIG, JSON.stringify(state.config));
       updateStoreContactUI();
+
+      // Auto-sync local Apps Script URL to Supabase cloud if cloud doesn't have it yet
+      if (localAppsScriptUrl && !cloudAppsScriptUrl) {
+        syncConfigToSupabase();
+      }
     }
 
     // 4. Fetch Game Requests from Cloud (if table exists)
@@ -858,25 +869,28 @@ async function syncOrderToSupabase(order) {
 async function syncConfigToSupabase() {
   if (!supabaseClient || !state.config) return;
   try {
+    const cleanVouchers = (state.config.vouchers || []).filter(v => v && v.code !== '__SYSTEM_CONFIG__');
+    const vouchersWithMeta = [
+      ...cleanVouchers,
+      {
+        code: '__SYSTEM_CONFIG__',
+        appsScriptUrl: state.config.appsScriptUrl || '',
+        adminEmail: state.config.adminEmail || 'aliansistoreofficial@gmail.com',
+        hidden: true
+      }
+    ];
     const payload = {
       id: 'main',
       store_name: state.config.storeName || 'ALIANSI STORE',
       tagline: state.config.tagline || '',
-      whatsapp_number: state.config.whatsappNumber || '6281234567890',
-      whatsapp_formatted: state.config.whatsappFormatted || '+62 812-3456-7890',
-      admin_email: state.config.adminEmail || 'aliansistore.id@gmail.com',
+      whatsapp_number: state.config.whatsappNumber || '6285388597684',
+      whatsapp_formatted: state.config.whatsappFormatted || '+62 853-8859-7684',
       admin_pin: state.config.adminPin || '1234',
-      apps_script_url: state.config.appsScriptUrl || '',
       bank_accounts: state.config.bankAccounts || [],
-      vouchers: state.config.vouchers || [],
+      vouchers: vouchersWithMeta,
       updated_at: new Date().toISOString()
     };
-    const { error } = await supabaseClient.from('store_config').upsert(payload);
-    if (error && error.message) {
-      if (error.message.includes('apps_script_url')) delete payload.apps_script_url;
-      if (error.message.includes('admin_email')) delete payload.admin_email;
-      await supabaseClient.from('store_config').upsert(payload);
-    }
+    await supabaseClient.from('store_config').upsert(payload);
   } catch (err) {
     console.warn('Supabase sync config notice:', err);
   }
@@ -3099,7 +3113,7 @@ async function dispatchOrderCompletionEmails(order) {
       fetch(appsScriptUrl, {
         method: 'POST',
         mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
       }).catch(e => console.info('[EMAIL DISPATCH] Direct Apps Script fetch initiated'));
     } catch (e) {
@@ -4647,8 +4661,9 @@ function testCurrentWaLink() {
 async function testAppsScriptEmail() {
   playSfx('click');
   const urlInput = document.getElementById('setting-apps-script-url');
+  const emailInput = document.getElementById('setting-admin-email');
   const url = (urlInput ? urlInput.value.trim() : '') || (state.config && state.config.appsScriptUrl) || '';
-  const adminEmail = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
+  const adminEmail = (emailInput && emailInput.value.trim()) || (state.config && state.config.adminEmail) || 'aliansistoreofficial@gmail.com';
 
   if (!url || !url.startsWith('http')) {
     showToast('Tempelkan URL Web App Google Apps Script (https://script.google.com/macros/s/.../exec) terlebih dahulu!', 'warning', 'URL Webhook Belum Diisi');
@@ -4656,24 +4671,63 @@ async function testAppsScriptEmail() {
     return;
   }
 
-  showToast(`Mengirim email uji coba ke ${adminEmail}...`, 'info', 'Uji Coba Email');
+  // Simpan otomatis ke state, localStorage, dan Supabase Cloud
+  if (!state.config) state.config = {};
+  state.config.appsScriptUrl = url;
+  state.config.adminEmail = adminEmail;
+  saveConfig();
+  if (typeof syncConfigToSupabase === 'function') {
+    syncConfigToSupabase();
+  }
+
+  const sampleProd = (state.products && state.products.length > 0) ? state.products[0] : {
+    id: 'game-it-takes-two-subindo',
+    title: 'It Takes Two (Full Subtitle Indonesia)',
+    driveLink: 'https://drive.google.com/drive/folders/1Pw4Fe24O0LAAsV6Affwp_Ef4C0isK6JQ?usp=sharing'
+  };
+
+  showToast(`Menguji Auto-Share Google Drive & Kirim Email Faktur ke ${adminEmail}...`, 'info', 'Uji Coba Otomasi');
 
   try {
+    const testOrderId = 'TEST-' + Math.floor(1000 + Math.random() * 9000);
     const payload = {
-      action: 'test_email',
-      to: adminEmail,
+      action: 'send_order_emails',
+      orderId: testOrderId,
+      customerEmail: adminEmail,
+      customerName: 'Tester Aliansi Store',
       adminEmail: adminEmail,
+      order: {
+        id: testOrderId,
+        customerName: 'Tester Aliansi Store',
+        customerEmail: adminEmail,
+        customerPhone: '085388597684',
+        paymentMethod: 'QRIS',
+        total: (sampleProd.prices && sampleProd.prices.primary) || 120000,
+        items: [{
+          productId: sampleProd.id,
+          title: sampleProd.title,
+          variant: 'PS4 HEN',
+          unitPrice: (sampleProd.prices && sampleProd.prices.primary) || 120000,
+          qty: 1,
+          driveLink: sampleProd.driveLink || 'https://drive.google.com/drive/folders/1Pw4Fe24O0LAAsV6Affwp_Ef4C0isK6JQ?usp=sharing'
+        }],
+        fulfillment: {
+          driveLink: sampleProd.driveLink || 'https://drive.google.com/drive/folders/1Pw4Fe24O0LAAsV6Affwp_Ef4C0isK6JQ?usp=sharing',
+          guideUrl: 'https://aliansistore.com/panduan-install-pkg-ps4-hen',
+          adminNotes: 'Tes Otomasi Sharing Google Drive & Faktur Email Aliansi Store berhasil!'
+        }
+      },
       timestamp: new Date().toISOString()
     };
 
     fetch(url, {
       method: 'POST',
       mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload)
     }).then(() => {
       playSfx('success');
-      showToast(`Permintaan email tes telah diteruskan ke Google Apps Script! Silakan cek inbox Gmail ${adminEmail}.`, 'success', 'Tes Berhasil Terkirim');
+      showToast(`Tes berhasil dikirim! Silakan cek inbox Gmail ${adminEmail} untuk melihat Faktur & Akses Google Drive (${sampleProd.title}).`, 'success', 'Tes Otomasi Terkirim');
     }).catch(err => {
       showToast('Gagal menghubungi Google Apps Script: ' + err.message, 'error');
     });
