@@ -784,7 +784,14 @@ function saveGameRequests() {
 }
 
 function saveProducts() {
-  localStorage.setItem(APP_STORAGE_KEYS.PRODUCTS, JSON.stringify(state.products));
+  try {
+    localStorage.setItem(APP_STORAGE_KEYS.PRODUCTS, JSON.stringify(state.products));
+  } catch (err) {
+    console.warn('Storage warning (saveProducts):', err);
+    if (err && err.name === 'QuotaExceededError') {
+      showToast('Penyimpanan lokal penuh. Gambar tetap aktif di sesi ini.', 'warning');
+    }
+  }
   // Background disk sync if running on local server
   try {
     if (typeof window !== 'undefined' && window.location && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
@@ -866,8 +873,33 @@ async function syncFromSupabase() {
           const isCloudStaleDummy = cloudPrice <= 25000 && localPrice > 25000;
 
           if (!isCloudStaleDummy && (cloudTime >= localTime || !localProd.updatedAt)) {
+            // Preserve custom or uploaded images from local if cloud only has defaults or empty
+            const localImgs = localProd.images || {};
+            const cloudImgs = cp.images || {};
+            const finalImages = { ...cloudImgs };
+
+            const isCustomLocalPoster = localImgs.poster && (
+              localImgs.poster.startsWith('data:image') ||
+              (!cloudImgs.poster && localImgs.poster) ||
+              (cloudImgs.poster && cloudImgs.poster.startsWith('assets/covers/') && !localImgs.poster.startsWith('assets/covers/'))
+            );
+            if (isCustomLocalPoster) {
+              finalImages.poster = localImgs.poster;
+              finalImages.cover = localImgs.poster;
+            }
+
+            const isCustomLocalBackdrop = localImgs.backdrop && (
+              localImgs.backdrop.startsWith('data:image') ||
+              (!cloudImgs.backdrop && localImgs.backdrop) ||
+              (cloudImgs.backdrop && cloudImgs.backdrop.startsWith('assets/backdrops/') && !localImgs.backdrop.startsWith('assets/backdrops/'))
+            );
+            if (isCustomLocalBackdrop) {
+              finalImages.backdrop = localImgs.backdrop;
+            }
+
             mergedProducts[localIdx] = {
               ...cp,
+              images: finalImages,
               driveLink: cp.driveLink || localProd.driveLink || ''
             };
           } else {
@@ -7467,15 +7499,77 @@ const PLAYSTATION_ART_CATALOG = {
     name: 'One Piece Odyssey PlayStation',
     posters: [
       'assets/covers/one-piece-odyssey.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/0/0b/One_Piece_Odyssey_Steam_artwork.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202206/2007/582bf790be9bb8100ffb5a6c1bf1941d40ebfb7454f8d423.png',
       'assets/covers/gow-ragnarok.jpg',
-      'assets/covers/spiderman.jpg',
-      'assets/covers/hogwarts-legacy.jpg'
+      'assets/covers/spiderman.jpg'
     ],
     backdrops: [
       'assets/backdrops/one-piece-odyssey.jpg',
-      'assets/backdrops/gow-ragnarok.jpg',
-      'assets/backdrops/spiderman.jpg',
-      'assets/backdrops/hogwarts-legacy.jpg'
+      'https://images.alphacoders.com/128/1281861.jpg',
+      'https://wallpaperaccess.com/full/8604724.jpg',
+      'https://images.alphacoders.com/128/1281862.jpg'
+    ]
+  },
+  'odyssey': {
+    name: "One Piece & Assassin's Creed Odyssey",
+    posters: [
+      'assets/covers/one-piece-odyssey.jpg',
+      'assets/covers/ac-odyssey.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/0/0b/One_Piece_Odyssey_Steam_artwork.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202008/1318/YvU8hY2vH0B4yF1tN4vK6w1m.png'
+    ],
+    backdrops: [
+      'assets/backdrops/one-piece-odyssey.jpg',
+      'assets/backdrops/ac-odyssey.jpg',
+      'https://images.alphacoders.com/128/1281861.jpg',
+      'https://images.alphacoders.com/133/1332742.jpeg'
+    ]
+  },
+  'cyberpunk': {
+    name: 'Cyberpunk 2077 & Phantom Liberty',
+    posters: [
+      'https://upload.wikimedia.org/wikipedia/en/9/9f/Cyberpunk_2077_box_art.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202111/3013/cKZw9kK9vP9vK6yF1tN4vK6w.png',
+      'https://images.alphacoders.com/112/1123493.jpg'
+    ],
+    backdrops: [
+      'https://images.alphacoders.com/100/1004245.jpg',
+      'https://images.alphacoders.com/108/1085731.jpg',
+      'https://wallpaperaccess.com/full/1539260.jpg'
+    ]
+  },
+  'persona': {
+    name: 'Persona 5 Royal & Persona 3 Reload',
+    posters: [
+      'https://upload.wikimedia.org/wikipedia/en/b/b0/Persona_5_cover_art.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202206/2407/6g7xH0fD5fH0B4yF1tN4vK6w.png'
+    ],
+    backdrops: [
+      'https://images.alphacoders.com/832/832626.jpg',
+      'https://wallpaperaccess.com/full/1289299.jpg'
+    ]
+  },
+  'tekken': {
+    name: 'Tekken 8 & Tekken 7 PlayStation',
+    posters: [
+      'https://upload.wikimedia.org/wikipedia/en/9/91/Tekken_8_cover_art.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202308/0403/yE94sCqC4y4KSmZcK2L9x4.png'
+    ],
+    backdrops: [
+      'https://images.alphacoders.com/132/1328909.jpeg',
+      'https://wallpaperaccess.com/full/9871234.jpg'
+    ]
+  },
+  'gran turismo': {
+    name: 'Gran Turismo 7 PlayStation',
+    posters: [
+      'https://upload.wikimedia.org/wikipedia/en/1/14/Gran_Turismo_7_cover_art.jpg',
+      'https://image.api.playstation.com/vulcan/ap/rnd/202109/1321/yE94sCqC4y4KSmZcK2L9x4.png'
+    ],
+    backdrops: [
+      'https://images.alphacoders.com/121/1216654.jpg',
+      'https://wallpaperaccess.com/full/7654321.jpg'
     ]
   }
 };
@@ -7624,13 +7718,16 @@ function handleImageFileUpload(event, prefix, type) {
     return;
   }
 
+  const isPoster = type === 'poster';
   const reader = new FileReader();
   reader.onload = function(e) {
     const img = new Image();
     img.onload = function() {
-      // Scale down image to fit storage quota comfortably
-      const maxW = type === 'poster' ? 600 : 1280;
-      const maxH = type === 'poster' ? 900 : 720;
+      // High-efficiency dimensions for local storage & cloud:
+      // Poster 2:3 -> max 480 x 720 (quality 0.82)
+      // Wallpaper 16:9 -> max 960 x 540 (quality 0.82)
+      const maxW = isPoster ? 480 : 960;
+      const maxH = isPoster ? 720 : 540;
       let width = img.width;
       let height = img.height;
 
@@ -7650,14 +7747,67 @@ function handleImageFileUpload(event, prefix, type) {
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, width, height);
 
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
       const inputEl = document.getElementById(`${prefix}-game-${type}`);
       if (inputEl) {
         inputEl.value = dataUrl;
         updateImagePreview(prefix, type);
       }
       playSfx('success');
-      showToast(`Gambar ${type === 'poster' ? 'Poster' : 'Background'} berhasil diunggah dari komputer!`, 'success');
+      showToast(`Gambar ${isPoster ? 'Poster Cover' : 'Wallpaper Background'} berhasil diunggah dari file komputer!`, 'success');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
+
+// Direct File Upload from within Image Picker Modal
+function handlePickerModalFileUpload(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    showToast('Pilih file gambar valid (JPG, PNG, WebP)!', 'warning');
+    return;
+  }
+
+  const session = window._activeImagePicker;
+  if (!session) {
+    showToast('Sesi pemilihan gambar tidak aktif!', 'warning');
+    return;
+  }
+
+  const isPoster = session.type === 'poster';
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      // High-efficiency dimensions for local storage & cloud:
+      const maxW = isPoster ? 480 : 960;
+      const maxH = isPoster ? 720 : 540;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > maxW || height > maxH) {
+        if (width / maxW > height / maxH) {
+          height = Math.round((height * maxW) / width);
+          width = maxW;
+        } else {
+          width = Math.round((width * maxH) / height);
+          height = maxH;
+        }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+      selectImageFromPicker(dataUrl);
+      showToast(`File gambar berhasil diunggah dan diterapkan sebagai ${isPoster ? 'Poster' : 'Wallpaper'}!`, 'success');
     };
     img.src = e.target.result;
   };
@@ -7679,38 +7829,62 @@ function generateGameImage(prefix, type) {
   const titleLower = title.toLowerCase();
   const catEl = document.getElementById(`${prefix}-game-category`);
   const category = (catEl ? catEl.value : 'action').toLowerCase();
+  const isPoster = type === 'poster';
 
-  // 1. Resolve candidate pool of at least 4 authentic PlayStation art pieces
-  let pool = [];
+  // 1. Resolve candidate pool of authentic PlayStation art pieces
+  let richPool = [];
   let matchedFranchise = '';
 
   for (const [key, data] of Object.entries(PLAYSTATION_ART_CATALOG)) {
     if (titleLower.includes(key)) {
       matchedFranchise = data.name;
-      pool = type === 'poster' ? [...data.posters] : [...data.backdrops];
+      const rawUrls = isPoster ? [...data.posters] : [...data.backdrops];
+      richPool = rawUrls.map((u, i) => ({
+        url: u,
+        label: `${data.name} #${i + 1}`,
+        type: type,
+        badge: isPoster ? 'Official Cover' : 'Wallpaper 16:9',
+        source: 'PlayStation Store'
+      }));
       break;
     }
   }
 
   // Fallback to PlayStation Genre
-  if (!pool || pool.length < 4) {
+  if (!richPool || richPool.length < 4) {
     const genreData = PLAYSTATION_GENRE_CATALOG[category] || PLAYSTATION_GENRE_CATALOG.action || PLAYSTATION_GENRE_CATALOG.default;
-    const additional = type === 'poster' ? genreData.posters : genreData.backdrops;
-    pool = Array.from(new Set([...(pool || []), ...additional]));
+    const additional = isPoster ? genreData.posters : genreData.backdrops;
+    const additionalItems = additional.map((u, i) => ({
+      url: u,
+      label: `PlayStation ${category.toUpperCase()} #${i + 1}`,
+      type: type,
+      badge: isPoster ? 'PlayStation Art' : 'Wallpaper Highlight',
+      source: 'PlayStation Studio'
+    }));
+    richPool = [...(richPool || []), ...additionalItems];
   }
 
-  if (pool.length < 4) {
-    const defaultData = PLAYSTATION_GENRE_CATALOG.default;
-    const additional = type === 'poster' ? defaultData.posters : defaultData.backdrops;
-    pool = Array.from(new Set([...pool, ...additional]));
-  }
+  // Deduplicate by URL
+  const seenUrls = new Set();
+  const uniquePool = [];
+  richPool.forEach(item => {
+    if (!seenUrls.has(item.url)) {
+      seenUrls.add(item.url);
+      uniquePool.push(item);
+    }
+  });
 
-  // Prepend official authentic box art if available from internet lookup
+  // Prepend cached Wikipedia box art if available
   const cleanTitleImg = typeof cleanGameTitle === 'function' ? cleanGameTitle(title) : title;
   const cachedWiki = window._cachedGameInfo && (window._cachedGameInfo[cleanTitleImg.toLowerCase()] || window._lastWikiData);
-  if (type === 'poster' && cachedWiki && cachedWiki.thumbnail) {
-    pool.unshift(cachedWiki.thumbnail);
-    pool = Array.from(new Set(pool));
+  if (isPoster && cachedWiki && cachedWiki.thumbnail) {
+    uniquePool.unshift({
+      url: cachedWiki.thumbnail,
+      label: `${title} Official Cover`,
+      type: 'poster',
+      badge: 'Official Box Art',
+      source: 'Wikipedia Official'
+    });
   }
 
   // Save active picker session
@@ -7719,7 +7893,8 @@ function generateGameImage(prefix, type) {
     type,
     title,
     category,
-    pool,
+    pool: uniquePool.map(it => it.url),
+    richPool: uniquePool,
     offset: 0,
     matchedFranchise: matchedFranchise || `PlayStation ${category.toUpperCase()}`
   };
@@ -7737,13 +7912,13 @@ function openImagePickerModal() {
 
   const titleEl = document.getElementById('image-picker-title');
   if (titleEl) {
-    titleEl.textContent = `Pilihan Art PlayStation: "${session.title}"`;
+    titleEl.textContent = `Pilihan Art & Wallpaper: "${session.title}"`;
   }
 
   const badgeEl = document.getElementById('image-picker-type-badge');
   if (badgeEl) {
     if (session.type === 'poster') {
-      badgeEl.textContent = 'Poster Cover (2:3)';
+      badgeEl.textContent = 'Poster Game (2:3)';
       badgeEl.className = 'px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-500/30';
     } else {
       badgeEl.textContent = 'Wallpaper 16:9 Banner';
@@ -7753,10 +7928,16 @@ function openImagePickerModal() {
 
   const subEl = document.getElementById('image-picker-subtitle');
   if (subEl) {
-    subEl.textContent = `Tersedia 4 pilihan gambar PlayStation resmi untuk ${session.type === 'poster' ? 'Poster Cover' : 'Wallpaper Highlight'}. Klik salah satu gambar untuk menerapkan.`;
+    subEl.textContent = `Pilih dari gambar resmi PlayStation, cari langsung di internet, atau unggah file untuk ${session.type === 'poster' ? 'Poster Cover' : 'Wallpaper Highlight'}.`;
   }
 
-  // Setup Google Images link
+  // Setup live search input with game title
+  const searchInput = document.getElementById('image-picker-search-input');
+  if (searchInput) {
+    searchInput.value = session.title;
+  }
+
+  // Setup Google Images fallback link
   const googleBtn = document.getElementById('btn-google-images');
   if (googleBtn) {
     const q = session.type === 'poster' ? `${session.title} PS4 PS5 cover art` : `${session.title} PS4 PS5 wallpaper 16:9`;
@@ -7769,6 +7950,13 @@ function openImagePickerModal() {
   renderImagePickerGrid();
   modal.classList.remove('hidden');
   lucide.createIcons();
+
+  // If no specific franchise match, automatically trigger live internet search in background
+  if (!session.matchedFranchise || session.matchedFranchise.startsWith('PlayStation ')) {
+    setTimeout(() => {
+      searchInternetImagesFromPicker(session.title, true);
+    }, 100);
+  }
 }
 
 function closeImagePickerModal() {
@@ -7785,55 +7973,87 @@ function renderImagePickerGrid() {
 
   grid.innerHTML = '';
 
-  // Get current 4 items
-  const total = session.pool.length;
+  const isPoster = session.type === 'poster';
+  const total = session.richPool && session.richPool.length > 0 ? session.richPool.length : session.pool.length;
+
+  // 1. First Card: Quick Direct File Upload
+  const uploadCard = document.createElement('div');
+  uploadCard.className = `border-2 border-dashed border-emerald-500/50 hover:border-emerald-400 bg-emerald-950/20 hover:bg-emerald-950/40 rounded-2xl p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all group shadow-lg ${isPoster ? 'aspect-[2/3] sm:h-56' : 'aspect-video sm:h-40'}`;
+  uploadCard.title = 'Klik untuk mengunggah file gambar dari komputer atau HP Anda';
+  uploadCard.onclick = () => {
+    const fileInput = document.getElementById('picker-modal-file-input');
+    if (fileInput) fileInput.click();
+  };
+  uploadCard.innerHTML = `
+    <div class="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center group-hover:scale-110 transition-transform mb-2 shadow-inner">
+      <i data-lucide="upload" class="w-5 h-5 text-emerald-300"></i>
+    </div>
+    <span class="text-xs font-bold text-white group-hover:text-emerald-300 transition-colors">Upload File</span>
+    <span class="text-[10px] text-slate-400 mt-0.5">Dari Komputer / HP</span>
+    <span class="mt-2 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+      ${isPoster ? 'Cover 2:3' : 'Banner 16:9'}
+    </span>
+  `;
+  grid.appendChild(uploadCard);
+
+  // 2. Up to 7 image candidates per page slice (so 1 upload + 7 images = 8 slots)
+  const pageSize = 7;
   const currentItems = [];
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < pageSize && i < total; i++) {
     const idx = (session.offset + i) % total;
-    currentItems.push({
+    const item = (session.richPool && session.richPool[idx]) || {
       url: session.pool[idx],
-      index: idx + 1
-    });
+      label: `Pilihan #${idx + 1}`,
+      type: session.type,
+      badge: isPoster ? 'PlayStation Art' : 'Wallpaper',
+      source: 'PlayStation'
+    };
+    currentItems.push({ ...item, slotIdx: i + 1 });
   }
 
-  const isPoster = session.type === 'poster';
-
-  currentItems.forEach((item, slotIdx) => {
+  currentItems.forEach((item) => {
     const card = document.createElement('div');
-    card.className = 'bg-slate-900 border border-slate-700/80 hover:border-sky-400 rounded-2xl p-2.5 flex flex-col justify-between group transition-all shadow-lg hover:shadow-sky-500/10 cursor-pointer';
+    card.className = 'bg-slate-900 border border-slate-700/80 hover:border-sky-400 rounded-2xl p-2.5 flex flex-col justify-between group transition-all shadow-lg hover:shadow-sky-500/10 cursor-pointer relative overflow-hidden';
     card.onclick = () => selectImageFromPicker(item.url);
 
     const imgContainer = document.createElement('div');
-    imgContainer.className = `w-full rounded-xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center relative ${isPoster ? 'aspect-[2/3] sm:h-52' : 'aspect-video sm:h-36'}`;
+    imgContainer.className = `w-full rounded-xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center relative ${isPoster ? 'aspect-[2/3] sm:h-44' : 'aspect-video sm:h-28'}`;
 
     const img = document.createElement('img');
     img.src = item.url;
-    img.alt = `Pilihan ${slotIdx + 1}`;
+    img.alt = item.label || 'Gambar Pilihan';
     img.className = 'w-full h-full object-cover group-hover:scale-105 transition-transform duration-300';
     img.onerror = function() {
       this.src = isPoster ? 'assets/covers/service-1tb.jpg' : 'assets/backdrops/gow-ragnarok.jpg';
     };
 
+    // Badge top-left
+    const badgeTag = document.createElement('span');
+    badgeTag.className = 'absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded text-[9px] font-black tracking-wide bg-black/75 backdrop-blur-sm text-sky-300 border border-sky-500/30 shadow';
+    badgeTag.textContent = item.badge || (isPoster ? 'Poster' : 'Wallpaper');
+
+    // Hover overlay
     const overlay = document.createElement('div');
-    overlay.className = 'absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity text-white';
+    overlay.className = 'absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity text-white z-10';
     overlay.innerHTML = `
-      <div class="w-9 h-9 rounded-full bg-sky-500 text-white flex items-center justify-center shadow-lg mb-1 scale-90 group-hover:scale-100 transition-transform">
-        <i data-lucide="check" class="w-5 h-5"></i>
+      <div class="w-8 h-8 rounded-full bg-sky-500 text-white flex items-center justify-center shadow-lg mb-1 scale-90 group-hover:scale-100 transition-transform">
+        <i data-lucide="check" class="w-4 h-4"></i>
       </div>
-      <span class="text-[10px] font-black tracking-wide text-sky-200">PILIH INI</span>
+      <span class="text-[9px] font-black tracking-wide text-sky-200">PILIH INI</span>
     `;
 
     imgContainer.appendChild(img);
+    imgContainer.appendChild(badgeTag);
     imgContainer.appendChild(overlay);
 
     const labelWrap = document.createElement('div');
-    labelWrap.className = 'mt-2.5 pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-xs';
+    labelWrap.className = 'mt-2 pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-xs gap-1';
     labelWrap.innerHTML = `
-      <div>
-        <span class="text-[10px] font-black text-sky-400 uppercase tracking-wider block">Pilihan #${slotIdx + 1}</span>
-        <span class="text-[11px] font-semibold text-slate-300 truncate max-w-[120px] block">${session.matchedFranchise || 'PlayStation'}</span>
+      <div class="min-w-0 flex-1">
+        <span class="text-[10px] font-bold text-white truncate block">${item.label || 'PlayStation Art'}</span>
+        <span class="text-[9px] text-slate-400 truncate block">${item.source || 'Resmi'}</span>
       </div>
-      <button type="button" class="px-2 py-1 rounded-lg bg-sky-600 group-hover:bg-sky-500 text-white text-[10px] font-bold shadow flex items-center gap-1 transition-colors">
+      <button type="button" class="px-2 py-1 rounded-lg bg-sky-600 group-hover:bg-sky-500 text-white text-[10px] font-bold shadow flex items-center gap-1 transition-colors shrink-0">
         Pilih
       </button>
     `;
@@ -7843,6 +8063,12 @@ function renderImagePickerGrid() {
     grid.appendChild(card);
   });
 
+  // Update Result Count text
+  const countEl = document.getElementById('picker-results-count');
+  if (countEl) {
+    countEl.textContent = `Tersedia ${total} variasi pilihan gambar (${session.matchedFranchise || 'PlayStation'})`;
+  }
+
   lucide.createIcons();
 }
 
@@ -7851,61 +8077,227 @@ function cycleImagePickerVariations() {
   const session = window._activeImagePicker;
   if (!session) return;
 
-  session.offset = (session.offset + 4) % session.pool.length;
+  const total = session.richPool && session.richPool.length > 0 ? session.richPool.length : session.pool.length;
+  if (total <= 1) {
+    showToast('Semua variasi saat ini telah ditampilkan.', 'info');
+    return;
+  }
+
+  session.offset = (session.offset + 7) % total;
   renderImagePickerGrid();
-  showToast(`Menampilkan 4 variasi PlayStation berikutnya!`, 'info');
+  showToast(`Menampilkan variasi gambar berikutnya!`, 'info');
 }
 
-// Live Internet Fetch from Wikipedia Game Art
-async function fetchImagesFromWikipedia() {
-  playSfx('click');
+// Live Internet Search for Posters & Wallpapers (Wikipedia Opensearch + Summary + Media-List + Art Catalog)
+async function searchInternetImagesFromPicker(customQuery, isSilent = false) {
   const session = window._activeImagePicker;
   if (!session) return;
 
-  const btn = document.getElementById('btn-fetch-wiki');
-  const originalHtml = btn ? btn.innerHTML : '';
-  if (btn) {
-    btn.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Mencari di Wikipedia...</span>`;
-    lucide.createIcons();
+  const searchInput = document.getElementById('image-picker-search-input');
+  const query = (customQuery || (searchInput ? searchInput.value : '') || session.title || '').trim();
+  if (!query) {
+    showToast('Ketik judul atau kata kunci game untuk mencari!', 'warning');
+    if (searchInput) searchInput.focus();
+    return;
   }
+
+  if (!isSilent) playSfx('click');
+
+  const btn = document.getElementById('btn-search-internet-picker');
+  const loadingEl = document.getElementById('image-picker-loading');
+  const gridEl = document.getElementById('image-picker-grid');
+
+  if (btn) btn.disabled = true;
+  if (loadingEl) loadingEl.classList.remove('hidden');
+  if (gridEl) gridEl.classList.add('hidden');
+
+  const isPoster = session.type === 'poster';
+  const foundImages = [];
 
   try {
-    const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(session.title + ' video game')}&gsrlimit=4&prop=pageimages&piprop=original|thumbnail&pithumbsize=1200&format=json&origin=*`;
-    const resp = await fetch(searchUrl);
-    const data = await resp.json();
+    const cleanQ = typeof cleanGameTitle === 'function' ? cleanGameTitle(query) : query;
 
-    const wikiImages = [];
-    if (data && data.query && data.query.pages) {
-      Object.values(data.query.pages).forEach(page => {
-        if (page.original && page.original.source) {
-          wikiImages.push(page.original.source);
-        } else if (page.thumbnail && page.thumbnail.source) {
-          wikiImages.push(page.thumbnail.source);
+    // 1. Query Wikipedia OpenSearch to get exact article titles
+    const openSearchUrl = `https://en.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(cleanQ)}&limit=5&namespace=0&format=json&origin=*`;
+    const osResp = await fetch(openSearchUrl);
+    const osData = await osResp.json();
+    const candidateTitles = (osData && osData[1] && osData[1].length > 0) ? osData[1] : [cleanQ];
+
+    const bestTitle = candidateTitles.find(t => !t.toLowerCase().includes('disambiguation') && !t.toLowerCase().includes('soundtrack')) || candidateTitles[0];
+
+    if (bestTitle) {
+      // 2. Fetch page summary for high-resolution official box art
+      try {
+        const sumResp = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(bestTitle)}`);
+        if (sumResp.ok) {
+          const sumData = await sumResp.json();
+          if (sumData.originalimage && sumData.originalimage.source) {
+            foundImages.push({
+              url: sumData.originalimage.source,
+              label: `${bestTitle} (Box Art Resmi)`,
+              type: 'poster',
+              badge: 'Official Box Art',
+              source: 'Wikipedia Official'
+            });
+          } else if (sumData.thumbnail && sumData.thumbnail.source) {
+            foundImages.push({
+              url: sumData.thumbnail.source,
+              label: `${bestTitle} (Cover)`,
+              type: 'poster',
+              badge: 'Official Cover',
+              source: 'Wikipedia Official'
+            });
+          }
         }
-      });
+      } catch (e) {
+        console.warn('Wikipedia summary image error:', e);
+      }
+
+      // 3. Fetch media-list from Wikipedia article (extracts screenshots, wallpapers, character art)
+      try {
+        const mediaResp = await fetch(`https://en.wikipedia.org/api/rest_v1/page/media-list/${encodeURIComponent(bestTitle)}`);
+        if (mediaResp.ok) {
+          const mediaData = await mediaResp.json();
+          if (mediaData && Array.isArray(mediaData.items)) {
+            mediaData.items.forEach(item => {
+              if (item.type !== 'image') return;
+              const titleLower = (item.title || '').toLowerCase();
+              if (titleLower.endsWith('.svg') || titleLower.includes('icon') || titleLower.includes('flag') || titleLower.includes('padlock')) return;
+
+              let bestSrc = '';
+              if (item.srcset && item.srcset.length > 0) {
+                const largest = item.srcset[item.srcset.length - 1];
+                bestSrc = largest.src;
+              }
+              if (!bestSrc) return;
+              if (bestSrc.startsWith('//')) bestSrc = 'https:' + bestSrc;
+
+              const isCover = titleLower.includes('cover') || titleLower.includes('box_art') || titleLower.includes('artwork');
+              const isGameplay = titleLower.includes('gameplay') || titleLower.includes('screenshot') || titleLower.includes('shot');
+
+              foundImages.push({
+                url: bestSrc,
+                label: isCover ? 'Box Art Resmi' : (isGameplay ? 'Wallpaper In-Game' : 'Artwork Game'),
+                type: isCover ? 'poster' : 'backdrop',
+                badge: isCover ? 'Official Cover' : (isGameplay ? 'Wallpaper 16:9' : 'Artwork Game'),
+                source: 'Wikimedia Art'
+              });
+            });
+          }
+        }
+      } catch (e) {
+        console.warn('Wikipedia media-list error:', e);
+      }
     }
 
-    if (wikiImages.length > 0) {
-      session.pool = [...wikiImages, ...session.pool];
-      session.offset = 0;
-      session.matchedFranchise = 'Wikipedia Official Game Art';
-      renderImagePickerGrid();
+    // 4. Query Wikipedia generator=search for related franchise pages/images
+    try {
+      const genUrl = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query + ' video game')}&gsrlimit=6&prop=pageimages&piprop=original|thumbnail&pithumbsize=1200&format=json&origin=*`;
+      const genResp = await fetch(genUrl);
+      if (genResp.ok) {
+        const genData = await genResp.json();
+        if (genData && genData.query && genData.query.pages) {
+          Object.values(genData.query.pages).forEach(pg => {
+            const src = (pg.original && pg.original.source) || (pg.thumbnail && pg.thumbnail.source);
+            if (src && !foundImages.some(f => f.url === src)) {
+              foundImages.push({
+                url: src,
+                label: pg.title || 'Official Artwork',
+                type: isPoster ? 'poster' : 'backdrop',
+                badge: isPoster ? 'Official Cover' : 'Wallpaper 16:9',
+                source: 'Wikipedia Game Art'
+              });
+            }
+          });
+        }
+      }
+    } catch (e) {}
+
+    // Deduplicate found internet images by URL
+    const uniqueFound = [];
+    const seenUrls = new Set();
+    foundImages.forEach(img => {
+      if (!seenUrls.has(img.url)) {
+        seenUrls.add(img.url);
+        uniqueFound.push(img);
+      }
+    });
+
+    // 5. Gather matching catalog items from PLAYSTATION_ART_CATALOG
+    let catalogList = [];
+    const queryLower = query.toLowerCase();
+    for (const [key, data] of Object.entries(PLAYSTATION_ART_CATALOG)) {
+      if (queryLower.includes(key) || session.title.toLowerCase().includes(key)) {
+        const items = isPoster ? data.posters : data.backdrops;
+        catalogList = items.map((url, i) => ({
+          url,
+          label: `${data.name} #${i + 1}`,
+          type: session.type,
+          badge: isPoster ? 'Official Cover' : 'Wallpaper 16:9',
+          source: 'PlayStation Official'
+        }));
+        break;
+      }
+    }
+
+    // Fallback genre items if needed
+    if (catalogList.length === 0) {
+      const genreData = PLAYSTATION_GENRE_CATALOG[session.category] || PLAYSTATION_GENRE_CATALOG.action || PLAYSTATION_GENRE_CATALOG.default;
+      const additional = isPoster ? genreData.posters : genreData.backdrops;
+      catalogList = additional.map((url, i) => ({
+        url,
+        label: `PlayStation ${session.category.toUpperCase()} #${i + 1}`,
+        type: session.type,
+        badge: isPoster ? 'PlayStation Art' : 'Wallpaper Highlight',
+        source: 'PlayStation Studio'
+      }));
+    }
+
+    // Combine: Found internet images + PlayStation Art Catalog
+    const combined = [...uniqueFound, ...catalogList];
+
+    // Deduplicate combined
+    const finalCombined = [];
+    const finalSeen = new Set();
+    combined.forEach(c => {
+      if (!finalSeen.has(c.url)) {
+        finalSeen.add(c.url);
+        finalCombined.push(c);
+      }
+    });
+
+    // Sort: items matching active type (poster vs backdrop) come first
+    finalCombined.sort((a, b) => {
+      if (a.type === session.type && b.type !== session.type) return -1;
+      if (b.type === session.type && a.type !== session.type) return 1;
+      return 0;
+    });
+
+    session.richPool = finalCombined;
+    session.pool = finalCombined.map(c => c.url);
+    session.offset = 0;
+    session.matchedFranchise = uniqueFound.length > 0 ? `Internet & Official Art (${uniqueFound.length} ditemukan)` : session.matchedFranchise;
+
+    renderImagePickerGrid();
+    if (!isSilent) {
       playSfx('success');
-      showToast(`Berhasil menemukan ${wikiImages.length} gambar resmi dari Wikipedia!`, 'success');
-    } else {
-      showToast('Tidak ada gambar tambahan di Wikipedia, menampilkan variasi resmi PlayStation.', 'info');
-      cycleImagePickerVariations();
+      showToast(`Ditemukan ${finalCombined.length} pilihan gambar di internet untuk "${query}"!`, 'success');
     }
   } catch (err) {
-    console.warn('Wiki fetch error:', err);
-    showToast('Koneksi internet bermasalah, menampilkan art resmi PlayStation lokal.', 'warning');
-    cycleImagePickerVariations();
+    console.error('Internet image search error:', err);
+    if (!isSilent) showToast('Pencarian internet gagal, menampilkan katalog PlayStation.', 'warning');
+    renderImagePickerGrid();
   } finally {
-    if (btn) {
-      btn.innerHTML = originalHtml;
-      lucide.createIcons();
-    }
+    if (btn) btn.disabled = false;
+    if (loadingEl) loadingEl.classList.add('hidden');
+    if (gridEl) gridEl.classList.remove('hidden');
+    lucide.createIcons();
   }
+}
+
+// Backwards-compatible alias for Wikipedia fetch
+async function fetchImagesFromWikipedia() {
+  return searchInternetImagesFromPicker();
 }
 
 function selectImageFromPicker(url) {
@@ -7920,7 +8312,7 @@ function selectImageFromPicker(url) {
 
   playSfx('success');
   closeImagePickerModal();
-  showToast(`Gambar ${session.type === 'poster' ? 'Poster' : 'Wallpaper'} berhasil diterapkan!`, 'success');
+  showToast(`Gambar ${session.type === 'poster' ? 'Poster Cover' : 'Wallpaper Highlight'} berhasil diterapkan!`, 'success');
 }
 
 function applyCustomImageUrlFromPicker() {
@@ -8581,8 +8973,8 @@ function openEditProductModal(productId) {
 
   const editDriveEl = document.getElementById('edit-game-drive-link');
   if (editDriveEl) editDriveEl.value = p.driveLink || '';
-  const posterVal = (p.images && (p.images.poster || p.images.cover)) || '';
-  const backdropVal = (p.images && p.images.backdrop) || '';
+  const posterVal = (p.images && (p.images.poster || p.images.cover)) || getProductPoster(p) || '';
+  const backdropVal = (p.images && p.images.backdrop) || getProductBackdrop(p) || '';
   document.getElementById('edit-game-poster').value = posterVal;
   const editBackdropEl = document.getElementById('edit-game-backdrop');
   if (editBackdropEl) editBackdropEl.value = backdropVal;
@@ -8635,13 +9027,9 @@ function submitEditProduct() {
   const poster = document.getElementById('edit-game-poster').value.trim();
   const backdrop = document.getElementById('edit-game-backdrop') ? document.getElementById('edit-game-backdrop').value.trim() : '';
   if (!p.images) p.images = {};
-  if (poster) {
-    p.images.poster = poster;
-    p.images.cover = poster;
-  }
-  if (backdrop) {
-    p.images.backdrop = backdrop;
-  }
+  p.images.poster = poster || p.images.poster || '';
+  p.images.cover = p.images.poster;
+  p.images.backdrop = backdrop || p.images.backdrop || '';
   p.description = document.getElementById('edit-game-desc').value.trim();
   p.isHen = isHenProduct(p);
   if (p.isHen) {
