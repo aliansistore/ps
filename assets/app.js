@@ -4633,26 +4633,26 @@ function renderCustomerOrders() {
 
   container.innerHTML = myOrders.map(order => {
     const statusBadges = {
-      'COMPLETED': '<span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">SELESAI (LUNAS)</span>',
-      'PROCESSING': '<span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-500/20 text-amber-400 border border-amber-500/30">DIPROSES ADMIN</span>',
-      'PENDING_PAYMENT': '<span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-sky-500/20 text-sky-400 border border-sky-500/30">MENUNGGU BAYAR</span>'
+      'COMPLETED': '<span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30">SELESAI (LUNAS)</span>',
+      'PROCESSING': '<span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-400 border border-amber-300 dark:border-amber-500/30">DIPROSES ADMIN</span>',
+      'PENDING_PAYMENT': '<span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-sky-100 dark:bg-sky-500/20 text-sky-800 dark:text-sky-400 border border-sky-300 dark:border-sky-500/30">MENUNGGU BAYAR</span>'
     };
 
-    const statusBadge = statusBadges[order.status] || `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400">${order.status}</span>`;
+    const statusBadge = statusBadges[order.status] || `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-400">${order.status}</span>`;
 
     return `
-      <div class="p-4 sm:p-5 rounded-2xl bg-[#091128] border border-slate-800 hover:border-slate-700 transition-all">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-800/80 mb-3">
+      <div class="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#091128] border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-200 dark:border-slate-800/80 mb-3">
           <div>
             <div class="flex items-center gap-2">
-              <span class="text-xs font-mono font-black text-sky-400">${order.id}</span>
+              <span class="text-xs font-mono font-black text-sky-600 dark:text-sky-400">${order.id}</span>
               ${statusBadge}
             </div>
-            <span class="text-[10px] text-slate-400">${formatDate(order.createdAt)}</span>
+            <span class="text-[10px] text-slate-500 dark:text-slate-400">${formatDate(order.createdAt)}</span>
           </div>
           <div class="text-right">
-            <span class="text-xs text-slate-400 block sm:inline">Total Belanja:</span>
-            <span class="text-sm font-black text-emerald-400 font-display ml-1">${formatRupiah(order.total)}</span>
+            <span class="text-xs text-slate-500 dark:text-slate-400 block sm:inline">Total Belanja:</span>
+            <span class="text-sm font-black text-emerald-600 dark:text-emerald-400 font-display ml-1">${formatRupiah(order.total)}</span>
           </div>
         </div>
 
@@ -4661,31 +4661,31 @@ function renderCustomerOrders() {
           ${order.items.map(item => `
             <div class="flex items-center justify-between text-xs py-1">
               <div class="flex items-center gap-2">
-                <span class="px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-400 text-[9px] font-bold">${item.platform || 'PS4'}</span>
-                <span class="font-bold text-slate-200">${item.title}</span>
-                <span class="text-slate-400 font-mono text-[11px]">(x${item.qty})</span>
+                <span class="px-1.5 py-0.5 rounded bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-400 text-[9px] font-bold">${item.platform || 'PS4'}</span>
+                <span class="font-bold text-slate-900 dark:text-slate-200">${item.title}</span>
+                <span class="text-slate-500 dark:text-slate-400 font-mono text-[11px]">(x${item.qty})</span>
               </div>
-              <span class="text-slate-300 font-mono font-bold">${formatRupiah(item.price * item.qty)}</span>
+              <span class="text-slate-700 dark:text-slate-300 font-mono font-bold">${formatRupiah(item.price * item.qty)}</span>
             </div>
           `).join('')}
         </div>
 
         <!-- Fulfillment / Credentials Box (If Available) -->
         ${order.fulfillment ? `
-          <div class="p-3.5 rounded-xl bg-gradient-to-br from-sky-950/60 to-blue-950/40 border border-sky-500/40 my-3 space-y-2">
+          <div class="p-3.5 rounded-xl bg-sky-50 dark:bg-gradient-to-br dark:from-sky-950/60 dark:to-blue-950/40 border border-sky-300 dark:border-sky-500/40 my-3 space-y-2">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-black text-sky-300 flex items-center gap-1.5 font-display">
-                <i data-lucide="key" class="w-3.5 h-3.5 text-sky-400"></i> DATA AKSES & LISENSI GAME:
+              <span class="text-xs font-black text-sky-700 dark:text-sky-300 flex items-center gap-1.5 font-display">
+                <i data-lucide="key" class="w-3.5 h-3.5 text-sky-600 dark:text-sky-400"></i> DATA AKSES & LISENSI GAME:
               </span>
-              <span class="px-2 py-0.5 rounded text-[9px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">SIAP DIMAINKAN</span>
+              <span class="px-2 py-0.5 rounded text-[9px] font-black bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30">SIAP DIMAINKAN</span>
             </div>
 
             ${order.fulfillment.account ? `
-              <div class="flex items-center justify-between bg-slate-900/90 px-3 py-2 rounded-lg border border-slate-700/80 text-xs">
-                <span class="text-slate-400 text-[11px]">Akun / Link Drive:</span>
+              <div class="flex items-center justify-between bg-white dark:bg-slate-900/90 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700/80 text-xs">
+                <span class="text-slate-600 dark:text-slate-400 text-[11px]">Akun / Link Drive:</span>
                 <div class="flex items-center gap-2">
-                  <span class="font-mono text-white font-bold select-all">${order.fulfillment.account}</span>
-                  <button onclick="copyText('${order.fulfillment.account}')" class="text-sky-400 hover:text-white cursor-pointer" title="Salin Link">
+                  <span class="font-mono text-slate-900 dark:text-white font-bold select-all">${order.fulfillment.account}</span>
+                  <button onclick="copyText('${order.fulfillment.account}')" class="text-sky-600 dark:text-sky-400 hover:text-sky-800 dark:hover:text-white cursor-pointer" title="Salin Link">
                     <i data-lucide="copy" class="w-3.5 h-3.5"></i>
                   </button>
                 </div>
@@ -4693,11 +4693,11 @@ function renderCustomerOrders() {
             ` : ''}
 
             ${order.fulfillment.password ? `
-              <div class="flex items-center justify-between bg-slate-900/90 px-3 py-2 rounded-lg border border-slate-700/80 text-xs">
-                <span class="text-slate-400 text-[11px]">Password / Token:</span>
+              <div class="flex items-center justify-between bg-white dark:bg-slate-900/90 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700/80 text-xs">
+                <span class="text-slate-600 dark:text-slate-400 text-[11px]">Password / Token:</span>
                 <div class="flex items-center gap-2">
-                  <span class="font-mono text-amber-300 font-bold select-all">${order.fulfillment.password}</span>
-                  <button onclick="copyText('${order.fulfillment.password}')" class="text-sky-400 hover:text-white cursor-pointer" title="Salin Token">
+                  <span class="font-mono text-amber-800 dark:text-amber-300 font-bold select-all">${order.fulfillment.password}</span>
+                  <button onclick="copyText('${order.fulfillment.password}')" class="text-sky-600 dark:text-sky-400 hover:text-sky-800 dark:hover:text-white cursor-pointer" title="Salin Token">
                     <i data-lucide="copy" class="w-3.5 h-3.5"></i>
                   </button>
                 </div>
@@ -4705,24 +4705,24 @@ function renderCustomerOrders() {
             ` : ''}
 
             ${order.fulfillment.notes ? `
-              <div class="text-[11px] text-slate-300 bg-slate-900/60 p-2.5 rounded-lg border border-slate-800">
-                <strong class="text-sky-400">Instruksi Toko:</strong> ${order.fulfillment.notes}
+              <div class="text-[11px] text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900/60 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800">
+                <strong class="text-sky-600 dark:text-sky-400">Instruksi Toko:</strong> ${order.fulfillment.notes}
               </div>
             ` : ''}
           </div>
         ` : (order.status === 'PROCESSING' ? `
-          <div class="p-3 rounded-xl bg-amber-950/30 border border-amber-500/30 my-3 flex items-center gap-2 text-xs text-amber-300">
-            <i data-lucide="clock" class="w-4 h-4 shrink-0 text-amber-400"></i>
+          <div class="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-500/30 my-3 flex items-center gap-2 text-xs text-amber-800 dark:text-amber-300">
+            <i data-lucide="clock" class="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400"></i>
             <span>Admin sedang memproses pesanan & lisensi game Anda. Mohon ditunggu ya!</span>
           </div>
         ` : '')}
 
         <!-- Order Actions -->
-        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800/60">
-          <button onclick="openInvoiceModal('${order.id}')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer">
-            <i data-lucide="file-text" class="w-3.5 h-3.5 text-sky-400"></i> Buka Invoice
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800/60">
+          <button onclick="openInvoiceModal('${order.id}')" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-300 dark:border-transparent text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="file-text" class="w-3.5 h-3.5 text-sky-600 dark:text-sky-400"></i> Buka Invoice
           </button>
-          <a href="https://wa.me/${(state.config && state.config.whatsappNumber) || '6281234567890'}?text=Halo%20Admin%20${encodeURIComponent((state.config && state.config.storeName) || 'Aliansi Store')}%2C%20saya%20mau%20konfirmasi%20pesanan%20${order.id}" target="_blank" class="px-3 py-1.5 rounded-lg bg-emerald-950 hover:bg-emerald-900/80 text-emerald-300 border border-emerald-500/30 text-xs font-bold transition-colors flex items-center gap-1.5">
+          <a href="https://wa.me/${(state.config && state.config.whatsappNumber) || '6281234567890'}?text=Halo%20Admin%20${encodeURIComponent((state.config && state.config.storeName) || 'Aliansi Store')}%2C%20saya%20mau%20konfirmasi%20pesanan%20${order.id}" target="_blank" class="px-3 py-1.5 rounded-lg bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-950 dark:hover:bg-emerald-900/80 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30 text-xs font-bold transition-colors flex items-center gap-1.5">
             <i data-lucide="message-square" class="w-3.5 h-3.5"></i> CS WhatsApp
           </a>
         </div>
@@ -6061,21 +6061,21 @@ function renderAdminRequestsTable() {
     const platforms = Array.isArray(req.platform) ? req.platform : [req.platform];
 
     return `
-      <tr class="border-b border-slate-800/80 hover:bg-slate-900/40 transition-colors text-xs">
+      <tr class="border-b border-slate-200 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-900/40 transition-colors text-xs text-slate-700 dark:text-slate-300">
         <td class="py-3 px-3 font-mono">
-          <div class="font-bold text-purple-400">${req.id}</div>
+          <div class="font-bold text-purple-600 dark:text-purple-400">${req.id}</div>
           <div class="text-[10px] text-slate-500">${dateFormatted}</div>
         </td>
         <td class="py-3 px-3">
-          <div class="font-bold text-white max-w-[200px] truncate" title="${req.gameTitle}">${req.gameTitle}</div>
+          <div class="font-bold text-slate-900 dark:text-white max-w-[200px] truncate" title="${req.gameTitle}">${req.gameTitle}</div>
           <div class="flex items-center gap-1 mt-1 flex-wrap">
-            <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-purple-950/70 text-purple-300 border border-purple-500/30">${req.category || 'Game'}</span>
-            ${platforms.map(pl => `<span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-sky-950/70 text-sky-300 border border-sky-500/30">${pl}</span>`).join('')}
+            <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-500/30">${req.category || 'Game'}</span>
+            ${platforms.map(pl => `<span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-sky-100 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 border border-sky-300 dark:border-sky-500/30">${pl}</span>`).join('')}
           </div>
         </td>
         <td class="py-3 px-3">
-          <div class="font-semibold text-slate-200">${req.customerName}</div>
-          <div class="text-[11px] text-sky-400 font-mono">${req.customerEmail}</div>
+          <div class="font-semibold text-slate-800 dark:text-slate-200">${req.customerName}</div>
+          <div class="text-[11px] text-sky-600 dark:text-sky-400 font-mono">${req.customerEmail}</div>
           ${req.customerPhone ? `<div class="text-[10px] text-slate-400 font-mono flex items-center gap-1 mt-0.5"><i data-lucide="phone" class="w-2.5 h-2.5 text-emerald-400"></i> ${req.customerPhone}</div>` : ''}
         </td>
         <td class="py-3 px-3">
@@ -6531,13 +6531,13 @@ function renderAdminCustomersTable() {
     const lastOnlineFormatted = formatLastOnline(u.lastOnline);
 
     return `
-      <tr class="border-b border-slate-800/80 hover:bg-slate-900/40 transition-colors text-xs">
+      <tr class="border-b border-slate-200 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-900/40 transition-colors text-xs text-slate-700 dark:text-slate-300">
         <td class="py-3 px-3">
           <div class="flex items-center gap-3">
             ${avatarEl}
             <div class="min-w-0">
               <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="font-bold text-white truncate max-w-[170px]">${u.name}</span>
+                <span class="font-bold text-slate-900 dark:text-white truncate max-w-[170px]">${u.name}</span>
                 ${providerBadge}
               </div>
               <div class="text-[10px] text-slate-500 font-mono mt-0.5">ID: ${u.id}</div>
@@ -6548,15 +6548,15 @@ function renderAdminCustomersTable() {
           <div class="space-y-1">
             ${u.email ? `
               <div class="flex items-center gap-1.5">
-                <i data-lucide="mail" class="w-3.5 h-3.5 text-sky-400 shrink-0"></i>
-                <a href="mailto:${u.email}" class="text-[11px] text-sky-400 font-mono hover:underline truncate max-w-[190px] block" title="${u.email}">${u.email}</a>
+                <i data-lucide="mail" class="w-3.5 h-3.5 text-sky-600 dark:text-sky-400 shrink-0"></i>
+                <a href="mailto:${u.email}" class="text-[11px] text-sky-600 dark:text-sky-400 font-mono hover:underline truncate max-w-[190px] block" title="${u.email}">${u.email}</a>
               </div>
             ` : `<span class="text-slate-500 italic text-[10px]">Email belum diisi</span>`}
             
             ${u.phone ? `
               <div class="flex items-center gap-1.5">
-                <i data-lucide="phone" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
-                <a href="https://wa.me/${u.phone.replace(/^0/, '62')}" target="_blank" rel="noopener noreferrer" class="text-[11px] text-slate-300 font-mono hover:text-emerald-400 transition-colors">${u.phone}</a>
+                <i data-lucide="phone" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0"></i>
+                <a href="https://wa.me/${u.phone.replace(/^0/, '62')}" target="_blank" rel="noopener noreferrer" class="text-[11px] text-slate-700 dark:text-slate-300 font-mono hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">${u.phone}</a>
               </div>
             ` : ''}
           </div>
@@ -6996,33 +6996,33 @@ function renderAdminOrdersTable() {
   container.innerHTML = filtered.map(order => {
     let statusBadge = '';
     if (order.status === 'COMPLETED') {
-      statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-500/30">SELESAI</span>';
+      statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30">SELESAI</span>';
     } else if (order.status === 'PROCESSING') {
-      statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-950 text-sky-400 border border-sky-500/30 animate-pulse">PERLU PROSES</span>';
+      statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-400 border border-sky-300 dark:border-sky-500/30 animate-pulse">PERLU PROSES</span>';
     } else {
-      statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-950 text-amber-400 border border-amber-500/30">MENUNGGU BAYAR</span>';
+      statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-400 border border-amber-300 dark:border-amber-500/30">MENUNGGU BAYAR</span>';
     }
 
     const itemsSummary = order.items.map(i => `${i.title} (${i.variant || 'Primary'})`).join(', ');
 
     return `
-      <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 text-xs text-slate-300">
-        <td class="py-3 px-3 font-mono font-bold text-sky-400 cursor-pointer hover:underline" onclick="openInvoiceModal('${order.id}')">
+      <tr class="border-b border-slate-200 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800/40 text-xs text-slate-700 dark:text-slate-300">
+        <td class="py-3 px-3 font-mono font-bold text-sky-600 dark:text-sky-400 cursor-pointer hover:underline" onclick="openInvoiceModal('${order.id}')">
           ${order.id}
         </td>
         <td class="py-3 px-3">
-          <div class="font-bold text-white">${order.customerName}</div>
-          <div class="text-[11px] text-slate-400">${order.customerPhone} (${order.customerType})</div>
+          <div class="font-bold text-slate-900 dark:text-white">${order.customerName}</div>
+          <div class="text-[11px] text-slate-500 dark:text-slate-400">${order.customerPhone} (${order.customerType})</div>
         </td>
         <td class="py-3 px-3 max-w-[200px] truncate" title="${itemsSummary}">
           ${itemsSummary}
         </td>
-        <td class="py-3 px-3 font-bold font-display text-white">
+        <td class="py-3 px-3 font-bold font-display text-slate-900 dark:text-white">
           ${formatRupiah(order.total)}
         </td>
         <td class="py-3 px-3">
           ${order.paymentMethod.toUpperCase()}
-          <span class="block text-[10px] ${order.paymentStatus === 'PAID' ? 'text-emerald-400' : 'text-amber-400'}">${order.paymentStatus}</span>
+          <span class="block text-[10px] ${order.paymentStatus === 'PAID' ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}">${order.paymentStatus}</span>
         </td>
         <td class="py-3 px-3">
           ${statusBadge}
@@ -7243,29 +7243,29 @@ function renderAdminProductsTable() {
   }
 
   container.innerHTML = list.map(p => `
-    <tr class="border-b border-slate-800/80 hover:bg-slate-800/40 text-xs text-slate-300">
+    <tr class="border-b border-slate-200 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800/40 text-xs text-slate-700 dark:text-slate-300">
       <td class="py-2.5 px-3">
         <div class="flex items-center gap-2.5">
-          <img src="${getProductPoster(p)}" class="w-8 h-10 object-cover rounded-lg bg-slate-800" onerror="this.onerror=null; this.src='assets/covers/service-1tb.jpg'" alt="" />
+          <img src="${getProductPoster(p)}" class="w-8 h-10 object-cover rounded-lg bg-slate-100 dark:bg-slate-800" onerror="this.onerror=null; this.src='assets/covers/service-1tb.jpg'" alt="" />
           <div>
-            <div class="font-bold text-white flex items-center gap-1.5 flex-wrap">
+            <div class="font-bold text-slate-900 dark:text-white flex items-center gap-1.5 flex-wrap">
               <span>${p.title}</span>
               ${p.cusa ? `
-                <span class="inline-flex items-center gap-1 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-sky-950/80 text-sky-400 border border-sky-500/30" title="Kode CUSA Game ID">
+                <span class="inline-flex items-center gap-1 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-sky-100 dark:bg-sky-950/80 text-sky-800 dark:text-sky-400 border border-sky-300 dark:border-sky-500/30" title="Kode CUSA Game ID">
                   <i data-lucide="disc" class="w-2.5 h-2.5"></i> ${p.cusa}
                 </span>
               ` : ''}
               ${p.driveLink ? `
-                <a href="${p.driveLink}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-950/80 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-900/80 transition-colors" title="Google Drive Link Siap - Klik untuk tes link">
+                <a href="${p.driveLink}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30 hover:bg-emerald-200 dark:hover:bg-emerald-900/80 transition-colors" title="Google Drive Link Siap - Klik untuk tes link">
                   <i data-lucide="folder-check" class="w-2.5 h-2.5"></i> Drive Siap
                 </a>
               ` : `
-                <span class="inline-flex items-center gap-1 text-[9px] font-medium px-1.5 py-0.5 rounded bg-slate-800 text-slate-500 border border-slate-700" title="Belum ada link Google Drive">
+                <span class="inline-flex items-center gap-1 text-[9px] font-medium px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-500 border border-slate-300 dark:border-slate-700" title="Belum ada link Google Drive">
                   <i data-lucide="folder-x" class="w-2.5 h-2.5"></i> No Drive
                 </span>
               `}
             </div>
-            <div class="text-[10px] text-slate-400 font-mono">${p.platform.join(', ')} • <span class="text-sky-400 font-bold">${getCategoryLabel(p.category)}</span></div>
+            <div class="text-[10px] text-slate-500 dark:text-slate-400 font-mono">${p.platform.join(', ')} • <span class="text-sky-600 dark:text-sky-400 font-bold">${getCategoryLabel(p.category)}</span></div>
           </div>
         </div>
       </td>
