@@ -375,6 +375,48 @@
       color: #0070d1 !important;
     }
 
+    /* Platform Badges, Category Tag & PKG Banner on Product Cards in Light Mode */
+    html:not(.dark) .badge-platform-ps5,
+    html:not(.dark) .game-card-nextgen span.bg-slate-900,
+    html:not(.dark) #products-grid span.bg-slate-900 {
+      background-color: #0f172a !important;
+      color: #ffffff !important;
+      border-color: #334155 !important;
+    }
+    html:not(.dark) .card-category-badge,
+    html:not(.dark) .game-card-nextgen span.bg-slate-900\/90,
+    html:not(.dark) #products-grid span.bg-slate-900\/90 {
+      background-color: #f0f9ff !important;
+      border-color: #bae6fd !important;
+      color: #0284c7 !important;
+    }
+    html:not(.dark) .card-hen-pkg-banner,
+    html:not(.dark) .game-card-nextgen .bg-purple-950\/60,
+    html:not(.dark) #products-grid .bg-purple-950\/60,
+    html:not(.dark) .app-modal .bg-purple-950\/40 {
+      background-color: #f5f3ff !important;
+      border-color: #d8b4fe !important;
+      color: #6b21a8 !important;
+    }
+    html:not(.dark) .card-hen-pkg-banner span:first-child,
+    html:not(.dark) .card-hen-pkg-banner span:first-child i,
+    html:not(.dark) .game-card-nextgen .bg-purple-950\/60 span:first-child,
+    html:not(.dark) .game-card-nextgen .bg-purple-950\/60 span:first-child i {
+      color: #6b21a8 !important;
+    }
+    html:not(.dark) .card-hen-pkg-banner span.text-emerald-400,
+    html:not(.dark) .game-card-nextgen .bg-purple-950\/60 span.text-emerald-400 {
+      color: #047857 !important;
+    }
+    html:not(.dark) .card-product-badge,
+    html:not(.dark) .game-card-nextgen [class*="from-sky-600"] {
+      color: #ffffff !important;
+    }
+    html:not(.dark) .game-card-nextgen .bg-black\/80,
+    html:not(.dark) .game-card-nextgen .bg-black\/80 span {
+      color: #34d399 !important;
+    }
+
     /* Filter Tabs & Catalog Controls in Light Mode */
     html:not(.dark) #katalog h2 { color: #0f172a !important; }
     html:not(.dark) #catalog-sort-select {
@@ -945,8 +987,13 @@
     html:not(.dark) .bg-rose-600 *,
     html:not(.dark) .bg-purple-600,
     html:not(.dark) .bg-purple-600 *,
+    html:not(.dark) .badge-platform-ps5,
+    html:not(.dark) .badge-platform-ps4,
+    html:not(.dark) .badge-platform-hen,
+    html:not(.dark) .card-product-badge,
     html:not(.dark) .cart-badge,
-    html:not(.dark) .force-white {
+    html:not(.dark) .force-white,
+    html:not(.dark) .force-white * {
       color: #ffffff !important;
     }
 
@@ -4615,6 +4662,6 @@
 
   <!-- Application Scripts (with cache-buster query) -->
   <script src="assets/products-data.js?v=20261109_email_dispatch_v6"></script>
-  <script src="assets/app.js?v=20261111_light_mode_nav_v30"></script>
+  <script src="assets/app.js?v=20261111_light_mode_badges_v31"></script>
 </body>
 </html>

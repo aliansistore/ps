@@ -1644,14 +1644,14 @@ function renderProducts() {
     // Platform tags
     const platformsHtml = product.platform.map(pl => {
       let badgeClass = 'bg-sky-500/20 text-sky-300 border-sky-500/30';
-      if (pl.includes('PS5')) badgeClass = 'bg-slate-900 text-white font-bold border border-slate-700';
-      if (pl.includes('PS4') && !pl.includes('HEN')) badgeClass = 'bg-blue-600 text-white font-bold';
-      if (pl.includes('HEN')) badgeClass = 'bg-purple-600 text-white font-bold shadow-md shadow-purple-600/30';
+      if (pl.includes('PS5')) badgeClass = 'bg-slate-900 text-white font-bold border border-slate-700 badge-platform-ps5 force-white';
+      if (pl.includes('PS4') && !pl.includes('HEN')) badgeClass = 'bg-blue-600 text-white font-bold badge-platform-ps4 force-white';
+      if (pl.includes('HEN')) badgeClass = 'bg-purple-600 text-white font-bold shadow-md shadow-purple-600/30 badge-platform-hen force-white';
       return `<span class="px-2 py-0.5 text-[10px] rounded-md ${badgeClass}">${pl}</span>`;
     }).join(' ');
 
     const subIndoTag = product.isSubIndo ? `
-      <span class="px-2 py-0.5 text-[10px] rounded-md font-black bg-rose-600 text-white shadow-md shadow-rose-600/30 flex items-center gap-1 shrink-0">
+      <span class="px-2 py-0.5 text-[10px] rounded-md font-black bg-rose-600 text-white shadow-md shadow-rose-600/30 flex items-center gap-1 shrink-0 force-white">
         🇮🇩 Sub Indo
       </span>
     ` : '';
@@ -1674,7 +1674,7 @@ function renderProducts() {
             
             <!-- Badge Top Left -->
             ${product.badge ? `
-              <div class="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg text-[9px] sm:text-[10px] font-extrabold tracking-wider uppercase bg-gradient-to-r from-sky-600 to-blue-700 text-white backdrop-blur-md shadow-md border border-sky-400/40">
+              <div class="card-product-badge force-white absolute top-2 left-2 sm:top-2.5 sm:left-2.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg text-[9px] sm:text-[10px] font-extrabold tracking-wider uppercase bg-gradient-to-r from-sky-600 to-blue-700 text-white backdrop-blur-md shadow-md border border-sky-400/40">
                 ${product.badge}
               </div>
             ` : ''}
@@ -1687,7 +1687,7 @@ function renderProducts() {
 
             <!-- Discount Percent if Original exists -->
             ${product.prices.original && getDiscountPercent(product.prices.original, activePrice) > 0 ? `
-              <div class="absolute top-2 right-2 sm:top-2.5 sm:right-2.5 px-2 py-0.5 rounded-lg text-[9px] sm:text-[10px] font-black bg-rose-600 text-white shadow-lg flex items-center gap-1 z-10 border border-rose-400/40">
+              <div class="force-white absolute top-2 right-2 sm:top-2.5 sm:right-2.5 px-2 py-0.5 rounded-lg text-[9px] sm:text-[10px] font-black bg-rose-600 text-white shadow-lg flex items-center gap-1 z-10 border border-rose-400/40">
                 <i data-lucide="tag" class="w-3 h-3"></i> -${getDiscountPercent(product.prices.original, activePrice)}%
               </div>
             ` : ''}
@@ -1702,7 +1702,7 @@ function renderProducts() {
           <div class="flex items-center justify-between gap-1 mb-1.5 sm:mb-2">
             <div class="flex items-center gap-1 flex-wrap">
               ${subIndoTag}
-              <span class="px-2 py-0.5 text-[10px] rounded-md bg-slate-900/90 text-sky-300 font-bold border border-slate-700/60">${getCategoryLabel(product.category)}</span>
+              <span class="card-category-badge px-2 py-0.5 text-[10px] rounded-md bg-slate-900/90 text-sky-300 font-bold border border-slate-700/60">${getCategoryLabel(product.category)}</span>
               ${platformsHtml}
             </div>
             <div class="flex items-center gap-1 text-amber-400 text-[11px] sm:text-xs font-bold shrink-0">
@@ -1721,7 +1721,7 @@ function renderProducts() {
 
           <!-- Game HEN Clean Info Tag (No Primary/Secondary for HEN) -->
           ${isHenGame ? `
-            <div class="mb-2 sm:mb-3 text-[10px] text-purple-300 font-extrabold flex items-center justify-between py-1.5 px-2.5 rounded-lg bg-purple-950/60 border border-purple-500/30">
+            <div class="card-hen-pkg-banner mb-2 sm:mb-3 text-[10px] text-purple-300 font-extrabold flex items-center justify-between py-1.5 px-2.5 rounded-lg bg-purple-950/60 border border-purple-500/30">
               <span class="flex items-center gap-1"><i data-lucide="package" class="w-3.5 h-3.5 text-purple-400"></i> File PKG (PS4 HEN)</span>
               <span class="text-emerald-400 font-bold">Google Drive</span>
             </div>
