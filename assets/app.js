@@ -1328,7 +1328,7 @@ function renderSpotlightThumbnails(games) {
 
       <div class="flex-1 min-w-0">
         <div class="flex items-center justify-between gap-1 mb-0.5">
-          <span class="spotlight-badge text-[9px] px-1.5 py-0.5 rounded-full font-bold ${idx === 0 ? 'bg-sky-500 text-white' : 'bg-slate-800 text-slate-400'}">
+          <span class="spotlight-badge text-[9px] px-1.5 py-0.5 rounded-full font-bold ${idx === 0 ? 'bg-sky-500 text-white' : 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-400'}">
             ${idx === 0 ? '★ SEDANG TAMPIL' : `#${idx + 1} PILIHAN`}
           </span>
           <div class="flex items-center gap-1 text-amber-400 text-[10px] font-bold">
@@ -1340,7 +1340,7 @@ function renderSpotlightThumbnails(games) {
           ${game.title}
         </h4>
 
-        <div class="flex items-center gap-1.5 mt-0.5">
+        <div class="flex flex-wrap items-center gap-1.5 mt-0.5">
           <span class="text-xs font-black text-sky-400 font-display">${formatRupiah(game.prices.primary)}</span>
           ${game.prices.original && getDiscountPercent(game.prices.original, game.prices.primary) > 0 ? `
             <span class="text-[10px] text-slate-500 line-through font-mono">${formatRupiah(game.prices.original)}</span>
@@ -1390,7 +1390,7 @@ function updateSpotlightDisplay(index) {
     } else {
       thumb.className = 'spotlight-thumb group w-full p-2 sm:p-2.5 rounded-2xl flex items-center gap-3 transition-all duration-300 text-left cursor-pointer border bg-slate-950/50 border-slate-800/80 hover:bg-slate-800/60 hover:border-slate-700';
       if (badge) {
-        badge.className = 'spotlight-badge text-[9px] px-1.5 py-0.5 rounded-full font-bold bg-slate-800 text-slate-400';
+        badge.className = 'spotlight-badge text-[9px] px-1.5 py-0.5 rounded-full font-bold bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-400';
         badge.textContent = `#${idx + 1} PILIHAN`;
       }
     }
@@ -2916,11 +2916,11 @@ function renderInvoiceDetails(order) {
   // Payment Status Badge
   const payBadge = document.getElementById('inv-payment-badge');
   if (order.paymentStatus === 'PAID') {
-    payBadge.className = 'px-3 py-1 rounded-full text-xs font-black bg-emerald-950 text-emerald-400 border border-emerald-500/40 flex items-center gap-1.5 shadow-md shadow-emerald-950/40';
-    payBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400"></span> LUNAS TERVERIFIKASI';
+    payBadge.className = 'px-3 py-1 rounded-full text-xs font-black bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/40 flex items-center gap-1.5 shadow-md shadow-emerald-500/10 dark:shadow-emerald-950/40';
+    payBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400"></span> LUNAS TERVERIFIKASI';
   } else {
-    payBadge.className = 'px-3 py-1 rounded-full text-xs font-black bg-amber-950 text-amber-400 border border-amber-500/40 flex items-center gap-1.5 shadow-md shadow-amber-950/40';
-    payBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span> MENUNGGU PEMBAYARAN';
+    payBadge.className = 'px-3 py-1 rounded-full text-xs font-black bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-400 border border-amber-300 dark:border-amber-500/40 flex items-center gap-1.5 shadow-md shadow-amber-500/10 dark:shadow-amber-950/40';
+    payBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 dark:bg-amber-400 animate-ping"></span> MENUNGGU PEMBAYARAN';
   }
 
   // Stepper Visualizer
@@ -3077,15 +3077,15 @@ function renderPaymentBox(order) {
     const bankLabel = order.paymentMethod === 'bca' ? 'BCA' : (order.paymentMethod === 'mandiri' ? 'Mandiri' : (order.paymentMethod === 'bri' ? 'BRI' : 'Bank'));
     const displayVa = vaNumber || ('7007014' + String(order.id).replace(/[^0-9]/g, '').slice(-8));
     container.innerHTML = `
-      <div class="p-5 rounded-2xl bg-[#070d1e] border border-sky-500/40 text-center">
-        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-950 text-sky-400 border border-sky-500/30 text-[11px] font-bold mb-2">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> VIRTUAL ACCOUNT ${bankLabel.toUpperCase()} RESMI DUITKU (OTOMATIS)
+      <div class="p-5 rounded-2xl bg-white dark:bg-[#070d1e] border border-slate-200 dark:border-sky-500/40 text-center shadow-sm">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-950 text-sky-700 dark:text-sky-400 border border-sky-300 dark:border-sky-500/30 text-[11px] font-bold mb-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span> VIRTUAL ACCOUNT ${bankLabel.toUpperCase()} RESMI DUITKU (OTOMATIS)
         </div>
-        <p class="text-xs text-slate-400 mb-3">Bayar via ${bankLabel} Mobile, Internet Banking, atau ATM. Diverifikasi otomatis tanpa kirim bukti transfer.</p>
+        <p class="text-xs text-slate-600 dark:text-slate-400 mb-3">Bayar via ${bankLabel} Mobile, Internet Banking, atau ATM. Diverifikasi otomatis tanpa kirim bukti transfer.</p>
 
-        <div class="p-4 rounded-2xl bg-sky-950/60 border border-sky-500/30 my-3">
-          <div class="text-[10px] text-sky-400 font-bold uppercase tracking-wider mb-1 font-mono">Nomor Virtual Account ${bankLabel}:</div>
-          <div class="text-xl sm:text-3xl font-black text-white font-mono tracking-wider select-all mb-2">
+        <div class="p-4 rounded-2xl bg-sky-50/70 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-500/30 my-3">
+          <div class="text-[10px] text-sky-700 dark:text-sky-400 font-bold uppercase tracking-wider mb-1 font-mono">Nomor Virtual Account ${bankLabel}:</div>
+          <div class="text-xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono tracking-wider select-all mb-2">
             ${displayVa}
           </div>
           <button onclick="copyText('${displayVa}', 'Nomor Virtual Account ${bankLabel} tersalin!')" class="px-4 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-md transition-all">
@@ -3093,11 +3093,11 @@ function renderPaymentBox(order) {
           </button>
         </div>
 
-        <div class="text-xs font-bold text-slate-300">Total Tagihan:</div>
-        <div class="text-2xl font-black text-sky-400 font-display mt-0.5 mb-3">${formatRupiah(order.total)}</div>
+        <div class="text-xs font-bold text-slate-700 dark:text-slate-300">Total Tagihan:</div>
+        <div class="text-2xl font-black text-sky-600 dark:text-sky-400 font-display mt-0.5 mb-3">${formatRupiah(order.total)}</div>
 
-        <div class="text-[11px] text-slate-400 mb-4 flex items-center justify-center gap-1.5">
-          <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-400"></i>
+        <div class="text-[11px] text-slate-600 dark:text-slate-400 mb-4 flex items-center justify-center gap-1.5">
+          <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-500 dark:text-amber-400"></i>
           <span>Menunggu konfirmasi pembayaran otomatis Duitku...</span>
         </div>
 
@@ -3107,10 +3107,10 @@ function renderPaymentBox(order) {
               <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Buka Pembayaran Duitku (Web / Simulator)
             </a>
           ` : ''}
-          <button onclick="checkOrderStatusManual('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 flex items-center justify-center gap-1.5">
+          <button onclick="checkOrderStatusManual('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold border border-slate-300 dark:border-slate-700 flex items-center justify-center gap-1.5">
             <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Cek Status Sekarang
           </button>
-          <button onclick="simulateCustomerPaid('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-900/60 hover:bg-emerald-800/80 text-emerald-300 text-xs font-bold border border-emerald-600/40 flex items-center justify-center gap-1.5" title="Uji Coba Sandbox">
+          <button onclick="simulateCustomerPaid('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-900/60 dark:hover:bg-emerald-800/80 text-emerald-800 dark:text-emerald-300 text-xs font-bold border border-emerald-300 dark:border-emerald-600/40 flex items-center justify-center gap-1.5" title="Uji Coba Sandbox">
             <i data-lucide="play" class="w-3.5 h-3.5"></i> Tes Lunas (Sandbox)
           </button>
         </div>
@@ -3119,14 +3119,14 @@ function renderPaymentBox(order) {
     lucide.createIcons();
   } else if (isDana && paymentUrl) {
     container.innerHTML = `
-      <div class="p-5 rounded-2xl bg-[#070d1e] border border-sky-500/40 text-center">
-        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-950 text-sky-400 border border-sky-500/30 text-[11px] font-bold mb-2">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> E-WALLET DANA RESMI DUITKU (OTOMATIS)
+      <div class="p-5 rounded-2xl bg-white dark:bg-[#070d1e] border border-slate-200 dark:border-sky-500/40 text-center shadow-sm">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-950 text-sky-700 dark:text-sky-400 border border-sky-300 dark:border-sky-500/30 text-[11px] font-bold mb-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span> E-WALLET DANA RESMI DUITKU (OTOMATIS)
         </div>
-        <p class="text-xs text-slate-400 mb-3">Klik tombol di bawah untuk menyelesaikan pembayaran langsung di aplikasi DANA.</p>
+        <p class="text-xs text-slate-600 dark:text-slate-400 mb-3">Klik tombol di bawah untuk menyelesaikan pembayaran langsung di aplikasi DANA.</p>
 
-        <div class="text-xs font-bold text-slate-300">Total Tagihan:</div>
-        <div class="text-2xl font-black text-sky-400 font-display mt-0.5 mb-4">${formatRupiah(order.total)}</div>
+        <div class="text-xs font-bold text-slate-700 dark:text-slate-300">Total Tagihan:</div>
+        <div class="text-2xl font-black text-sky-600 dark:text-sky-400 font-display mt-0.5 mb-4">${formatRupiah(order.total)}</div>
 
         <div class="flex flex-col sm:flex-row items-center justify-center gap-2 mb-3">
           <a href="${paymentUrl}" target="_blank" class="w-full sm:w-auto px-5 py-3 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-black shadow-lg shadow-sky-600/30 flex items-center justify-center gap-2 transition-all">
@@ -3135,10 +3135,10 @@ function renderPaymentBox(order) {
         </div>
 
         <div class="flex flex-col sm:flex-row items-center justify-center gap-2">
-          <button onclick="checkOrderStatusManual('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 flex items-center justify-center gap-1.5">
+          <button onclick="checkOrderStatusManual('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold border border-slate-300 dark:border-slate-700 flex items-center justify-center gap-1.5">
             <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Cek Status Sekarang
           </button>
-          <button onclick="simulateCustomerPaid('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-900/60 hover:bg-emerald-800/80 text-emerald-300 text-xs font-bold border border-emerald-600/40 flex items-center justify-center gap-1.5" title="Uji Coba Sandbox">
+          <button onclick="simulateCustomerPaid('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-900/60 dark:hover:bg-emerald-800/80 text-emerald-800 dark:text-emerald-300 text-xs font-bold border border-emerald-300 dark:border-emerald-600/40 flex items-center justify-center gap-1.5" title="Uji Coba Sandbox">
             <i data-lucide="play" class="w-3.5 h-3.5"></i> Tes Lunas (Sandbox)
           </button>
         </div>
@@ -3148,19 +3148,19 @@ function renderPaymentBox(order) {
   } else {
     // Default QRIS (Universal for all Banks & E-Wallets)
     container.innerHTML = `
-      <div class="text-center p-5 rounded-2xl bg-[#070d1e] border border-sky-500/40">
-        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-950 text-sky-400 border border-sky-500/30 text-[11px] font-bold mb-2">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> QRIS RESMI DUITKU (OTOMATIS)
+      <div class="text-center p-5 rounded-2xl bg-white dark:bg-[#070d1e] border border-slate-200 dark:border-sky-500/40 shadow-sm">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-950 text-sky-700 dark:text-sky-400 border border-sky-300 dark:border-sky-500/30 text-[11px] font-bold mb-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span> QRIS RESMI DUITKU (OTOMATIS)
         </div>
-        <p class="text-xs text-slate-400 mb-3">Scan pakai aplikasi apa saja: BCA, Mandiri, BRI, Livin, GoPay, OVO, DANA, ShopeePay</p>
+        <p class="text-xs text-slate-600 dark:text-slate-400 mb-3">Scan pakai aplikasi apa saja: BCA, Mandiri, BRI, Livin, GoPay, OVO, DANA, ShopeePay</p>
         
-        <div class="inline-block p-4 rounded-2xl bg-white shadow-2xl shadow-sky-500/30 mb-3" id="qrcode-container"></div>
+        <div class="inline-block p-4 rounded-2xl bg-white shadow-xl shadow-sky-500/10 border border-slate-200 dark:border-transparent mb-3" id="qrcode-container"></div>
         
-        <div class="text-xs font-bold text-slate-300">Total Pembayaran:</div>
-        <div class="text-2xl font-black text-sky-400 font-display mt-0.5 mb-3">${formatRupiah(order.total)}</div>
+        <div class="text-xs font-bold text-slate-700 dark:text-slate-300">Total Pembayaran:</div>
+        <div class="text-2xl font-black text-sky-600 dark:text-sky-400 font-display mt-0.5 mb-3">${formatRupiah(order.total)}</div>
 
-        <div class="text-[11px] text-slate-400 mb-4 flex items-center justify-center gap-1.5">
-          <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-400"></i>
+        <div class="text-[11px] text-slate-600 dark:text-slate-400 mb-4 flex items-center justify-center gap-1.5">
+          <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-500 dark:text-amber-400"></i>
           <span>Menunggu konfirmasi pembayaran otomatis (bebas reload)...</span>
         </div>
 
@@ -3170,10 +3170,10 @@ function renderPaymentBox(order) {
               <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Buka Pembayaran Duitku (Web / Simulator)
             </a>
           ` : ''}
-          <button onclick="checkOrderStatusManual('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 flex items-center justify-center gap-1.5">
+          <button onclick="checkOrderStatusManual('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold border border-slate-300 dark:border-slate-700 flex items-center justify-center gap-1.5">
             <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Cek Status Sekarang
           </button>
-          <button onclick="simulateCustomerPaid('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-900/60 hover:bg-emerald-800/80 text-emerald-300 text-xs font-bold border border-emerald-600/40 flex items-center justify-center gap-1.5" title="Uji Coba Sandbox">
+          <button onclick="simulateCustomerPaid('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-900/60 dark:hover:bg-emerald-800/80 text-emerald-800 dark:text-emerald-300 text-xs font-bold border border-emerald-300 dark:border-emerald-600/40 flex items-center justify-center gap-1.5" title="Uji Coba Sandbox">
             <i data-lucide="play" class="w-3.5 h-3.5"></i> Tes Lunas (Sandbox)
           </button>
         </div>

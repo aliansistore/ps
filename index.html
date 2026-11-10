@@ -270,6 +270,22 @@
     html:not(.dark) .spotlight-thumb h4 {
       color: #0f172a !important;
     }
+    html:not(.dark) .spotlight-badge {
+      background-color: #e2e8f0 !important;
+      color: #334155 !important;
+      border: 1px solid #cbd5e1 !important;
+    }
+    html:not(.dark) .spotlight-thumb.active .spotlight-badge,
+    html:not(.dark) .spotlight-badge.bg-sky-500 {
+      background-color: #0070d1 !important;
+      color: #ffffff !important;
+      border-color: #0070d1 !important;
+    }
+    html:not(.dark) .spotlight-thumb span.line-through {
+      color: #94a3b8 !important;
+    }
+    html:not(.dark) .spotlight-thumb .text-slate-500 {
+      color: #64748b !important;
     }
 
     /* Live Ticker in Light Mode */
@@ -641,11 +657,39 @@
     html:not(.dark) .app-modal .bg-slate-900\/90,
     html:not(.dark) .app-modal .bg-slate-950,
     html:not(.dark) .app-modal .bg-\[\#060a16\],
+    html:not(.dark) .app-modal .bg-\[\#070d1e\],
+    html:not(.dark) .app-modal .bg-\[\#070e22\],
+    html:not(.dark) .app-modal .bg-\[\#070e24\],
     html:not(.dark) .app-modal .bg-\[\#080f24\],
-    html:not(.dark) .app-modal .bg-\[\#091128\] {
+    html:not(.dark) .app-modal .bg-\[\#081024\],
+    html:not(.dark) .app-modal .bg-\[\#091128\],
+    html:not(.dark) .app-modal .bg-\[\#060c1d\],
+    html:not(.dark) .app-modal .bg-sky-950\/40,
+    html:not(.dark) .app-modal .bg-sky-950\/60,
+    html:not(.dark) .app-modal .bg-sky-950\/70,
+    html:not(.dark) .app-modal .bg-sky-950\/80,
+    html:not(.dark) .app-modal .bg-sky-950\/90 {
       background-color: #f8fafc !important;
       border-color: #e2e8f0 !important;
       color: #0f172a !important;
+    }
+    html:not(.dark) .app-modal .bg-sky-950,
+    html:not(.dark) .app-modal .bg-sky-950\/50 {
+      background-color: #e0f2fe !important;
+      border-color: #bae6fd !important;
+      color: #0070d1 !important;
+    }
+    html:not(.dark) .app-modal .bg-emerald-950,
+    html:not(.dark) .app-modal .bg-emerald-950\/80 {
+      background-color: #d1fae5 !important;
+      border-color: #a7f3d0 !important;
+      color: #047857 !important;
+    }
+    html:not(.dark) .app-modal .bg-amber-950,
+    html:not(.dark) .app-modal .bg-amber-950\/80 {
+      background-color: #fef3c7 !important;
+      border-color: #fde68a !important;
+      color: #b45309 !important;
     }
     html:not(.dark) .app-modal .border-slate-800,
     html:not(.dark) .app-modal .border-slate-700 {
@@ -776,6 +820,7 @@
       background-color: #0070d1 !important;
       color: #ffffff !important;
     }
+    /* Invoice Modal & Dispatch in Light Mode */
     html:not(.dark) #inv-fulfillment-box {
       background: linear-gradient(135deg, #f0fdf4 0%, #f0f9ff 100%) !important;
       border: 2px solid #0284c7 !important;
@@ -799,6 +844,150 @@
     html:not(.dark) #inv-fulfillment-box p#fulfill-notes {
       background-color: #f8fafc !important;
       border-color: #e2e8f0 !important;
+      color: #334155 !important;
+    }
+
+    /* Invoice Email Dispatch Card (Customer Drive / Proof Confirmation) */
+    html:not(.dark) #inv-email-dispatch-card {
+      background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 50%, #f0f9ff 100%) !important;
+      border: 1.5px solid #86efac !important;
+      box-shadow: 0 4px 18px rgba(16, 185, 129, 0.1) !important;
+      color: #0f172a !important;
+    }
+    html:not(.dark) #inv-email-dispatch-card span.text-white,
+    html:not(.dark) #inv-email-dispatch-card .font-bold.text-white {
+      color: #0f172a !important;
+    }
+    html:not(.dark) #inv-email-dispatch-card p,
+    html:not(.dark) #inv-email-dispatch-card p.text-slate-400 {
+      color: #334155 !important;
+    }
+    html:not(.dark) #inv-email-dispatch-card .bg-emerald-950,
+    html:not(.dark) #inv-email-dispatch-card span.bg-emerald-950 {
+      background-color: #d1fae5 !important;
+      color: #047857 !important;
+      border-color: #a7f3d0 !important;
+    }
+    html:not(.dark) #inv-email-dispatch-card .bg-amber-950\/80,
+    html:not(.dark) #inv-email-dispatch-card span.bg-amber-950\/80,
+    html:not(.dark) #inv-email-dispatch-card span.text-amber-300 {
+      background-color: #fef3c7 !important;
+      color: #b45309 !important;
+      border-color: #fde68a !important;
+    }
+    html:not(.dark) #inv-email-dispatch-card #inv-dispatch-customer-email {
+      color: #0062ff !important;
+    }
+    html:not(.dark) #inv-email-dispatch-card button {
+      background-color: #ecfdf5 !important;
+      color: #047857 !important;
+      border-color: #a7f3d0 !important;
+    }
+    html:not(.dark) #inv-email-dispatch-card button:hover {
+      background-color: #d1fae5 !important;
+      color: #065f46 !important;
+    }
+
+    /* Invoice Payment Instructions in Light Mode */
+    html:not(.dark) #inv-payment-instructions .bg-\[\#070d1e\] {
+      background-color: #f8fafc !important;
+      border: 1.5px solid #cbd5e1 !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
+      color: #0f172a !important;
+    }
+    html:not(.dark) #inv-payment-instructions .bg-sky-950 {
+      background-color: #e0f2fe !important;
+      border-color: #bae6fd !important;
+      color: #0284c7 !important;
+    }
+    html:not(.dark) #inv-payment-instructions .bg-sky-950\/60 {
+      background-color: #f0f9ff !important;
+      border-color: #bae6fd !important;
+    }
+    html:not(.dark) #inv-payment-instructions .text-white {
+      color: #0f172a !important;
+    }
+    html:not(.dark) #inv-payment-instructions .text-slate-300,
+    html:not(.dark) #inv-payment-instructions .text-slate-400 {
+      color: #475569 !important;
+    }
+    html:not(.dark) #inv-payment-instructions button.bg-slate-800 {
+      background-color: #ffffff !important;
+      border-color: #cbd5e1 !important;
+      color: #334155 !important;
+    }
+    html:not(.dark) #inv-payment-instructions button.bg-slate-800:hover {
+      background-color: #f1f5f9 !important;
+      color: #0f172a !important;
+    }
+    html:not(.dark) #inv-payment-instructions button.bg-emerald-900\/60 {
+      background-color: #ecfdf5 !important;
+      border-color: #a7f3d0 !important;
+      color: #047857 !important;
+    }
+    html:not(.dark) #inv-payment-instructions button.bg-emerald-900\/60:hover {
+      background-color: #d1fae5 !important;
+      color: #065f46 !important;
+    }
+
+    /* Floating Customer Live Chat Box in Light Mode */
+    html:not(.dark) #customer-live-chat-box {
+      background: rgba(255, 255, 255, 0.98) !important;
+      border-color: #cbd5e1 !important;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.25) !important;
+      color: #0f172a !important;
+    }
+    html:not(.dark) #customer-live-chat-box .bg-gradient-to-r.from-slate-900\/90 {
+      background: linear-gradient(to right, #f8fafc, #f1f5f9, #f0f9ff) !important;
+      border-bottom-color: #e2e8f0 !important;
+    }
+    html:not(.dark) #customer-live-chat-box h4 {
+      color: #0f172a !important;
+    }
+    html:not(.dark) #customer-live-chat-box button.bg-slate-800\/80 {
+      background-color: #e2e8f0 !important;
+      color: #475569 !important;
+    }
+    html:not(.dark) #customer-live-chat-box button.bg-slate-800\/80:hover {
+      background-color: #cbd5e1 !important;
+      color: #0f172a !important;
+    }
+    html:not(.dark) #cust-chat-identity-strip {
+      background-color: #f8fafc !important;
+      border-bottom-color: #e2e8f0 !important;
+      color: #475569 !important;
+    }
+    html:not(.dark) #cust-chat-identity-text {
+      color: #334155 !important;
+    }
+    html:not(.dark) #customer-live-chat-box .bg-sky-950\/40 {
+      background-color: #f0f9ff !important;
+      border-bottom-color: #e0f2fe !important;
+      color: #0284c7 !important;
+    }
+    html:not(.dark) #customer-live-chat-box .bg-slate-900\/90 {
+      background-color: #f8fafc !important;
+      border-top-color: #e2e8f0 !important;
+    }
+    html:not(.dark) #cust-chat-input {
+      background-color: #ffffff !important;
+      border-color: #cbd5e1 !important;
+      color: #0f172a !important;
+    }
+    html:not(.dark) #cust-chat-input::placeholder {
+      color: #94a3b8 !important;
+    }
+    html:not(.dark) #cust-chat-messages-container {
+      background-color: #ffffff !important;
+    }
+    html:not(.dark) #cust-chat-messages-container .bg-slate-900,
+    html:not(.dark) #cust-chat-messages-container .bg-slate-800 {
+      background-color: #f1f5f9 !important;
+      border-color: #cbd5e1 !important;
+      color: #0f172a !important;
+    }
+    html:not(.dark) #cust-chat-messages-container .bg-slate-900 p,
+    html:not(.dark) #cust-chat-messages-container .bg-slate-800 p {
       color: #334155 !important;
     }
 
@@ -934,13 +1123,37 @@
       color: #0062ff !important;
       border-color: #0070d1 !important;
     }
+    html:not(.dark) footer a.wa-contact-link,
     html:not(.dark) footer a.bg-emerald-950 {
       background-color: #ecfdf5 !important;
       border-color: #a7f3d0 !important;
       color: #059669 !important;
     }
+    html:not(.dark) footer a.wa-contact-link:hover,
     html:not(.dark) footer a.bg-emerald-950:hover {
       background-color: #d1fae5 !important;
+      color: #047857 !important;
+    }
+    html:not(.dark) footer a.wa-contact-link span,
+    html:not(.dark) footer a.wa-contact-link i {
+      color: #059669 !important;
+    }
+    html:not(.dark) footer a.store-admin-email-link,
+    html:not(.dark) footer .store-admin-email-link,
+    html:not(.dark) footer a.bg-sky-950\/70,
+    html:not(.dark) footer a.bg-sky-950 {
+      background-color: #f0f9ff !important;
+      border-color: #bae6fd !important;
+      color: #0284c7 !important;
+    }
+    html:not(.dark) footer a.store-admin-email-link:hover,
+    html:not(.dark) footer a.bg-sky-950\/70:hover {
+      background-color: #e0f2fe !important;
+      color: #0070d1 !important;
+    }
+    html:not(.dark) footer a.store-admin-email-link span,
+    html:not(.dark) footer a.store-admin-email-link i {
+      color: #0284c7 !important;
     }
     html:not(.dark) footer span.bg-slate-900 {
       background-color: #f8fafc !important;
@@ -994,11 +1207,20 @@
     html:not(.dark) .text-slate-300 { color: #334155 !important; }
     html:not(.dark) .text-slate-400 { color: #475569 !important; }
     html:not(.dark) .text-slate-500 { color: #64748b !important; }
+    html:not(.dark) .text-sky-200,
     html:not(.dark) .text-sky-300,
     html:not(.dark) .text-sky-400,
+    html:not(.dark) .text-cyan-300,
     html:not(.dark) .text-cyan-400 { color: #0062ff !important; }
-    html:not(.dark) .text-amber-400 { color: #d97706 !important; }
+    html:not(.dark) .text-amber-200,
+    html:not(.dark) .text-amber-300,
+    html:not(.dark) .text-amber-400 { color: #b45309 !important; }
+    html:not(.dark) .text-emerald-300,
     html:not(.dark) .text-emerald-400 { color: #059669 !important; }
+    html:not(.dark) .text-rose-300,
+    html:not(.dark) .text-rose-400 { color: #e11d48 !important; }
+    html:not(.dark) .text-purple-300,
+    html:not(.dark) .text-purple-400 { color: #7e22ce !important; }
 
     /* Elements that MUST retain white text */
     html:not(.dark) .cyber-button,
@@ -2100,14 +2322,14 @@
               <strong>ALIANSI STORE</strong> adalah spesialis game PlayStation 4 HEN, koleksi Game Subtitle Indonesia terlengkap, Jasa Isi Harddisk Eksternal, dan Akun Game Digital PS4/PS5 terpercaya dengan harga terjangkau di Indonesia.
             </p>
             <div class="flex items-center gap-2.5 flex-wrap">
-              <a href="https://wa.me/6281234567890" target="_blank" class="wa-contact-link px-3.5 py-2 rounded-xl bg-emerald-950 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 font-bold hover:bg-emerald-900/50 transition-colors">
+              <a href="https://wa.me/6281234567890" target="_blank" class="wa-contact-link px-3.5 py-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-300 dark:bg-emerald-950 dark:text-emerald-400 dark:border-emerald-500/30 flex items-center gap-1.5 font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors">
                 <i data-lucide="message-square" class="w-4 h-4"></i> WhatsApp CS Admin
               </a>
-              <a href="mailto:aliansistore.id@gmail.com" class="store-admin-email-link px-3.5 py-2 rounded-xl bg-sky-950/70 text-sky-300 border border-sky-500/30 flex items-center gap-1.5 font-bold hover:bg-sky-900/70 transition-colors" title="Kirim Email ke Admin">
+              <a href="mailto:aliansistore.id@gmail.com" class="store-admin-email-link px-3.5 py-2 rounded-xl bg-sky-50 text-sky-700 border border-sky-300 dark:bg-sky-950/70 dark:text-sky-300 dark:border-sky-500/30 flex items-center gap-1.5 font-bold hover:bg-sky-100 dark:hover:bg-sky-900/70 transition-colors" title="Kirim Email ke Admin">
                 <i data-lucide="mail" class="w-4 h-4"></i> <span class="store-admin-email">aliansistore.id@gmail.com</span>
               </a>
-              <button onclick="handleFooterAuthClick()" class="px-3.5 py-2 rounded-xl bg-slate-900 text-slate-300 border border-slate-800 hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer">
-                <i data-lucide="user-check" class="w-4 h-4 text-sky-400"></i>
+              <button onclick="handleFooterAuthClick()" class="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-800 border border-slate-300 dark:bg-slate-900 dark:text-slate-300 dark:border-slate-800 hover:text-sky-600 dark:hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer">
+                <i data-lucide="user-check" class="w-4 h-4 text-sky-600 dark:text-sky-400"></i>
                 <span id="footer-auth-text">Masuk / Akun</span>
               </button>
             </div>
@@ -2795,23 +3017,23 @@
       </div>
 
       <!-- Status Konfirmasi Pengiriman Bukti Pembelian & Akses Game (Customer Only) -->
-      <div id="inv-email-dispatch-card" class="hidden mb-5 p-3.5 rounded-2xl bg-gradient-to-r from-sky-950/50 via-[#070e24] to-emerald-950/50 border border-emerald-500/30 text-xs no-print">
+      <div id="inv-email-dispatch-card" class="hidden mb-5 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-50 via-white to-sky-50 dark:from-sky-950/50 dark:via-[#070e24] dark:to-emerald-950/50 border border-emerald-300 dark:border-emerald-500/30 text-xs no-print text-slate-800 dark:text-white">
         <div class="flex items-center justify-between gap-3 flex-wrap">
           <div class="flex items-center gap-3 flex-1 min-w-0">
-            <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0">
-              <i data-lucide="mail-check" class="w-4 h-4 text-emerald-400"></i>
+            <div class="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 border border-emerald-300 dark:border-emerald-500/30 flex items-center justify-center shrink-0">
+              <i data-lucide="mail-check" class="w-4 h-4 text-emerald-600 dark:text-emerald-400"></i>
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2">
-                <span class="font-bold text-white text-xs">Bukti Pembelian & Akses Game Dikirim Otomatis</span>
-                <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 font-extrabold border border-emerald-500/30">OTOMATIS SISTEM</span>
+                <span class="font-bold text-slate-900 dark:text-white text-xs">Bukti Pembelian & Akses Game Dikirim Otomatis</span>
+                <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-extrabold border border-emerald-300 dark:border-emerald-500/30">OTOMATIS SISTEM</span>
               </div>
-              <p class="text-[11px] text-slate-400 mt-0.5">
-                Faktur resmi & tautan folder Google Drive otomatis dikirim ke <strong id="inv-dispatch-customer-email" class="text-sky-400 font-mono font-bold"></strong> berlabel <span class="text-amber-300 font-bold bg-amber-950/80 px-1 py-0.2 rounded border border-amber-500/30 text-[10px]">NO-REPLY</span>.
+              <p class="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">
+                Faktur resmi & tautan folder Google Drive otomatis dikirim ke <strong id="inv-dispatch-customer-email" class="text-sky-600 dark:text-sky-400 font-mono font-bold"></strong> berlabel <span class="text-amber-800 dark:text-amber-300 font-bold bg-amber-100 dark:bg-amber-950/80 px-1.5 py-0.5 rounded border border-amber-300 dark:border-amber-500/30 text-[10px]">NO-REPLY</span>.
               </p>
             </div>
           </div>
-          <button type="button" onclick="resendInvoiceEmail()" class="px-3 py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold flex items-center gap-1.5 shrink-0 transition-all cursor-pointer">
+          <button type="button" onclick="resendInvoiceEmail()" class="px-3 py-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-600/20 hover:bg-emerald-200 dark:hover:bg-emerald-600/40 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/40 text-[11px] font-bold flex items-center gap-1.5 shrink-0 transition-all cursor-pointer">
             <i data-lucide="send" class="w-3.5 h-3.5"></i> Kirim Ulang ke Email
           </button>
         </div>
@@ -4907,6 +5129,6 @@
 
   <!-- Application Scripts (with cache-buster query) -->
   <script src="assets/products-data.js?v=20261111_cusa_v7"></script>
-  <script src="assets/app.js?v=20261111_marketplace_v33"></script>
+  <script src="assets/app.js?v=20261111_light_theme_fix_v34"></script>
 </body>
 </html>
