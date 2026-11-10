@@ -416,6 +416,20 @@
     html:not(.dark) .game-card-nextgen .bg-black\/80 span {
       color: #34d399 !important;
     }
+    html:not(.dark) .card-cusa-tag,
+    html:not(.dark) #modal-product-cusa-badge {
+      background-color: rgba(15, 23, 42, 0.9) !important;
+      color: #38bdf8 !important;
+      border-color: rgba(56, 189, 248, 0.4) !important;
+    }
+    html:not(.dark) .card-cusa-tag span,
+    html:not(.dark) #modal-product-cusa-badge span {
+      color: #38bdf8 !important;
+    }
+    html:not(.dark) .card-cusa-tag i,
+    html:not(.dark) #modal-product-cusa-badge i {
+      color: #00f5ff !important;
+    }
 
     /* Filter Tabs & Catalog Controls in Light Mode */
     html:not(.dark) #katalog h2 { color: #0f172a !important; }
@@ -2379,6 +2393,10 @@
         <div class="flex flex-col sm:flex-row gap-6 mb-6">
           <div onclick="openImageLightbox(document.getElementById('modal-product-img').src, document.getElementById('modal-product-title').textContent, 'Poster Game')" class="w-full sm:w-44 aspect-[3/4] rounded-2xl overflow-hidden bg-slate-950 shrink-0 border border-slate-800 shadow-xl cursor-pointer hover:border-sky-400 hover:ring-2 hover:ring-sky-400/30 transition-all group relative" title="Klik untuk melihat poster game lebih besar (Pop up)">
             <img id="modal-product-img" src="" alt="" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+            <div id="modal-product-cusa-badge" class="absolute bottom-2 right-2 hidden items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-950/85 text-sky-300 border border-sky-400/30 backdrop-blur-md shadow-md z-10">
+              <i data-lucide="disc" class="w-3 h-3 text-sky-400"></i>
+              <span id="modal-product-cusa-badge-text"></span>
+            </div>
             <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity text-white pointer-events-none">
               <i data-lucide="zoom-in" class="w-6 h-6 text-sky-400 mb-1"></i>
               <span class="text-[10px] font-bold text-sky-300 uppercase tracking-wider">Perbesar</span>
@@ -2390,6 +2408,7 @@
             <h2 id="modal-product-title" class="text-xl sm:text-2xl font-black text-white mb-2 leading-snug font-display"></h2>
             <div class="flex items-center gap-3 text-xs text-slate-400 mb-3 flex-wrap font-mono">
               <span>Genre: <strong id="modal-product-genre" class="text-sky-400 font-bold"></strong></span>
+              <span id="modal-product-cusa-wrap" class="hidden">• CUSA: <strong id="modal-product-cusa" class="text-sky-400 font-bold"></strong></span>
               <span>•</span>
               <span>Publisher: <strong id="modal-product-publisher" class="text-slate-200"></strong></span>
               <span>•</span>
@@ -3241,6 +3260,16 @@
             </div>
           </div>
         </div>
+        <!-- Kode CUSA Game ID -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
+            <span class="flex items-center gap-1.5 text-sky-400">
+              <i data-lucide="disc" class="w-3.5 h-3.5"></i> Kode CUSA (PlayStation Game ID)
+            </span>
+            <span class="text-[9px] text-slate-400 font-mono">cth: CUSA-00341</span>
+          </label>
+          <input type="text" id="new-game-cusa" placeholder="Contoh: CUSA-00341 (khusus PS4 / HEN)" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:border-sky-500 font-mono uppercase" />
+        </div>
         <!-- Harga Normal & Checklist Diskon Promo -->
         <div class="space-y-3">
           <div>
@@ -3430,6 +3459,16 @@
               <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" name="edit-game-platform" value="PS4 HEN" /> HEN</label>
             </div>
           </div>
+        </div>
+        <!-- Kode CUSA Game ID -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
+            <span class="flex items-center gap-1.5 text-sky-400">
+              <i data-lucide="disc" class="w-3.5 h-3.5"></i> Kode CUSA (PlayStation Game ID)
+            </span>
+            <span class="text-[9px] text-slate-400 font-mono">cth: CUSA-00341</span>
+          </label>
+          <input type="text" id="edit-game-cusa" placeholder="Contoh: CUSA-00341 (khusus PS4 / HEN)" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:border-sky-500 font-mono uppercase" />
         </div>
         <!-- Harga Normal & Checklist Diskon Promo -->
         <div class="space-y-3">
@@ -4661,7 +4700,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261109_email_dispatch_v6"></script>
-  <script src="assets/app.js?v=20261111_light_mode_badges_v31"></script>
+  <script src="assets/products-data.js?v=20261111_cusa_v7"></script>
+  <script src="assets/app.js?v=20261111_cusa_v32"></script>
 </body>
 </html>

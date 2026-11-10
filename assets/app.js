@@ -483,6 +483,9 @@ function loadStoredData() {
         if (ip.driveLink && !existing.driveLink) {
           existing.driveLink = ip.driveLink;
         }
+        if (ip.cusa && !existing.cusa) {
+          existing.cusa = ip.cusa;
+        }
         // Auto-upgrade local cache if existing has stale baseline dummy prices (<= 25.000)
         const existingPrimary = (existing.prices && existing.prices.primary) || 0;
         if (existingPrimary <= 25000 && ip.prices && ip.prices.primary > 25000) {
@@ -850,6 +853,7 @@ async function syncFromSupabase() {
         description: p.description,
         features: Array.isArray(p.features) ? p.features : [],
         driveLink: p.drive_link || (p.images && p.images.driveLink) || '',
+        cusa: p.cusa || (p.images && p.images.cusa) || '',
         inStock: p.in_stock !== false,
         updatedAt: p.updated_at || null
       }));
@@ -1086,11 +1090,15 @@ async function syncProductToSupabase(p) {
     if (p.driveLink) {
       cloudImages.driveLink = p.driveLink;
     }
+    if (p.cusa) {
+      cloudImages.cusa = p.cusa;
+    }
 
     const payload = {
       id: p.id,
       title: p.title,
       slug: p.slug || p.id,
+      cusa: p.cusa || null,
       platform: p.platform,
       category: p.category,
       type: p.type || 'digital',
@@ -1512,6 +1520,7 @@ function getFilteredProducts() {
       list = list.filter(p => {
         // 1. Direct text fields match
         const titleMatch = (p.title || '').toLowerCase().includes(q);
+        const cusaMatch = (p.cusa || '').toLowerCase().includes(q);
         const descMatch = (p.description || '').toLowerCase().includes(q);
         const tagMatch = (p.tagline || '').toLowerCase().includes(q);
         const pubMatch = (p.publisher || '').toLowerCase().includes(q);
@@ -1528,7 +1537,7 @@ function getFilteredProducts() {
         const coopMatch = (q.includes('coop') || q.includes('co-op') || q.includes('mabar') || q.includes('family')) && (p.category === 'family' || p.category === 'coop');
         const sportsMatch = (q.includes('bola') || q.includes('soccer') || q.includes('fifa') || q.includes('pes') || q.includes('balap')) && (p.category === 'sports' || p.category === 'racing');
 
-        return titleMatch || descMatch || tagMatch || pubMatch || badgeMatch || platformMatch || catMatch || catLabelMatch || subIndoMatch || henMatch || digitalMatch || coopMatch || sportsMatch;
+        return titleMatch || cusaMatch || descMatch || tagMatch || pubMatch || badgeMatch || platformMatch || catMatch || catLabelMatch || subIndoMatch || henMatch || digitalMatch || coopMatch || sportsMatch;
       });
     }
   }
@@ -1685,6 +1694,14 @@ function renderProducts() {
               Ready
             </div>
 
+            <!-- Kode CUSA Tag (Pojok Kanan Bawah Gambar) -->
+            ${product.cusa ? `
+              <div class="card-cusa-tag force-white absolute bottom-2 right-2 sm:bottom-2.5 sm:right-2.5 flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-mono font-black bg-black/85 text-cyan-300 backdrop-blur-md border border-cyan-400/40 shadow-lg z-10 tracking-tight" title="PlayStation Game ID: ${product.cusa}">
+                <i data-lucide="disc" class="w-2.5 h-2.5 sm:w-3 sm:h-3 text-cyan-400"></i>
+                <span>${product.cusa}</span>
+              </div>
+            ` : ''}
+
             <!-- Discount Percent if Original exists -->
             ${product.prices.original && getDiscountPercent(product.prices.original, activePrice) > 0 ? `
               <div class="force-white absolute top-2 right-2 sm:top-2.5 sm:right-2.5 px-2 py-0.5 rounded-lg text-[9px] sm:text-[10px] font-black bg-rose-600 text-white shadow-lg flex items-center gap-1 z-10 border border-rose-400/40">
@@ -1835,6 +1852,30 @@ function openProductDetail(productId) {
   document.getElementById('modal-product-title').textContent = product.title;
   const modalGenreEl = document.getElementById('modal-product-genre');
   if (modalGenreEl) modalGenreEl.textContent = getCategoryLabel(product.category);
+
+  // CUSA Code in Modal Poster & Specs
+  const cusaBadge = document.getElementById('modal-product-cusa-badge');
+  const cusaBadgeText = document.getElementById('modal-product-cusa-badge-text');
+  const cusaWrap = document.getElementById('modal-product-cusa-wrap');
+  const cusaEl = document.getElementById('modal-product-cusa');
+  if (product.cusa) {
+    if (cusaBadge && cusaBadgeText) {
+      cusaBadgeText.textContent = product.cusa;
+      cusaBadge.classList.remove('hidden');
+      cusaBadge.classList.add('flex');
+    }
+    if (cusaWrap && cusaEl) {
+      cusaEl.textContent = product.cusa;
+      cusaWrap.classList.remove('hidden');
+    }
+  } else {
+    if (cusaBadge) {
+      cusaBadge.classList.add('hidden');
+      cusaBadge.classList.remove('flex');
+    }
+    if (cusaWrap) cusaWrap.classList.add('hidden');
+  }
+
   document.getElementById('modal-product-publisher').textContent = product.publisher || 'PlayStation Store';
   document.getElementById('modal-product-year').textContent = product.releaseYear || '2024';
   document.getElementById('modal-product-size').textContent = product.size || 'Digital Download';
@@ -6975,6 +7016,7 @@ function renderAdminProductsTable() {
   if (query) {
     list = list.filter(p => 
       (p.title || '').toLowerCase().includes(query) ||
+      (p.cusa || '').toLowerCase().includes(query) ||
       (Array.isArray(p.platform) && p.platform.some(pl => pl.toLowerCase().includes(query))) ||
       (p.category || '').toLowerCase().includes(query) ||
       (typeof getCategoryLabel === 'function' ? getCategoryLabel(p.category || '') : '').toLowerCase().includes(query)
@@ -6994,6 +7036,11 @@ function renderAdminProductsTable() {
           <div>
             <div class="font-bold text-white flex items-center gap-1.5 flex-wrap">
               <span>${p.title}</span>
+              ${p.cusa ? `
+                <span class="inline-flex items-center gap-1 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-sky-950/80 text-sky-400 border border-sky-500/30" title="Kode CUSA Game ID">
+                  <i data-lucide="disc" class="w-2.5 h-2.5"></i> ${p.cusa}
+                </span>
+              ` : ''}
               ${p.driveLink ? `
                 <a href="${p.driveLink}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-950/80 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-900/80 transition-colors" title="Google Drive Link Siap - Klik untuk tes link">
                   <i data-lucide="folder-check" class="w-2.5 h-2.5"></i> Drive Siap
@@ -8500,6 +8547,63 @@ function synthesizeDynamicGameDescription(rawTitle, cleanTitle, platforms, genre
   };
 }
 
+// PlayStation CUSA Game ID Intelligent Suggester
+function suggestCusaCode(title) {
+  if (!title) return '';
+  const clean = title.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  const cusaMap = [
+    { keys: ['it takes two'], cusa: 'CUSA-16982' },
+    { keys: ['god of war ragnarok', 'god of war ragnarök'], cusa: 'CUSA-34384' },
+    { keys: ['god of war'], cusa: 'CUSA-07408' },
+    { keys: ['silent hill 2'], cusa: 'CUSA-43890' },
+    { keys: ['resident evil 4'], cusa: 'CUSA-33387' },
+    { keys: ['resident evil village', 're8'], cusa: 'CUSA-18017' },
+    { keys: ['resident evil 2'], cusa: 'CUSA-09193' },
+    { keys: ['resident evil 3'], cusa: 'CUSA-14168' },
+    { keys: ['ghost of tsushima', 'tsushima'], cusa: 'CUSA-11456' },
+    { keys: ['the last of us part 2', 'last of us part ii', 'tlou 2'], cusa: 'CUSA-07820' },
+    { keys: ['the last of us part 1', 'last of us part i', 'last of us remastered', 'tlou 1'], cusa: 'CUSA-00552' },
+    { keys: ['fc 25', 'ea sports fc 25'], cusa: 'CUSA-47522' },
+    { keys: ['fc 24', 'ea sports fc 24'], cusa: 'CUSA-40326' },
+    { keys: ['fifa 23'], cusa: 'CUSA-31879' },
+    { keys: ['pes 2027', 'pes 2021', 'efootball pes'], cusa: 'CUSA-14917' },
+    { keys: ['red dead redemption 2', 'rdr 2', 'rdr2'], cusa: 'CUSA-08519' },
+    { keys: ['red dead redemption'], cusa: 'CUSA-36843' },
+    { keys: ['gta v', 'gta 5', 'grand theft auto v', 'grand theft auto 5'], cusa: 'CUSA-00411' },
+    { keys: ['elden ring'], cusa: 'CUSA-28863' },
+    { keys: ['uncharted 4'], cusa: 'CUSA-00341' },
+    { keys: ['uncharted the lost legacy', 'lost legacy'], cusa: 'CUSA-07737' },
+    { keys: ['black myth wukong', 'wukong'], cusa: 'CUSA-38910' },
+    { keys: ['mortal kombat 11', 'mk 11', 'mk11'], cusa: 'CUSA-11395' },
+    { keys: ['hogwarts legacy'], cusa: 'CUSA-12967' },
+    { keys: ['stray'], cusa: 'CUSA-24899' },
+    { keys: ['assassins creed odyssey', 'ac odyssey'], cusa: 'CUSA-09303' },
+    { keys: ['assassins creed valhalla', 'ac valhalla'], cusa: 'CUSA-18534' },
+    { keys: ['assassins creed mirage', 'ac mirage'], cusa: 'CUSA-34674' },
+    { keys: ['one piece odyssey'], cusa: 'CUSA-30048' },
+    { keys: ['watch dogs'], cusa: 'CUSA-04460' },
+    { keys: ['spider-man', 'spiderman', 'marvels spider man'], cusa: 'CUSA-02299' },
+    { keys: ['miles morales'], cusa: 'CUSA-17709' },
+    { keys: ['cyberpunk 2077'], cusa: 'CUSA-16596' },
+    { keys: ['witcher 3', 'the witcher 3'], cusa: 'CUSA-05725' },
+    { keys: ['bloodborne'], cusa: 'CUSA-03173' },
+    { keys: ['sekiro'], cusa: 'CUSA-13801' },
+    { keys: ['horizon zero dawn'], cusa: 'CUSA-01967' },
+    { keys: ['horizon forbidden west'], cusa: 'CUSA-24705' },
+    { keys: ['monster hunter world'], cusa: 'CUSA-07713' },
+    { keys: ['death stranding'], cusa: 'CUSA-11260' },
+    { keys: ['gran turismo 7', 'gt7'], cusa: 'CUSA-24765' },
+    { keys: ['tekken 7'], cusa: 'CUSA-05972' },
+    { keys: ['naruto shippuden ultimate ninja storm 4', 'storm 4'], cusa: 'CUSA-02412' }
+  ];
+  for (const item of cusaMap) {
+    if (item.keys.some(k => clean.includes(k))) {
+      return item.cusa;
+    }
+  }
+  return '';
+}
+
 async function generateGameDescription(prefix) {
   playSfx('click');
   const titleEl = document.getElementById(`${prefix}-game-title`);
@@ -8509,6 +8613,15 @@ async function generateGameDescription(prefix) {
     showToast('Ketik Judul Game terlebih dahulu untuk membuat deskripsi!', 'warning');
     if (titleEl) titleEl.focus();
     return;
+  }
+
+  // Auto-fill CUSA code if empty
+  const cusaInput = document.getElementById(`${prefix}-game-cusa`);
+  if (cusaInput && !cusaInput.value) {
+    const suggestedCusa = suggestCusaCode(rawTitle);
+    if (suggestedCusa) {
+      cusaInput.value = suggestedCusa;
+    }
   }
 
   const btn = document.querySelector(`button[onclick="generateGameDescription('${prefix}')"]`);
@@ -8692,6 +8805,8 @@ function openAddProductModal() {
   const modal = document.getElementById('modal-admin-add-product');
   if (!modal) return;
   document.getElementById('new-game-title').value = '';
+  const newCusaEl = document.getElementById('new-game-cusa');
+  if (newCusaEl) newCusaEl.value = '';
   const normalEl = document.getElementById('new-game-price-normal');
   if (normalEl) normalEl.value = '';
   const discCheckEl = document.getElementById('new-game-has-discount');
@@ -8874,6 +8989,7 @@ function submitNewProduct() {
   }
 
   const driveLink = document.getElementById('new-game-drive-link') ? document.getElementById('new-game-drive-link').value.trim() : '';
+  const cusa = document.getElementById('new-game-cusa') ? document.getElementById('new-game-cusa').value.trim().toUpperCase() : '';
   const posterUrl = document.getElementById('new-game-poster').value.trim();
   const backdropUrl = document.getElementById('new-game-backdrop') ? document.getElementById('new-game-backdrop').value.trim() : '';
   const desc = document.getElementById('new-game-desc').value.trim();
@@ -8882,6 +8998,7 @@ function submitNewProduct() {
     id: 'game-' + Date.now(),
     title: title,
     slug: title.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+    cusa: cusa,
     platform: platformChecked,
     category: category,
     driveLink: driveLink,
@@ -8940,6 +9057,8 @@ function openEditProductModal(productId) {
   if (!modal) return;
 
   document.getElementById('edit-game-title').value = p.title;
+  const editCusaEl = document.getElementById('edit-game-cusa');
+  if (editCusaEl) editCusaEl.value = p.cusa || '';
   const editCatEl = document.getElementById('edit-game-category');
   if (editCatEl && p.category) editCatEl.value = p.category;
   const editPlatCbs = document.querySelectorAll('input[name="edit-game-platform"]');
@@ -8994,6 +9113,8 @@ function submitEditProduct() {
   if (!p) return;
 
   p.title = document.getElementById('edit-game-title').value.trim();
+  const editCusaEl = document.getElementById('edit-game-cusa');
+  if (editCusaEl) p.cusa = editCusaEl.value.trim().toUpperCase();
   const editCatEl = document.getElementById('edit-game-category');
   if (editCatEl && editCatEl.value) p.category = editCatEl.value;
   const editPlatCbs = Array.from(document.querySelectorAll('input[name="edit-game-platform"]:checked')).map(cb => cb.value);
