@@ -1720,6 +1720,11 @@ function renderProducts() {
             <div class="flex items-center gap-1 flex-wrap">
               ${subIndoTag}
               <span class="card-category-badge px-2 py-0.5 text-[10px] rounded-md bg-slate-900/90 text-sky-300 font-bold border border-slate-700/60">${getCategoryLabel(product.category)}</span>
+              ${product.marketplaces && (product.marketplaces.shopee || product.marketplaces.tokopedia || product.marketplaces.tiktok) ? `
+                <span class="px-1.5 py-0.5 text-[9px] rounded-md font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center gap-1" title="Tersedia Beli di Marketplace Resmi">
+                  <i data-lucide="shopping-bag" class="w-2.5 h-2.5"></i> Market
+                </span>
+              ` : ''}
               ${platformsHtml}
             </div>
             <div class="flex items-center gap-1 text-amber-400 text-[11px] sm:text-xs font-bold shrink-0">
@@ -2034,6 +2039,76 @@ function openProductDetail(productId) {
         <span>${pl}</span>
       </label>
     `).join('');
+  }
+
+  // Render Marketplace Direct Links in Product Detail Modal
+  const mpWrap = document.getElementById('modal-product-marketplace-wrap');
+  const mpList = document.getElementById('modal-product-marketplace-list');
+  if (mpWrap && mpList) {
+    const prodMp = product.marketplaces || {};
+    const storeMp = (state.config && state.config.marketplaces) || {};
+    const directLinks = [];
+
+    const shopeeUrl = prodMp.shopee || (storeMp.shopee?.enabled ? storeMp.shopee.url : '');
+    const tokopediaUrl = prodMp.tokopedia || (storeMp.tokopedia?.enabled ? storeMp.tokopedia.url : '');
+    const tiktokUrl = prodMp.tiktok || (storeMp.tiktok?.enabled ? storeMp.tiktok.url : '');
+    const lazadaUrl = storeMp.lazada?.enabled ? storeMp.lazada.url : '';
+    const blibliUrl = storeMp.blibli?.enabled ? storeMp.blibli.url : '';
+
+    if (shopeeUrl) {
+      directLinks.push({
+        name: 'Shopee',
+        url: shopeeUrl,
+        icon: 'shopping-bag',
+        classes: 'bg-orange-600 hover:bg-orange-500 text-white border border-orange-500/50'
+      });
+    }
+    if (tokopediaUrl) {
+      directLinks.push({
+        name: 'Tokopedia',
+        url: tokopediaUrl,
+        icon: 'shopping-cart',
+        classes: 'bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-500/50'
+      });
+    }
+    if (tiktokUrl) {
+      directLinks.push({
+        name: 'TikTok Shop',
+        url: tiktokUrl,
+        icon: 'video',
+        classes: 'bg-slate-900 hover:bg-slate-800 text-white border border-rose-500/50'
+      });
+    }
+    if (lazadaUrl) {
+      directLinks.push({
+        name: 'Lazada',
+        url: lazadaUrl,
+        icon: 'package',
+        classes: 'bg-blue-600 hover:bg-blue-500 text-white border border-blue-500/50'
+      });
+    }
+    if (blibliUrl) {
+      directLinks.push({
+        name: 'Blibli',
+        url: blibliUrl,
+        icon: 'badge-percent',
+        classes: 'bg-sky-600 hover:bg-sky-500 text-white border border-sky-500/50'
+      });
+    }
+
+    if (directLinks.length > 0) {
+      mpWrap.classList.remove('hidden');
+      mpList.innerHTML = directLinks.map(item => `
+        <a href="${item.url}" target="_blank" rel="noopener noreferrer" onclick="playSfx('click')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 hover:scale-105 ${item.classes}">
+          <i data-lucide="${item.icon}" class="w-3.5 h-3.5"></i>
+          <span>${item.name}</span>
+          <i data-lucide="external-link" class="w-3 h-3 opacity-70"></i>
+        </a>
+      `).join('');
+    } else {
+      mpWrap.classList.add('hidden');
+      mpList.innerHTML = '';
+    }
   }
 
   modal.classList.remove('hidden');
@@ -4876,6 +4951,116 @@ function updateStoreContactUI() {
   document.querySelectorAll('.invoice-print-email').forEach(el => {
     el.textContent = email;
   });
+
+  // Render Marketplace buttons on Beranda (if enabled by admin)
+  renderBerandaMarketplaces();
+}
+
+// Dynamic Marketplace Hub on Beranda (Appears only when explicitly enabled by Admin)
+function renderBerandaMarketplaces() {
+  const container = document.getElementById('beranda-marketplaces-container');
+  const list = document.getElementById('beranda-marketplaces-list');
+  if (!container || !list) return;
+
+  const mp = (state.config && state.config.marketplaces) || {};
+  const activeItems = [];
+
+  if (mp.shopee?.enabled && mp.shopee?.url) {
+    activeItems.push({
+      name: 'Shopee',
+      url: mp.shopee.url,
+      icon: 'shopping-bag',
+      colorClass: 'bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white shadow-orange-600/30'
+    });
+  }
+  if (mp.tokopedia?.enabled && mp.tokopedia?.url) {
+    activeItems.push({
+      name: 'Tokopedia',
+      url: mp.tokopedia.url,
+      icon: 'shopping-cart',
+      colorClass: 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-600/30'
+    });
+  }
+  if (mp.tiktok?.enabled && mp.tiktok?.url) {
+    activeItems.push({
+      name: 'TikTok Shop',
+      url: mp.tiktok.url,
+      icon: 'video',
+      colorClass: 'bg-gradient-to-r from-slate-900 to-black hover:from-slate-800 hover:to-zinc-900 text-white border border-rose-500/40 shadow-rose-900/30'
+    });
+  }
+  if (mp.lazada?.enabled && mp.lazada?.url) {
+    activeItems.push({
+      name: 'Lazada',
+      url: mp.lazada.url,
+      icon: 'package',
+      colorClass: 'bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-600 hover:to-indigo-600 text-white shadow-blue-700/30'
+    });
+  }
+  if (mp.blibli?.enabled && mp.blibli?.url) {
+    activeItems.push({
+      name: 'Blibli',
+      url: mp.blibli.url,
+      icon: 'badge-percent',
+      colorClass: 'bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white shadow-sky-600/30'
+    });
+  }
+
+  // If no marketplace is enabled, hide container completely from Beranda
+  if (activeItems.length === 0) {
+    container.classList.add('hidden');
+    list.innerHTML = '';
+  } else {
+    container.classList.remove('hidden');
+    list.innerHTML = activeItems.map(item => `
+      <a 
+        href="${item.url}" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        onclick="playSfx('click')" 
+        class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 ${item.colorClass}"
+        title="Beli Resmi di ${item.name}"
+      >
+        <i data-lucide="${item.icon}" class="w-4 h-4"></i>
+        <span>${item.name}</span>
+        <i data-lucide="external-link" class="w-3 h-3 opacity-75"></i>
+      </a>
+    `).join('');
+    if (window.lucide) lucide.createIcons();
+  }
+}
+
+function toggleMarketplaceInput(name) {
+  playSfx('click');
+  const checkEl = document.getElementById(`setting-mp-${name}-check`);
+  const wrapEl = document.getElementById(`setting-mp-${name}-wrap`);
+  const urlEl = document.getElementById(`setting-mp-${name}-url`);
+  if (!checkEl || !wrapEl) return;
+  if (checkEl.checked) {
+    wrapEl.classList.remove('hidden');
+    if (urlEl && !urlEl.value) {
+      if (name === 'shopee') urlEl.placeholder = 'https://shopee.co.id/namatoko';
+      else if (name === 'tokopedia') urlEl.placeholder = 'https://tokopedia.com/namatoko';
+      else if (name === 'tiktok') urlEl.placeholder = 'https://shop.tiktok.com/@namatoko';
+      else if (name === 'lazada') urlEl.placeholder = 'https://lazada.co.id/shop/namatoko';
+      else if (name === 'blibli') urlEl.placeholder = 'https://blibli.com/merchant/namatoko';
+      urlEl.focus();
+    }
+  } else {
+    wrapEl.classList.add('hidden');
+  }
+}
+
+function toggleProductMarketplaceSection(prefix) {
+  playSfx('click');
+  const checkEl = document.getElementById(`${prefix}-game-has-marketplace`);
+  const fieldsEl = document.getElementById(`${prefix}-game-marketplace-fields`);
+  if (!checkEl || !fieldsEl) return;
+  if (checkEl.checked) {
+    fieldsEl.classList.remove('hidden');
+  } else {
+    fieldsEl.classList.add('hidden');
+  }
 }
 
 function openAdminSettingsModal() {
@@ -4891,6 +5076,21 @@ function openAdminSettingsModal() {
   if (emailEl) emailEl.value = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
   if (nameEl) nameEl.value = (state.config && state.config.storeName) || 'ALIANSI STORE';
   if (appsScriptEl) appsScriptEl.value = (state.config && state.config.appsScriptUrl) || '';
+
+  // Load Marketplace Settings
+  const marketplaces = (state.config && state.config.marketplaces) || {};
+  ['shopee', 'tokopedia', 'tiktok', 'lazada', 'blibli'].forEach(key => {
+    const checkEl = document.getElementById(`setting-mp-${key}-check`);
+    const wrapEl = document.getElementById(`setting-mp-${key}-wrap`);
+    const urlEl = document.getElementById(`setting-mp-${key}-url`);
+    const mpData = marketplaces[key] || {};
+    if (checkEl) checkEl.checked = !!mpData.enabled;
+    if (urlEl) urlEl.value = mpData.url || '';
+    if (wrapEl) {
+      if (mpData.enabled) wrapEl.classList.remove('hidden');
+      else wrapEl.classList.add('hidden');
+    }
+  });
 
   const newPinEl = document.getElementById('setting-admin-new-pin');
   const confirmPinEl = document.getElementById('setting-admin-confirm-pin');
@@ -5042,6 +5242,20 @@ function saveAdminSettings() {
   state.config.adminEmail = email;
   state.config.appsScriptUrl = appsScriptUrl;
   if (storeName) state.config.storeName = storeName;
+
+  // Collect Store Marketplace Links (Optional)
+  const updatedMarketplaces = {};
+  ['shopee', 'tokopedia', 'tiktok', 'lazada', 'blibli'].forEach(key => {
+    const checkEl = document.getElementById(`setting-mp-${key}-check`);
+    const urlEl = document.getElementById(`setting-mp-${key}-url`);
+    const isChecked = !!(checkEl && checkEl.checked);
+    const url = urlEl ? urlEl.value.trim() : '';
+    updatedMarketplaces[key] = {
+      enabled: isChecked && !!url,
+      url: url
+    };
+  });
+  state.config.marketplaces = updatedMarketplaces;
 
   // Process Admin Password Change (if provided)
   const newPinInput = document.getElementById('setting-admin-new-pin');
@@ -8819,6 +9033,19 @@ function openAddProductModal() {
   if (discountedEl) discountedEl.value = '';
   const newDriveEl = document.getElementById('new-game-drive-link');
   if (newDriveEl) newDriveEl.value = '';
+
+  // Reset Marketplace Fields
+  const mpCheck = document.getElementById('new-game-has-marketplace');
+  if (mpCheck) mpCheck.checked = false;
+  const mpFields = document.getElementById('new-game-marketplace-fields');
+  if (mpFields) mpFields.classList.add('hidden');
+  const shopeeIn = document.getElementById('new-game-mp-shopee');
+  if (shopeeIn) shopeeIn.value = '';
+  const tokpedIn = document.getElementById('new-game-mp-tokopedia');
+  if (tokpedIn) tokpedIn.value = '';
+  const tiktokIn = document.getElementById('new-game-mp-tiktok');
+  if (tiktokIn) tiktokIn.value = '';
+
   document.getElementById('new-game-poster').value = '';
   const newBackdropEl = document.getElementById('new-game-backdrop');
   if (newBackdropEl) newBackdropEl.value = '';
@@ -8990,6 +9217,20 @@ function submitNewProduct() {
 
   const driveLink = document.getElementById('new-game-drive-link') ? document.getElementById('new-game-drive-link').value.trim() : '';
   const cusa = document.getElementById('new-game-cusa') ? document.getElementById('new-game-cusa').value.trim().toUpperCase() : '';
+
+  // Product-Level Marketplace Links (Optional)
+  const hasMarketplace = document.getElementById('new-game-has-marketplace')?.checked;
+  const mpShopee = document.getElementById('new-game-mp-shopee')?.value.trim();
+  const mpTokped = document.getElementById('new-game-mp-tokopedia')?.value.trim();
+  const mpTiktok = document.getElementById('new-game-mp-tiktok')?.value.trim();
+  let productMarketplaces = null;
+  if (hasMarketplace && (mpShopee || mpTokped || mpTiktok)) {
+    productMarketplaces = {};
+    if (mpShopee) productMarketplaces.shopee = mpShopee;
+    if (mpTokped) productMarketplaces.tokopedia = mpTokped;
+    if (mpTiktok) productMarketplaces.tiktok = mpTiktok;
+  }
+
   const posterUrl = document.getElementById('new-game-poster').value.trim();
   const backdropUrl = document.getElementById('new-game-backdrop') ? document.getElementById('new-game-backdrop').value.trim() : '';
   const desc = document.getElementById('new-game-desc').value.trim();
@@ -9027,6 +9268,7 @@ function submitNewProduct() {
       'Dukungan Update Patch Resmi',
       'Garansi Anti-Revoke Selamanya'
     ],
+    marketplaces: productMarketplaces,
     inStock: true
   };
 
@@ -9092,6 +9334,25 @@ function openEditProductModal(productId) {
 
   const editDriveEl = document.getElementById('edit-game-drive-link');
   if (editDriveEl) editDriveEl.value = p.driveLink || '';
+
+  // Populate Marketplace Settings
+  const editMpCheck = document.getElementById('edit-game-has-marketplace');
+  const editMpFields = document.getElementById('edit-game-marketplace-fields');
+  const editShopee = document.getElementById('edit-game-mp-shopee');
+  const editTokped = document.getElementById('edit-game-mp-tokopedia');
+  const editTiktok = document.getElementById('edit-game-mp-tiktok');
+  const pMp = p.marketplaces || {};
+  const hasAnyMp = !!(pMp.shopee || pMp.tokopedia || pMp.tiktok);
+
+  if (editMpCheck) editMpCheck.checked = hasAnyMp;
+  if (editMpFields) {
+    if (hasAnyMp) editMpFields.classList.remove('hidden');
+    else editMpFields.classList.add('hidden');
+  }
+  if (editShopee) editShopee.value = pMp.shopee || '';
+  if (editTokped) editTokped.value = pMp.tokopedia || '';
+  if (editTiktok) editTiktok.value = pMp.tiktok || '';
+
   const posterVal = (p.images && (p.images.poster || p.images.cover)) || getProductPoster(p) || '';
   const backdropVal = (p.images && p.images.backdrop) || getProductBackdrop(p) || '';
   document.getElementById('edit-game-poster').value = posterVal;
@@ -9145,6 +9406,22 @@ function submitEditProduct() {
 
   const editDriveEl = document.getElementById('edit-game-drive-link');
   if (editDriveEl) p.driveLink = editDriveEl.value.trim();
+
+  // Save Product-Level Marketplaces
+  const editHasMp = document.getElementById('edit-game-has-marketplace')?.checked;
+  const editShopee = document.getElementById('edit-game-mp-shopee')?.value.trim();
+  const editTokped = document.getElementById('edit-game-mp-tokopedia')?.value.trim();
+  const editTiktok = document.getElementById('edit-game-mp-tiktok')?.value.trim();
+
+  if (editHasMp && (editShopee || editTokped || editTiktok)) {
+    p.marketplaces = {};
+    if (editShopee) p.marketplaces.shopee = editShopee;
+    if (editTokped) p.marketplaces.tokopedia = editTokped;
+    if (editTiktok) p.marketplaces.tiktok = editTiktok;
+  } else {
+    delete p.marketplaces;
+  }
+
   const poster = document.getElementById('edit-game-poster').value.trim();
   const backdrop = document.getElementById('edit-game-backdrop') ? document.getElementById('edit-game-backdrop').value.trim() : '';
   if (!p.images) p.images = {};
