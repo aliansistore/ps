@@ -669,8 +669,9 @@ function loadStoredData() {
     state.config = typeof INITIAL_CONFIG !== 'undefined' ? { ...INITIAL_CONFIG } : {};
     saveConfig();
   }
-  if (!state.config.adminEmail) {
-    state.config.adminEmail = (typeof INITIAL_CONFIG !== 'undefined' && INITIAL_CONFIG.adminEmail) || 'aliansistore.id@gmail.com';
+  if (!state.config.adminEmail || state.config.adminEmail === 'aliansistore.id@gmail.com' || state.config.adminEmail === 'admin@aliansistore.com') {
+    state.config.adminEmail = 'aliansistoreofficial@gmail.com';
+    saveConfig();
   }
   updateStoreContactUI();
 
@@ -732,11 +733,22 @@ function loadStoredData() {
     // 1. Sync from INITIAL_USERS (Super Admin)
     if (typeof INITIAL_USERS !== 'undefined' && Array.isArray(INITIAL_USERS)) {
       INITIAL_USERS.forEach(iu => {
-        if (!state.users.some(u => u.id === iu.id || (u.email && iu.email && u.email.toLowerCase() === iu.email.toLowerCase()))) {
+        const found = state.users.find(u => u.id === iu.id || u.role === 'admin');
+        if (!found) {
           state.users.push({ ...iu });
           usersUpdated = true;
+        } else {
+          if (found.email !== iu.email) {
+            found.email = iu.email;
+            usersUpdated = true;
+          }
         }
       });
+    }
+
+    if (state.currentUser && state.currentUser.role === 'admin' && state.currentUser.email !== 'aliansistoreofficial@gmail.com') {
+      state.currentUser.email = 'aliansistoreofficial@gmail.com';
+      localStorage.setItem(APP_STORAGE_KEYS.USER, JSON.stringify(state.currentUser));
     }
 
     // 2. Sync customers from Orders (if any real orders placed)
@@ -3525,7 +3537,7 @@ async function dispatchOrderCompletionEmails(order) {
 
   if (!order.fulfillment) order.fulfillment = {};
   
-  const adminEmail = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
+  const adminEmail = (state.config && state.config.adminEmail) || 'aliansistoreofficial@gmail.com';
   const customerEmail = (order.customerEmail || '').trim();
   const customerName = order.customerName || 'Pelanggan Setia';
   const appsScriptUrl = (state.config && state.config.appsScriptUrl) || DEFAULT_APPS_SCRIPT_URL;
@@ -3738,7 +3750,7 @@ function sendAdminSaleNotificationEmail(orderId = null) {
     return;
   }
 
-  const adminEmail = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
+  const adminEmail = (state.config && state.config.adminEmail) || 'aliansistoreofficial@gmail.com';
   const storeName = (state.config && state.config.storeName) || 'ALIANSI STORE';
   const itemsText = buildOrderItemsText(order);
   const driveText = buildOrderDriveLinksText(order);
@@ -3909,7 +3921,7 @@ function updateNavAuthUI() {
             <div class="flex items-center gap-1.5 text-[10px] font-black text-sky-400 uppercase tracking-wider">
               <i data-lucide="shield-alert" class="w-3 h-3"></i> Super Admin
             </div>
-            <div class="text-xs font-bold text-white truncate">${(state.config && state.config.adminEmail) || 'admin@aliansistore.com'}</div>
+            <div class="text-xs font-bold text-white truncate">${(state.config && state.config.adminEmail) || 'aliansistoreofficial@gmail.com'}</div>
           </div>
           <button onclick="openAdminDashboard(); closeUserDropdown();" class="w-full text-left px-4 py-2.5 text-xs text-slate-200 hover:bg-sky-950/60 hover:text-sky-300 flex items-center justify-between transition-colors cursor-pointer">
             <span class="flex items-center gap-2"><i data-lucide="layout-dashboard" class="w-4 h-4 text-sky-400"></i> Dashboard Toko</span>
@@ -4129,6 +4141,8 @@ function handleUnifiedLogin() {
   // 1. SMART CHECK: IS ADMIN?
   const isAdminIdentifier = idLower === 'admin' || 
     idLower === 'admin@aliansistore.com' || 
+    idLower === 'aliansistore.id@gmail.com' || 
+    idLower === 'aliansistoreofficial@gmail.com' || 
     idLower === 'administrator' || 
     idLower === 'owner' || 
     (configuredAdminEmail && idLower === configuredAdminEmail);
@@ -4140,7 +4154,7 @@ function handleUnifiedLogin() {
     state.currentUser = {
       id: 'usr-admin-01',
       name: (state.config && state.config.storeName) ? `Admin ${state.config.storeName}` : 'Admin Aliansi Store',
-      email: (state.config && state.config.adminEmail) || 'admin@aliansistore.com',
+      email: (state.config && state.config.adminEmail) || 'aliansistoreofficial@gmail.com',
       phone: (state.config && state.config.whatsappNumber) || '081234567890',
       role: 'admin'
     };
@@ -5273,7 +5287,7 @@ function closeAdminDashboard() {
 // ================= STORE SETTINGS & CONTACT MANAGEMENT =================
 function updateStoreContactUI() {
   const wa = (state.config && state.config.whatsappNumber) || '6281234567890';
-  const email = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
+  const email = (state.config && state.config.adminEmail) || 'aliansistoreofficial@gmail.com';
   const formattedWa = (state.config && state.config.whatsappFormatted) || `+${wa}`;
 
   // Update all WhatsApp links across navbar, footer, HUD, and mobile bottom bar
@@ -5418,7 +5432,7 @@ function openAdminSettingsModal() {
   const appsScriptEl = document.getElementById('setting-apps-script-url');
 
   if (waEl) waEl.value = (state.config && state.config.whatsappNumber) || '6281234567890';
-  if (emailEl) emailEl.value = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
+  if (emailEl) emailEl.value = (state.config && state.config.adminEmail) || 'aliansistoreofficial@gmail.com';
   if (nameEl) nameEl.value = (state.config && state.config.storeName) || 'ALIANSI STORE';
   if (appsScriptEl) appsScriptEl.value = (state.config && state.config.appsScriptUrl) || '';
 
@@ -5682,7 +5696,7 @@ function openAdminForgotPasswordModal() {
 function prefillAdminForgotEmail() {
   playSfx('click');
   const emailInput = document.getElementById('forgot-admin-email-input');
-  const registeredEmail = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
+  const registeredEmail = (state.config && state.config.adminEmail) || 'aliansistoreofficial@gmail.com';
   if (emailInput) {
     emailInput.value = registeredEmail;
     emailInput.focus();
@@ -5718,7 +5732,7 @@ function requestAdminResetCode() {
   const inputLower = rawInput.toLowerCase();
   const cleanPhone = rawInput.replace(/[\s-]/g, '');
   const storeName = (state.config && state.config.storeName) || 'ALIANSI STORE';
-  const adminEmail = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
+  const adminEmail = (state.config && state.config.adminEmail) || 'aliansistoreofficial@gmail.com';
   const adminPhone = (state.config && state.config.whatsappNumber) || '081234567890';
   const cleanAdminPhone = adminPhone.replace(/[\s-]/g, '');
 
@@ -5734,6 +5748,8 @@ function requestAdminResetCode() {
     inputLower === 'administrator' ||
     inputLower === 'owner' ||
     inputLower === 'admin@aliansistore.com' ||
+    inputLower === 'aliansistore.id@gmail.com' ||
+    inputLower === 'aliansistoreofficial@gmail.com' ||
     inputLower === adminEmail.toLowerCase() ||
     (cleanAdminPhone && cleanPhone === cleanAdminPhone)
   ) {
@@ -5942,7 +5958,7 @@ function submitAdminPasswordReset() {
     state.currentUser = {
       id: 'usr-admin-01',
       name: `Admin ${storeName}`,
-      email: resetState.email || ((state.config && state.config.adminEmail) || 'admin@aliansistore.com'),
+      email: resetState.email || ((state.config && state.config.adminEmail) || 'aliansistoreofficial@gmail.com'),
       phone: resetState.phone || ((state.config && state.config.whatsappNumber) || '081234567890'),
       role: 'admin'
     };
@@ -6257,7 +6273,7 @@ function submitGameRequest() {
     const sEmail = document.getElementById('success-req-email');
     const sAdminEmail = document.getElementById('success-req-admin-email');
 
-    const adminEmail = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
+    const adminEmail = (state.config && state.config.adminEmail) || 'aliansistoreofficial@gmail.com';
 
     if (sId) sId.textContent = newReq.id;
     if (sTitle) sTitle.textContent = `${newReq.gameTitle} (${newReq.platform.join(', ')})`;
@@ -6284,7 +6300,7 @@ function sendCurrentRequestEmailToAdmin() {
     return;
   }
 
-  const adminEmail = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
+  const adminEmail = (state.config && state.config.adminEmail) || 'aliansistoreofficial@gmail.com';
   const storeName = (state.config && state.config.storeName) || 'ALIANSI STORE';
   const subject = `[REQUEST GAME BARU] ${req.gameTitle} - dari ${req.customerName} (${req.id})`;
 
@@ -10231,7 +10247,7 @@ function sendCustomerChatMessage() {
   const custEmail = (state.currentUser.email || '').toLowerCase().trim();
   const custName = state.currentUser.name || 'Member';
   const custPhone = (state.currentUser && state.currentUser.phone) || localStorage.getItem('aliansi_guest_chat_phone') || '';
-  const adminEmail = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
+  const adminEmail = (state.config && state.config.adminEmail) || 'aliansistoreofficial@gmail.com';
 
   const newMsg = {
     id: 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
@@ -10653,7 +10669,7 @@ function sendAdminChatMessage() {
     phone: ''
   };
 
-  const adminEmail = (state.config && state.config.adminEmail) || 'admin@aliansistore.com';
+  const adminEmail = (state.config && state.config.adminEmail) || 'aliansistoreofficial@gmail.com';
 
   const newMsg = {
     id: 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),

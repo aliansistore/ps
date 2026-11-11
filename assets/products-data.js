@@ -620,7 +620,7 @@ const INITIAL_USERS = [
     identifier: "admin",
     name: "Admin Aliansi Store",
     phone: "081234567890",
-    email: "admin@aliansistore.com",
+    email: "aliansistoreofficial@gmail.com",
     pin: "1234",
     role: "admin",
     roleLabel: "Super Admin Toko",
@@ -634,7 +634,7 @@ const INITIAL_CONFIG = {
   tagline: "Spesialis Game PS4 HEN, Game Subtitle Indonesia & File PKG Google Drive Terpercaya",
   whatsappNumber: "6281234567890",
   whatsappFormatted: "+62 812-3456-7890",
-  adminEmail: "aliansistore.id@gmail.com",
+  adminEmail: "aliansistoreofficial@gmail.com",
   adminPin: "1234",
   appsScriptUrl: "https://script.google.com/macros/s/AKfycbzRbjQSYGQ6Z3BRrjAT-dGYtT_XhV9N9uXm2NXPJtLRF2ZH0SOcK34VBPsWcuNrrJ1uGw/exec",
   bankAccounts: [

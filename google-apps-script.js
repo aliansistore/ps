@@ -80,7 +80,7 @@ function extractDriveFolderId(urlOrId) {
 function doGet(e) {
   var action = (e && e.parameter && e.parameter.action) || "";
   if (action === "test") {
-    var to = (e && e.parameter && e.parameter.to) || "aliansistore.id@gmail.com";
+    var to = (e && e.parameter && e.parameter.to) || "aliansistoreofficial@gmail.com";
     try {
       GmailApp.sendEmail(to, "[ALIANSI STORE] Tes Integrasi Google Apps Script Webhook Berhasil!", 
         "Halo! Integrasi Webhook Google Apps Script ALIANSI STORE berhasil berjalan dengan baik. Layanan siap mengirimkan bukti transaksi dan laporan penjualan otomatis.");
@@ -135,7 +135,7 @@ function doPost(e) {
       var ord = params.order || params;
       var cEmail = (ord.customerEmail || ord.customer_email || params.customerEmail || "").trim();
       var cName = ord.customerName || ord.customer_name || params.customerName || "Pelanggan Setia";
-      var aEmail = (params.adminEmail || ord.adminEmail || "aliansistore.id@gmail.com").trim();
+      var aEmail = (params.adminEmail || ord.adminEmail || "aliansistoreofficial@gmail.com").trim();
       
       var items = Array.isArray(ord.items) ? ord.items : [];
       var sharedLinks = [];
@@ -204,7 +204,7 @@ function doPost(e) {
     // B. Uji Coba Pengiriman Email Tes Langsung dari Admin Settings
     // ------------------------------------------------------------------------
     if (action === "test_email") {
-      var testTo = params.to || params.adminEmail || "aliansistore.id@gmail.com";
+      var testTo = params.to || params.adminEmail || "aliansistoreofficial@gmail.com";
       GmailApp.sendEmail(testTo, "[ALIANSI STORE] Integrasi Otomasi Email Berhasil!", 
         "Halo Admin!\n\nWebhook Google Apps Script untuk ALIANSI STORE telah aktif dan siap digunakan.\n\nSetiap transaksi lunas kini akan otomatis mengirimkan faktur resmi ke pembeli dan salinan laporan penjualan ke admin toko.\n\nSalam,\nTim ALIANSI STORE");
       return ContentService.createTextOutput(JSON.stringify({
@@ -286,7 +286,7 @@ function doPost(e) {
         
         // 5. Kirim Email Konfirmasi Resmi ke Pembeli & Laporan ke Admin
         sendCustomerReceiptEmail(customerEmail, customerName, order, sharedLinksDuitku);
-        sendAdminSaleNotification("aliansistore.id@gmail.com", order);
+        sendAdminSaleNotification("aliansistoreofficial@gmail.com", order);
       }
       
       // 6. Update Status Pesanan di Supabase menjadi PAID & COMPLETED
