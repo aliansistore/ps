@@ -758,3 +758,55 @@ const INITIAL_REVIEWS = [
     createdAt: "2026-11-03T10:15:00.000Z"
   }
 ];
+
+// Initial Frequently Asked Questions (FAQ)
+const INITIAL_FAQS = [
+  {
+    id: "faq-01",
+    category: "Pemesanan & Drive",
+    question: "Bagaimana cara menerima file game setelah pembayaran berhasil?",
+    answer: "Link Google Drive dedicated otomatis dikirimkan ke alamat email Gmail Anda dalam hitungan detik setelah pembayaran QRIS atau Transfer Bank terverifikasi sistem. Selain itu, tautan download dan panduan instalasi juga langsung terbuka di layar faktur resmi Anda.",
+    order: 1,
+    isActive: true
+  },
+  {
+    id: "faq-02",
+    category: "Kompatibilitas",
+    question: "Apakah seluruh game di katalog kompatibel dengan konsol PS4 HEN saya?",
+    answer: "Ya, 100% kompatibel! Seluruh koleksi game kami mendukung PS4 HEN dengan firmware 5.05, 6.72, 7.55, 9.00, hingga 11.00. Game disediakan dalam format file .PKG resmi yang siap dipasang langsung melalui menu Package Installer di konsol Anda.",
+    order: 2,
+    isActive: true
+  },
+  {
+    id: "faq-03",
+    category: "Kualitas Game",
+    question: "Apakah game Subtitle Indonesia ini aman dan tidak mudah crash?",
+    answer: "Sangat aman dan teruji. Seluruh game Subtitle Indonesia kami telah melewati pengujian menyeluruh di konsol PS4 Fat, Slim, dan Pro hingga tamat tanpa kendala crash. Terjemahan bahasa Indonesia dikerjakan dengan rapi, mencakup seluruh dialog percakapan cerita, menu, dan misi sampingan.",
+    order: 3,
+    isActive: true
+  },
+  {
+    id: "faq-04",
+    category: "Google Drive",
+    question: "Bagaimana jika kuota download Google Drive limit atau tautan membutuhkan refresh?",
+    answer: "Anda tidak perlu khawatir! Server Google Drive kami menggunakan penyimpanan cloud berkecepatan tinggi dengan akses permanen. Jika sewaktu-waktu tautan membutuhkan pembaruan, tombol 'Kirim Ulang Link' otomatis tersedia di invoice atau Anda dapat menghubungi CS WhatsApp kami untuk bantuan kilat.",
+    order: 4,
+    isActive: true
+  },
+  {
+    id: "faq-05",
+    category: "Instalasi",
+    question: "Bagaimana langkah mudah memasang file PKG ke dalam PS4 HEN?",
+    answer: "Cukup 3 langkah praktis:\n1. Download file game dari Google Drive ke flashdisk atau HDD eksternal berformat exFAT.\n2. Tancapkan ke port USB PS4, lalu buka menu GoldHEN > Package Installer.\n3. Klik pasang (install) file game dan update patch secara berurutan. Panduan lengkap juga terlampir di invoice pembelian.",
+    order: 5,
+    isActive: true
+  },
+  {
+    id: "faq-06",
+    category: "Garansi & Bantuan",
+    question: "Apakah tersedia garansi file dan bantuan jika saya masih pemula?",
+    answer: "Tentu saja! Kami memberikan Garansi File Anti-Korup 100%. Jika ada part yang gagal diekstrak karena kendala internet Anda, tim Customer Support kami siap memberikan tautan part cadangan dan memandu proses instalasi langkah demi langkah via WhatsApp.",
+    order: 6,
+    isActive: true
+  }
+];

@@ -262,15 +262,53 @@ html:not(.dark) .matrix-card ul li span,
 html:not(.dark) .matrix-card-featured ul li span {
   color: #334155 !important;
 }
-html:not(.dark) .matrix-card button.bg-slate-800 {
+html:not(.dark) .matrix-card button.bg-slate-800,
+html:not(.dark) .matrix-card .btn-coming-soon,
+html:not(.dark) .btn-coming-soon {
   background-color: #f1f5f9 !important;
-  border-color: #cbd5e1 !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+html:not(.dark) .matrix-card .btn-coming-soon span,
+html:not(.dark) .btn-coming-soon span {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+}
+html:not(.dark) .matrix-card .btn-coming-soon:hover,
+html:not(.dark) .btn-coming-soon:hover {
+  background-color: #e2e8f0 !important;
+  border-color: #94a3b8 !important;
   color: #0f172a !important;
 }
 html:not(.dark) .matrix-card button.bg-purple-900\/60 {
   background-color: #f5f3ff !important;
   border-color: #ddd6fe !important;
   color: #6d28d9 !important;
+}
+
+/* Spotlight Badges & Thumbnails in Light Mode */
+html:not(.dark) .spotlight-thumb h4 {
+  color: #0f172a !important;
+}
+html:not(.dark) .spotlight-badge {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+  font-weight: 800 !important;
+}
+html:not(.dark) .spotlight-thumb.active .spotlight-badge,
+html:not(.dark) .spotlight-badge.bg-sky-500 {
+  background-color: #0062ff !important;
+  color: #ffffff !important;
+  border-color: #0062ff !important;
+}
+html:not(.dark) .spotlight-thumb span.line-through {
+  color: #64748b !important;
+  text-decoration-color: #ef4444 !important;
+}
+html:not(.dark) .spotlight-thumb .text-slate-500 {
+  color: #64748b !important;
 }
 
 /* Product Catalog Cards in Light Mode */
@@ -703,18 +741,71 @@ html:not(.dark) footer button.bg-slate-900:hover {
   color: #0062ff !important;
   border-color: #0070d1 !important;
 }
-html:not(.dark) footer a.bg-emerald-950 {
+html:not(.dark) footer a.bg-emerald-950,
+html:not(.dark) a.wa-contact-link,
+html:not(.dark) .wa-contact-link {
   background-color: #ecfdf5 !important;
   border-color: #a7f3d0 !important;
   color: #059669 !important;
 }
-html:not(.dark) footer a.bg-emerald-950:hover {
+html:not(.dark) footer a.bg-emerald-950:hover,
+html:not(.dark) a.wa-contact-link:hover,
+html:not(.dark) .wa-contact-link:hover {
   background-color: #d1fae5 !important;
+  color: #047857 !important;
+}
+html:not(.dark) a.store-admin-email-link,
+html:not(.dark) .store-admin-email-link {
+  background-color: #f0f9ff !important;
+  border: 1px solid #bae6fd !important;
+  color: #0284c7 !important;
+}
+html:not(.dark) a.store-admin-email-link:hover,
+html:not(.dark) .store-admin-email-link:hover {
+  background-color: #e0f2fe !important;
+  border-color: #7dd3fc !important;
+  color: #0070d1 !important;
+}
+html:not(.dark) a.store-admin-email-link span,
+html:not(.dark) a.store-admin-email-link i,
+html:not(.dark) .store-admin-email-link span,
+html:not(.dark) .store-admin-email-link i {
+  color: #0284c7 !important;
 }
 html:not(.dark) footer span.bg-slate-900 {
   background-color: #f8fafc !important;
   border-color: #cbd5e1 !important;
   color: #334155 !important;
+}
+
+/* Banner Request Game in Light & Dark Mode */
+html:not(.dark) #banner-request-game {
+  background: linear-gradient(135deg, #f5f3ff 0%, #ffffff 50%, #f0f9ff 100%) !important;
+  border: 1.5px solid #d8b4fe !important;
+  box-shadow: 0 10px 30px rgba(147, 51, 234, 0.08) !important;
+}
+html:not(.dark) #banner-request-game h3 {
+  color: #0f172a !important;
+}
+html:not(.dark) #banner-request-game p {
+  color: #334155 !important;
+}
+html:not(.dark) #banner-request-game strong {
+  color: #0f172a !important;
+}
+html:not(.dark) #banner-request-game .inline-flex {
+  background-color: #ede9fe !important;
+  color: #6b21a8 !important;
+  border: 1px solid #c084fc !important;
+}
+html.dark #banner-request-game h3 {
+  color: #ffffff !important;
+}
+html.dark #banner-request-game p {
+  color: #cbd5e1 !important;
+}
+html.dark #banner-request-game strong {
+  color: #ffffff !important;
 }
 
 /* Invoice Fulfillment Credentials in Light Mode */

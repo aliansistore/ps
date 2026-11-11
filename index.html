@@ -46,7 +46,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <!-- Custom Next-Gen Stylesheet (with cache buster query) -->
-  <link rel="stylesheet" href="assets/style.css?v=20261109_syntax_and_pricing_v2" />
+  <link rel="stylesheet" href="assets/style.css?v=20261111_high_contrast_faq_v3" />
 
   <!-- Critical Inline Styles to Guarantee Immediate High-Contrast Rendering (Dark & Light Mode) -->
   <style>
@@ -272,17 +272,19 @@
     }
     html:not(.dark) .spotlight-badge {
       background-color: #e2e8f0 !important;
-      color: #334155 !important;
+      color: #0f172a !important;
       border: 1px solid #cbd5e1 !important;
+      font-weight: 800 !important;
     }
     html:not(.dark) .spotlight-thumb.active .spotlight-badge,
     html:not(.dark) .spotlight-badge.bg-sky-500 {
-      background-color: #0070d1 !important;
+      background-color: #0062ff !important;
       color: #ffffff !important;
-      border-color: #0070d1 !important;
+      border-color: #0062ff !important;
     }
     html:not(.dark) .spotlight-thumb span.line-through {
-      color: #94a3b8 !important;
+      color: #64748b !important;
+      text-decoration-color: #ef4444 !important;
     }
     html:not(.dark) .spotlight-thumb .text-slate-500 {
       color: #64748b !important;
@@ -330,7 +332,6 @@
     html:not(.dark) .matrix-card .btn-coming-soon,
     html:not(.dark) .matrix-card button:not(.cyber-button),
     html:not(.dark) .matrix-card button.bg-slate-800,
-    html:not(.dark) .matrix-card button.bg-slate-900\/90,
     html:not(.dark) .btn-coming-soon {
       background-color: #f1f5f9 !important;
       border: 1.5px solid #cbd5e1 !important;
@@ -348,6 +349,7 @@
     html:not(.dark) .btn-coming-soon:hover {
       background-color: #e2e8f0 !important;
       border-color: #94a3b8 !important;
+      color: #0f172a !important;
     }
     html:not(.dark) .matrix-card .text-amber-400,
     html:not(.dark) .matrix-card .text-amber-400\/70 {
@@ -1125,7 +1127,7 @@
       color: #0284c7 !important;
     }
 
-    /* Banner Request Game in Light Mode */
+    /* Banner Request Game in Light & Dark Mode */
     html:not(.dark) #banner-request-game {
       background: linear-gradient(135deg, #f5f3ff 0%, #ffffff 50%, #f0f9ff 100%) !important;
       border: 1.5px solid #d8b4fe !important;
@@ -1140,8 +1142,7 @@
     html:not(.dark) #banner-request-game strong {
       color: #0f172a !important;
     }
-    html:not(.dark) #banner-request-game .bg-purple-100,
-    html:not(.dark) #banner-request-game .bg-purple-500\/20 {
+    html:not(.dark) #banner-request-game .inline-flex {
       background-color: #ede9fe !important;
       color: #6b21a8 !important;
       border-color: #c084fc !important;
@@ -1154,6 +1155,15 @@
     }
     html:not(.dark) #banner-request-game button.force-white,
     html:not(.dark) #banner-request-game button.force-white * {
+      color: #ffffff !important;
+    }
+    html.dark #banner-request-game h3 {
+      color: #ffffff !important;
+    }
+    html.dark #banner-request-game p {
+      color: #cbd5e1 !important;
+    }
+    html.dark #banner-request-game strong {
       color: #ffffff !important;
     }
 
@@ -1199,6 +1209,29 @@
       background: linear-gradient(135deg, #fffbeb 0%, #ffffff 50%, #fff7ed 100%) !important;
       border-color: #fcd34d !important;
       box-shadow: 0 4px 15px rgba(245, 158, 11, 0.08) !important;
+    }
+
+    /* FAQ Section in Light Mode */
+    html:not(.dark) #faq {
+      border-top-color: #e2e8f0 !important;
+    }
+    html:not(.dark) .faq-item {
+      background-color: #ffffff !important;
+      border: 1px solid #e2e8f0 !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+    }
+    html:not(.dark) .faq-item:hover {
+      border-color: #0284c7 !important;
+      box-shadow: 0 4px 16px rgba(2, 132, 199, 0.08) !important;
+    }
+    html:not(.dark) .faq-question {
+      color: #0f172a !important;
+    }
+    html:not(.dark) .faq-item [id^="faq-answer-"] {
+      border-top-color: #f1f5f9 !important;
+    }
+    html:not(.dark) .faq-item [id^="faq-answer-"] div {
+      color: #334155 !important;
     }
 
     /* Floating Gamepad HUD in Light Mode */
@@ -1334,21 +1367,22 @@
     html:not(.dark) footer a.wa-contact-link i {
       color: #059669 !important;
     }
-    html:not(.dark) footer a.store-admin-email-link,
-    html:not(.dark) footer .store-admin-email-link,
-    html:not(.dark) footer a.bg-sky-950\/70,
-    html:not(.dark) footer a.bg-sky-950 {
+    html:not(.dark) a.store-admin-email-link,
+    html:not(.dark) .store-admin-email-link {
       background-color: #f0f9ff !important;
-      border-color: #bae6fd !important;
+      border: 1px solid #bae6fd !important;
       color: #0284c7 !important;
     }
-    html:not(.dark) footer a.store-admin-email-link:hover,
-    html:not(.dark) footer a.bg-sky-950\/70:hover {
+    html:not(.dark) a.store-admin-email-link:hover,
+    html:not(.dark) .store-admin-email-link:hover {
       background-color: #e0f2fe !important;
+      border-color: #7dd3fc !important;
       color: #0070d1 !important;
     }
-    html:not(.dark) footer a.store-admin-email-link span,
-    html:not(.dark) footer a.store-admin-email-link i {
+    html:not(.dark) a.store-admin-email-link span,
+    html:not(.dark) a.store-admin-email-link i,
+    html:not(.dark) .store-admin-email-link span,
+    html:not(.dark) .store-admin-email-link i {
       color: #0284c7 !important;
     }
     html:not(.dark) footer span.bg-slate-900 {
@@ -2549,6 +2583,61 @@
         </div>
       </section>
 
+      <!-- ================= FAQ / PUSAT BANTUAN TANYA JAWAB ================= -->
+      <section id="faq" class="mt-16 pt-8 border-t border-slate-200 dark:border-slate-800/80">
+        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-8">
+          <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black bg-sky-100 dark:bg-sky-950/80 text-sky-800 dark:text-sky-400 border border-sky-300 dark:border-sky-500/30 mb-2">
+              <i data-lucide="help-circle" class="w-3.5 h-3.5 text-sky-600 dark:text-sky-400"></i> PUSAT BANTUAN & INFORMASI
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-display tracking-tight">
+              Pertanyaan yang Sering Diajukan (FAQ)
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-xl">
+              Jawaban lengkap seputar cara pemesanan, pengiriman link Google Drive, kompatibilitas PS4 HEN, dan garansi game.
+            </p>
+          </div>
+
+          <!-- Quick Search inside FAQ -->
+          <div class="relative w-full sm:w-72">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+            <input 
+              type="text" 
+              id="faq-search-input" 
+              oninput="renderFaqList()" 
+              placeholder="Cari pertanyaan / kendala..." 
+              class="w-full pl-9 pr-4 py-2.5 text-xs rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-sky-500 transition-colors shadow-sm"
+            />
+          </div>
+        </div>
+
+        <!-- FAQ Accordion Container -->
+        <div id="faq-accordion-container" class="space-y-3 max-w-4xl mx-auto">
+          <!-- Populated by JavaScript renderFaqList() -->
+        </div>
+
+        <!-- FAQ Contact Footer Pill -->
+        <div class="mt-8 p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left max-w-4xl mx-auto">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center shrink-0 border border-emerald-500/30">
+              <i data-lucide="message-circle" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="font-bold text-slate-900 dark:text-white text-xs sm:text-sm">Pertanyaan kamu belum terjawab?</div>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">Tim Customer Support kami siap membantu 24/7 via WhatsApp atau Live Chat.</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0 justify-center">
+            <a href="https://wa.me/6281234567890" target="_blank" class="wa-contact-link px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md transition-all force-white">
+              <i data-lucide="message-square" class="w-4 h-4"></i> Tanya CS WhatsApp
+            </a>
+            <button onclick="toggleCustomerLiveChat()" class="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md transition-all force-white">
+              <i data-lucide="message-circle" class="w-4 h-4"></i> Live Chat
+            </button>
+          </div>
+        </div>
+      </section>
+
       <!-- Request Game Callout Banner -->
       <div id="banner-request-game" class="mt-12 p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-purple-50 via-white to-sky-50 dark:from-[#0c132c] dark:via-[#14143a] dark:to-[#0d1c3a] border border-purple-200 dark:border-purple-500/30 relative overflow-hidden shadow-xl dark:shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
         <div class="relative z-10 max-w-xl text-center md:text-left">
@@ -3006,6 +3095,30 @@
         </div>
       </section>
 
+      <!-- SEKSI MANAJEMEN FAQ / TANYA JAWAB -->
+      <section class="p-5 sm:p-6 rounded-2xl bg-[#081024] border border-slate-800 mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 pb-3 border-b border-slate-800">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20 shadow-sm">
+              <i data-lucide="help-circle" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-base font-bold text-white font-display">Manajemen FAQ & Pertanyaan Umum</h3>
+                <span id="admin-faq-count-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">6 FAQ</span>
+              </div>
+              <p class="text-xs text-slate-400">Atur daftar tanya jawab umum yang tampil di Beranda toko untuk membantu pembeli</p>
+            </div>
+          </div>
+          <button type="button" onclick="openAdminFaqModal()" class="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all cursor-pointer self-start sm:self-auto force-white">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i> Tambah FAQ Baru
+          </button>
+        </div>
+
+        <div id="admin-faq-list" class="space-y-3">
+          <!-- Populated by renderAdminFaqList() -->
+        </div>
+      </section>
 
     </div>
   </div>
@@ -5264,7 +5377,58 @@
     </div>
   </div>
 
-    <!-- MODAL: Admin Live Chat Dua Arah & Email Dispatch -->
+  <!-- MODAL: Tambah / Edit FAQ untuk Admin -->
+  <div id="modal-admin-faq" class="app-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+    <div class="bg-white dark:bg-[#070d1e] border border-amber-500/40 rounded-3xl p-6 sm:p-7 max-w-lg w-full max-h-[92vh] overflow-y-auto modal-custom-scroll shadow-2xl relative text-slate-900 dark:text-white" onclick="event.stopPropagation()">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-amber-500/15 text-amber-500 dark:text-amber-400 flex items-center justify-center border border-amber-500/30 shadow-sm">
+            <i data-lucide="help-circle" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 id="admin-faq-modal-title" class="text-base font-bold text-slate-900 dark:text-white font-display">Tambah FAQ Baru ke Beranda</h3>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400">Pertanyaan dan jawaban ini langsung tampil di Beranda toko</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeModals()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800/80 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form onsubmit="saveAdminFaq(event)" class="space-y-4 pt-4">
+        <!-- Kategori & Urutan -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Kategori FAQ *</label>
+            <input type="text" id="admin-faq-input-category" required placeholder="Contoh: Pemesanan & Drive" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-amber-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Nomor Urutan *</label>
+            <input type="number" id="admin-faq-input-order" required min="1" max="99" value="1" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-amber-500 font-mono" />
+          </div>
+        </div>
+
+        <!-- Pertanyaan -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Pertanyaan (Question) *</label>
+          <input type="text" id="admin-faq-input-question" required placeholder="Contoh: Bagaimana cara download file game dari Google Drive?" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-amber-500 font-semibold" />
+        </div>
+
+        <!-- Jawaban -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Jawaban Lengkap (Answer) *</label>
+          <textarea id="admin-faq-input-answer" required rows="4" placeholder="Tuliskan jawaban yang ramah, informatif, dan membantu pembeli..." class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-amber-500 leading-relaxed"></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 pt-2">
+          <button type="button" onclick="closeModals()" class="py-2.5 px-4 rounded-xl text-xs font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors cursor-pointer">Batal</button>
+          <button type="submit" class="py-2.5 px-4 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer force-white">
+            <i data-lucide="save" class="w-4 h-4"></i> Simpan FAQ
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
   <div id="modal-admin-live-chat" class="app-modal hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/80 backdrop-blur-md">
     <div class="bg-[#080f24] border border-slate-700 rounded-3xl max-w-4xl w-full h-[640px] max-h-[92vh] flex flex-col shadow-2xl relative text-white overflow-hidden" onclick="event.stopPropagation()">
       
@@ -5592,7 +5756,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261111_reviews_v1"></script>
-  <script src="assets/app.js?v=20261111_reviews_engine_v38"></script>
+  <script src="assets/products-data.js?v=20261111_reviews_faq_v3"></script>
+  <script src="assets/app.js?v=20261111_faq_engine_v39"></script>
 </body>
 </html>

@@ -13,7 +13,8 @@ const APP_STORAGE_KEYS = {
   USERS_DB: 'aliansi_store_users_v3',
   GAME_REQUESTS: 'aliansi_store_game_requests_v1',
   CHATS: 'aliansi_store_chats_v1',
-  REVIEWS: 'aliansi_store_reviews_v1'
+  REVIEWS: 'aliansi_store_reviews_v1',
+  FAQS: 'aliansi_store_faqs_v1'
 };
 
 // Global Safe HTML Escape Utility
@@ -172,7 +173,9 @@ const state = {
   reviews: [],
   activeReviewFilter: 'all',
   reviewRatingInput: 5,
-  activeReviewOrderId: null
+  activeReviewOrderId: null,
+  faqs: [],
+  openFaqId: null
 };
 
 // ================= SUPABASE CLOUD DATABASE ADAPTER =================
@@ -447,6 +450,7 @@ function initApp() {
   updateCartBadge();
   initSocialProofStream();
   renderTestimonials();
+  renderFaqList();
   updateNavAuthUI();
   updateStoreContactUI();
   lucide.createIcons();
@@ -758,6 +762,26 @@ function loadStoredData() {
     state.reviews = typeof INITIAL_REVIEWS !== 'undefined' ? [...INITIAL_REVIEWS] : [];
     saveReviews();
   }
+
+  // Frequently Asked Questions (FAQ)
+  const storedFaqs = localStorage.getItem(APP_STORAGE_KEYS.FAQS);
+  if (storedFaqs) {
+    try {
+      const parsedFaqs = JSON.parse(storedFaqs);
+      state.faqs = Array.isArray(parsedFaqs) && parsedFaqs.length > 0 ? parsedFaqs : (typeof INITIAL_FAQS !== 'undefined' ? [...INITIAL_FAQS] : []);
+    } catch (e) {
+      state.faqs = typeof INITIAL_FAQS !== 'undefined' ? [...INITIAL_FAQS] : [];
+    }
+  } else {
+    state.faqs = typeof INITIAL_FAQS !== 'undefined' ? [...INITIAL_FAQS] : [];
+    saveFaqs();
+  }
+}
+
+function saveFaqs() {
+  try {
+    localStorage.setItem(APP_STORAGE_KEYS.FAQS, JSON.stringify(state.faqs));
+  } catch (e) {}
 }
 
 function saveReviews() {
@@ -1354,7 +1378,7 @@ function renderSpotlightThumbnails(games) {
 
       <div class="flex-1 min-w-0">
         <div class="flex items-center justify-between gap-1 mb-0.5">
-          <span class="spotlight-badge text-[9px] px-1.5 py-0.5 rounded-full font-bold ${idx === 0 ? 'bg-sky-500 text-white' : 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-400'}">
+          <span class="spotlight-badge text-[9px] px-1.5 py-0.5 rounded-full font-extrabold ${idx === 0 ? 'bg-sky-500 text-white' : 'bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200'}">
             ${idx === 0 ? '★ SEDANG TAMPIL' : `#${idx + 1} PILIHAN`}
           </span>
           <div class="flex items-center gap-1 text-amber-400 text-[10px] font-bold">
@@ -1416,7 +1440,7 @@ function updateSpotlightDisplay(index) {
     } else {
       thumb.className = 'spotlight-thumb group w-full p-2 sm:p-2.5 rounded-2xl flex items-center gap-3 transition-all duration-300 text-left cursor-pointer border bg-slate-950/50 border-slate-800/80 hover:bg-slate-800/60 hover:border-slate-700';
       if (badge) {
-        badge.className = 'spotlight-badge text-[9px] px-1.5 py-0.5 rounded-full font-bold bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-400';
+        badge.className = 'spotlight-badge text-[9px] px-1.5 py-0.5 rounded-full font-extrabold bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200';
         badge.textContent = `#${idx + 1} PILIHAN`;
       }
     }
@@ -4978,6 +5002,7 @@ function openAdminDashboard() {
     renderAdminProductsTable();
     renderAdminRequestsTable();
     renderAdminCustomersTable();
+    renderAdminFaqList();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   lucide.createIcons();
@@ -10806,6 +10831,283 @@ function submitCustomerReview(event) {
     `;
     lucide.createIcons();
   }
+}
+
+
+// ==========================================================================
+// FAQ (FREQUENTLY ASKED QUESTIONS) ENGINE & ADMIN MANAGEMENT
+// ==========================================================================
+
+let activeFaqSearchQuery = '';
+
+function renderFaqList() {
+  const container = document.getElementById('faq-accordion-container');
+  if (!container) return;
+
+  const searchInput = document.getElementById('faq-search-input');
+  activeFaqSearchQuery = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+  let list = (state.faqs && state.faqs.length > 0)
+    ? state.faqs
+    : (typeof INITIAL_FAQS !== 'undefined' ? [...INITIAL_FAQS] : []);
+
+  // Filter active and matching search query
+  let filtered = list.filter(f => f.isActive !== false);
+
+  if (activeFaqSearchQuery) {
+    filtered = filtered.filter(f => 
+      (f.question || '').toLowerCase().includes(activeFaqSearchQuery) ||
+      (f.answer || '').toLowerCase().includes(activeFaqSearchQuery) ||
+      (f.category || '').toLowerCase().includes(activeFaqSearchQuery)
+    );
+  }
+
+  // Sort by order ascending
+  filtered.sort((a, b) => (Number(a.order) || 99) - (Number(b.order) || 99));
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="text-center py-10 px-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+        <i data-lucide="help-circle" class="w-8 h-8 text-slate-400 mx-auto mb-2 opacity-50"></i>
+        <div class="font-bold text-slate-700 dark:text-slate-300 text-xs sm:text-sm">Pertanyaan tidak ditemukan</div>
+        <p class="text-[11px] text-slate-500 mt-1 max-w-sm mx-auto">Coba gunakan kata kunci lain seperti "Google Drive", "PKG", "HEN", atau tanyakan langsung ke CS WhatsApp kami.</p>
+        <button type="button" onclick="document.getElementById('faq-search-input').value=''; renderFaqList();" class="mt-3 px-3 py-1.5 rounded-xl bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-400 text-xs font-bold hover:bg-sky-200 transition-colors">
+          Reset Pencarian FAQ
+        </button>
+      </div>
+    `;
+    lucide.createIcons();
+    return;
+  }
+
+  container.innerHTML = filtered.map((faq, index) => {
+    const isOpen = state.openFaqId === faq.id || (index === 0 && !activeFaqSearchQuery && state.openFaqId === null);
+    return `
+      <div class="faq-item rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 overflow-hidden transition-all duration-200 shadow-sm hover:border-sky-500/40">
+        <button 
+          type="button" 
+          onclick="toggleFaqAccordion('${faq.id}')" 
+          class="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 cursor-pointer focus:outline-none"
+          aria-expanded="${isOpen}"
+        >
+          <div class="flex items-center gap-3 min-w-0">
+            <span class="w-6 h-6 rounded-lg ${isOpen ? 'bg-sky-600 text-white' : 'bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-400'} text-xs font-black flex items-center justify-center shrink-0 border border-sky-300 dark:border-sky-500/30 transition-colors">
+              Q
+            </span>
+            <span class="faq-question font-bold text-slate-900 dark:text-white text-xs sm:text-sm leading-snug">
+              ${escapeHtml(faq.question)}
+            </span>
+          </div>
+          <div class="w-7 h-7 rounded-full ${isOpen ? 'bg-sky-600 text-white rotate-180' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'} flex items-center justify-center shrink-0 transition-all duration-300">
+            <i data-lucide="chevron-down" class="w-4 h-4"></i>
+          </div>
+        </button>
+        <div id="faq-answer-${faq.id}" class="${isOpen ? '' : 'hidden'} px-4 pb-4 sm:px-5 sm:pb-5 pt-0 border-t border-slate-100 dark:border-slate-800/80">
+          <div class="pt-3 text-xs sm:text-[13px] text-slate-600 dark:text-slate-300 leading-relaxed pl-9">
+            ${escapeHtml(faq.answer).replace(/\n/g, '<br/>')}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  lucide.createIcons();
+}
+
+function toggleFaqAccordion(faqId) {
+  playSfx('click');
+  if (state.openFaqId === faqId) {
+    state.openFaqId = ''; // Collapse
+  } else {
+    state.openFaqId = faqId; // Expand
+  }
+  renderFaqList();
+}
+
+// ---------------- Admin FAQ Management ----------------
+let currentEditingFaqId = null;
+
+function renderAdminFaqList() {
+  const container = document.getElementById('admin-faq-list');
+  const countBadge = document.getElementById('admin-faq-count-badge');
+  if (!container) return;
+
+  const faqs = (state.faqs && state.faqs.length > 0)
+    ? state.faqs
+    : (typeof INITIAL_FAQS !== 'undefined' ? [...INITIAL_FAQS] : []);
+
+  if (countBadge) {
+    countBadge.textContent = `${faqs.length} FAQ`;
+  }
+
+  if (faqs.length === 0) {
+    container.innerHTML = `
+      <div class="text-center py-8 text-xs text-slate-400">
+        <i data-lucide="help-circle" class="w-8 h-8 mx-auto mb-2 opacity-40"></i>
+        <div>Belum ada data FAQ. Klik tombol "Tambah FAQ Baru" untuk membuat tanya jawab baru.</div>
+      </div>
+    `;
+    lucide.createIcons();
+    return;
+  }
+
+  // Sort by order ascending
+  const sorted = [...faqs].sort((a, b) => (Number(a.order) || 99) - (Number(b.order) || 99));
+
+  container.innerHTML = sorted.map((faq, idx) => {
+    const isAct = faq.isActive !== false;
+    return `
+      <div class="p-4 rounded-xl bg-slate-900/70 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 mb-1 flex-wrap">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300">#${faq.order || (idx + 1)}</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-500/20 text-sky-400 border border-sky-500/30">${escapeHtml(faq.category || 'Umum')}</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isAct ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'}">
+              ${isAct ? 'TAMPIL DI BERANDA' : 'DISEMBUNYIKAN'}
+            </span>
+          </div>
+          <div class="font-bold text-white text-sm mb-1">${escapeHtml(faq.question)}</div>
+          <p class="text-slate-400 text-[11px] line-clamp-2 leading-relaxed">${escapeHtml(faq.answer)}</p>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
+          <button 
+            type="button" 
+            onclick="toggleAdminFaqStatus('${faq.id}')" 
+            class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold ${isAct ? 'bg-slate-800 text-slate-300 hover:text-amber-400' : 'bg-emerald-950 text-emerald-300'} border border-slate-700 transition-colors cursor-pointer"
+            title="${isAct ? 'Sembunyikan dari Beranda' : 'Aktifkan di Beranda'}"
+          >
+            <i data-lucide="${isAct ? 'eye-off' : 'eye'}" class="w-3.5 h-3.5"></i>
+          </button>
+          <button 
+            type="button" 
+            onclick="openAdminFaqModal('${faq.id}')" 
+            class="px-3 py-1.5 rounded-lg text-[11px] font-bold bg-sky-950/70 hover:bg-sky-900 text-sky-300 border border-sky-500/40 transition-colors flex items-center gap-1 cursor-pointer"
+          >
+            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Edit
+          </button>
+          <button 
+            type="button" 
+            onclick="deleteAdminFaq('${faq.id}')" 
+            class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/50 transition-colors cursor-pointer" 
+            title="Hapus FAQ"
+          >
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  lucide.createIcons();
+}
+
+function openAdminFaqModal(faqId = null) {
+  playSfx('click');
+  currentEditingFaqId = faqId;
+
+  const modal = document.getElementById('modal-admin-faq');
+  if (!modal) return;
+
+  const titleEl = document.getElementById('admin-faq-modal-title');
+  const qInput = document.getElementById('admin-faq-input-question');
+  const aInput = document.getElementById('admin-faq-input-answer');
+  const catInput = document.getElementById('admin-faq-input-category');
+  const orderInput = document.getElementById('admin-faq-input-order');
+
+  if (faqId) {
+    const list = state.faqs || [];
+    const item = list.find(f => f.id === faqId);
+    if (item) {
+      if (titleEl) titleEl.textContent = 'Edit Tanya Jawab (FAQ)';
+      if (qInput) qInput.value = item.question || '';
+      if (aInput) aInput.value = item.answer || '';
+      if (catInput) catInput.value = item.category || 'Umum';
+      if (orderInput) orderInput.value = item.order || 1;
+    }
+  } else {
+    if (titleEl) titleEl.textContent = 'Tambah FAQ Baru ke Beranda';
+    if (qInput) qInput.value = '';
+    if (aInput) aInput.value = '';
+    if (catInput) catInput.value = 'Umum';
+    if (orderInput) orderInput.value = (state.faqs.length + 1);
+  }
+
+  modal.classList.remove('hidden');
+  lucide.createIcons();
+}
+
+function saveAdminFaq(event) {
+  if (event) event.preventDefault();
+
+  const qInput = document.getElementById('admin-faq-input-question');
+  const aInput = document.getElementById('admin-faq-input-answer');
+  const catInput = document.getElementById('admin-faq-input-category');
+  const orderInput = document.getElementById('admin-faq-input-order');
+
+  const question = qInput ? qInput.value.trim() : '';
+  const answer = aInput ? aInput.value.trim() : '';
+  const category = catInput ? catInput.value.trim() : 'Umum';
+  const order = orderInput ? parseInt(orderInput.value) || 1 : 1;
+
+  if (!question || !answer) {
+    showToast('Pertanyaan dan jawaban wajib diisi!', 'error');
+    return;
+  }
+
+  if (!Array.isArray(state.faqs)) {
+    state.faqs = [];
+  }
+
+  if (currentEditingFaqId) {
+    const idx = state.faqs.findIndex(f => f.id === currentEditingFaqId);
+    if (idx !== -1) {
+      state.faqs[idx].question = question;
+      state.faqs[idx].answer = answer;
+      state.faqs[idx].category = category;
+      state.faqs[idx].order = order;
+    }
+    showToast('FAQ berhasil diperbarui!', 'success');
+  } else {
+    const newFaq = {
+      id: 'faq-' + Date.now(),
+      question: question,
+      answer: answer,
+      category: category,
+      order: order,
+      isActive: true
+    };
+    state.faqs.push(newFaq);
+    showToast('FAQ baru berhasil ditambahkan ke Beranda!', 'success');
+  }
+
+  saveFaqs();
+  closeModals();
+  playSfx('success');
+  renderAdminFaqList();
+  renderFaqList();
+}
+
+function toggleAdminFaqStatus(faqId) {
+  playSfx('click');
+  const item = (state.faqs || []).find(f => f.id === faqId);
+  if (!item) return;
+
+  item.isActive = item.isActive === false ? true : false;
+  saveFaqs();
+  renderAdminFaqList();
+  renderFaqList();
+  showToast(item.isActive ? 'FAQ diaktifkan di Beranda.' : 'FAQ disembunyikan dari Beranda.', 'info');
+}
+
+function deleteAdminFaq(faqId) {
+  if (!confirm('Apakah Anda yakin ingin menghapus pertanyaan FAQ ini?')) return;
+  playSfx('click');
+  state.faqs = (state.faqs || []).filter(f => f.id !== faqId);
+  saveFaqs();
+  renderAdminFaqList();
+  renderFaqList();
+  showToast('FAQ berhasil dihapus.', 'info');
 }
 
 
