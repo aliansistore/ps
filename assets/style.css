@@ -1031,10 +1031,13 @@ html:not(.dark) .logo-light-theme { display: inline-block !important; }
 
 .ticker-inner {
   display: inline-flex;
-  animation: tickerSlide 35s linear infinite;
+  animation: tickerSlide 160s linear infinite;
+  will-change: transform;
 }
-.ticker-wrapper:hover .ticker-inner {
+.ticker-wrapper:hover .ticker-inner,
+.ticker-inner:hover {
   animation-play-state: paused;
+  cursor: pointer;
 }
 
 @keyframes tickerSlide {

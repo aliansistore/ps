@@ -1640,8 +1640,6 @@ function updateSpotlightDisplay(index) {
 }
 
 // ================= SOCIAL PROOF PURCHASE STREAM (DYNAMIC & SMART) =================
-let socialProofIntervalTimer = null;
-
 function initSocialProofStream() {
   const tickerContainer = document.getElementById('live-social-ticker');
   if (!tickerContainer) return;
@@ -1771,33 +1769,30 @@ function initSocialProofStream() {
   tickerContainer.innerHTML = fullLoop.map(item => {
     if (item.isReal) {
       return `
-        <div class="ticker-item is-real-order inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/40 border border-emerald-500/50 text-xs text-slate-200 mr-4 shrink-0 shadow-sm shadow-emerald-500/20">
+        <div class="ticker-item is-real-order inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-emerald-950/40 border border-emerald-500/50 text-xs sm:text-[13px] text-slate-200 mr-5 shrink-0 shadow-sm shadow-emerald-500/20">
           <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-          <span class="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] font-black uppercase tracking-wider flex items-center gap-1">
-            <i data-lucide="badge-check" class="w-3 h-3 text-emerald-400"></i> REAL ORDER
+          <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] font-black uppercase tracking-wider flex items-center gap-1">
+            <i data-lucide="badge-check" class="w-3.5 h-3.5 text-emerald-400"></i> REAL ORDER
           </span>
-          <strong class="text-white">${escapeHtml(item.name)}</strong> (${escapeHtml(item.city)}) membeli <span class="text-sky-300 font-bold">${escapeHtml(item.game)}</span>
-          <span class="text-[10px] text-emerald-400 font-mono font-bold">${escapeHtml(item.time)}</span>
+          <strong class="text-white">${escapeHtml(item.name)}</strong> <span class="text-slate-400 font-normal">(${escapeHtml(item.city)})</span> membeli <span class="text-sky-300 font-bold">${escapeHtml(item.game)}</span>
+          <span class="text-[10px] sm:text-xs text-emerald-400 font-mono font-bold ml-1">${escapeHtml(item.time)}</span>
         </div>
       `;
     }
     return `
-      <div class="ticker-item inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/60 border border-slate-800/80 text-xs text-slate-300 mr-4 shrink-0">
+      <div class="ticker-item inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-slate-900/60 border border-slate-800/80 text-xs sm:text-[13px] text-slate-300 mr-5 shrink-0">
         <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-neon"></span>
-        <strong class="text-white">${escapeHtml(item.name)}</strong> (${escapeHtml(item.city)}) membeli <span class="text-sky-300 font-semibold">${escapeHtml(item.game)}</span>
-        <span class="text-[10px] text-slate-500 font-mono">${escapeHtml(item.time)}</span>
+        <strong class="text-white">${escapeHtml(item.name)}</strong> <span class="text-slate-400 font-normal">(${escapeHtml(item.city)})</span> membeli <span class="text-sky-300 font-semibold">${escapeHtml(item.game)}</span>
+        <span class="text-[10px] sm:text-xs text-slate-500 font-mono ml-1">${escapeHtml(item.time)}</span>
       </div>
     `;
   }).join('');
 
-  lucide.createIcons();
+  // 5. Gentle, readable marquee speed (~6.0s per unique purchase item so visitors can read comfortably)
+  const durationSec = Math.max(150, Math.round(finalStream.length * 6.0));
+  tickerContainer.style.animationDuration = `${durationSec}s`;
 
-  // 5. Periodic Refresh (every 45s) to keep ticker dynamic & fresh
-  if (!socialProofIntervalTimer) {
-    socialProofIntervalTimer = setInterval(() => {
-      initSocialProofStream();
-    }, 45000);
-  }
+  lucide.createIcons();
 }
 
 // ================= CATALOG FILTER & CARD RENDERING =================
