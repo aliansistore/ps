@@ -332,6 +332,15 @@
     html:not(.dark) .ticker-wrapper #live-social-ticker span.text-sky-300 {
       color: #0062ff !important;
     }
+    html:not(.dark) .ticker-wrapper #live-social-ticker > div.is-real-order {
+      background-color: #ecfdf5 !important;
+      border-color: #6ee7b7 !important;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15) !important;
+      color: #065f46 !important;
+    }
+    html:not(.dark) .ticker-wrapper #live-social-ticker > div.is-real-order strong {
+      color: #064e3b !important;
+    }
 
     /* Primary vs Secondary Comparison Cards in Light Mode */
     html:not(.dark) .matrix-card { 
@@ -1229,6 +1238,16 @@
       background-color: #f0f9ff !important;
       border-color: #bae6fd !important;
       color: #0284c7 !important;
+    }
+    html:not(.dark) .review-card.is-real-buyer {
+      background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%) !important;
+      border: 2px solid #10b981 !important;
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.12) !important;
+    }
+    html:not(.dark) .review-card.is-real-buyer .rev-game-badge {
+      background-color: #ecfdf5 !important;
+      border-color: #a7f3d0 !important;
+      color: #059669 !important;
     }
     html:not(.dark) #inv-review-prompt-card {
       background: linear-gradient(135deg, #fffbeb 0%, #ffffff 50%, #fff7ed 100%) !important;
@@ -5847,7 +5866,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261111_reviews_faq_v6"></script>
-  <script src="assets/app.js?v=20261111_direct_outlook_v52"></script>
+  <script src="assets/products-data.js?v=20261111_smart_reviews_ticker_v53"></script>
+  <script src="assets/app.js?v=20261111_smart_reviews_ticker_v53"></script>
 </body>
 </html>

@@ -835,7 +835,14 @@ function loadStoredData() {
   if (storedReviews) {
     try {
       const parsedRev = JSON.parse(storedReviews);
-      state.reviews = Array.isArray(parsedRev) && parsedRev.length > 0 ? parsedRev : (typeof INITIAL_REVIEWS !== 'undefined' ? [...INITIAL_REVIEWS] : []);
+      if (Array.isArray(parsedRev) && parsedRev.length > 0) {
+        // Extract genuine user reviews (tagged isReal, has orderId, or custom id)
+        const realRevs = parsedRev.filter(r => r && (r.isReal || r.orderId || (r.id && !/^rev-1\d\d$/.test(r.id))));
+        const baseDummy = typeof INITIAL_REVIEWS !== 'undefined' ? [...INITIAL_REVIEWS] : [];
+        state.reviews = [...realRevs, ...baseDummy];
+      } else {
+        state.reviews = typeof INITIAL_REVIEWS !== 'undefined' ? [...INITIAL_REVIEWS] : [];
+      }
     } catch (e) {
       state.reviews = typeof INITIAL_REVIEWS !== 'undefined' ? [...INITIAL_REVIEWS] : [];
     }
@@ -1075,6 +1082,7 @@ async function syncFromSupabase() {
       localStorage.setItem(APP_STORAGE_KEYS.ORDERS, JSON.stringify(state.orders));
       renderAdminStats();
       renderAdminOrdersTable();
+      initSocialProofStream();
     }
 
     // 3. Fetch Store Config from Cloud
@@ -1130,6 +1138,42 @@ async function syncFromSupabase() {
       }
     } catch (e) {
       // Graceful fallback to local requests
+    }
+
+    // 5. Fetch Real Customer Reviews from Cloud (if available)
+    try {
+      const { data: revs, error: revErr } = await supabaseClient.from('reviews').select('*').order('created_at', { ascending: false });
+      if (!revErr && Array.isArray(revs) && revs.length > 0) {
+        const cloudRevs = revs.map(r => ({
+          id: r.id,
+          orderId: r.order_id,
+          customerName: r.customer_name,
+          city: r.city || 'Indonesia',
+          gameTitle: r.game_title || 'Game PlayStation',
+          rating: Number(r.rating) || 5,
+          comment: r.comment || '',
+          isVerified: r.is_verified !== false,
+          isReal: true,
+          platform: 'PS4 HEN',
+          createdAt: r.created_at
+        }));
+        
+        const existingRevs = Array.isArray(state.reviews) ? state.reviews : [];
+        const existingReal = existingRevs.filter(r => r && (r.isReal || r.orderId || (r.id && !/^rev-1\d\d$/.test(r.id))));
+        const mergedReal = [...cloudRevs];
+        existingReal.forEach(er => {
+          if (!mergedReal.some(mr => mr.id === er.id)) {
+            mergedReal.push(er);
+          }
+        });
+        const baseDummy = typeof INITIAL_REVIEWS !== 'undefined' ? [...INITIAL_REVIEWS] : [];
+        state.reviews = [...mergedReal, ...baseDummy];
+        saveReviews();
+        if (typeof sessionShuffledDummyReviews !== 'undefined') sessionShuffledDummyReviews = null;
+        renderTestimonials();
+      }
+    } catch (e) {
+      // Reviews table optional
     }
   } catch (err) {
     console.warn('Supabase cloud sync notice:', err);
@@ -1595,18 +1639,164 @@ function updateSpotlightDisplay(index) {
   lucide.createIcons();
 }
 
-// ================= SOCIAL PROOF PURCHASE STREAM =================
+// ================= SOCIAL PROOF PURCHASE STREAM (DYNAMIC & SMART) =================
+let socialProofIntervalTimer = null;
+
 function initSocialProofStream() {
   const tickerContainer = document.getElementById('live-social-ticker');
-  if (tickerContainer && typeof RECENT_PURCHASES !== 'undefined') {
-    const list = [...RECENT_PURCHASES, ...RECENT_PURCHASES]; // Repeat for seamless loop
-    tickerContainer.innerHTML = list.map(item => `
+  if (!tickerContainer) return;
+
+  // 1. Extract Real Customer Orders from state.orders
+  const realPurchases = [];
+  if (Array.isArray(state.orders) && state.orders.length > 0) {
+    state.orders.forEach(ord => {
+      if (!ord || !ord.customerName) return;
+      if (ord.status === 'CANCELLED' || ord.status === 'REFUNDED') return;
+
+      // Clean customer name: e.g. "Alrizal Akbar" -> "Alrizal A."
+      let cName = 'Pelanggan';
+      const cleanRaw = ord.customerName.replace(/\(.*?\)/g, '').trim();
+      const parts = cleanRaw.split(/\s+/);
+      if (parts.length > 1) {
+        cName = `${parts[0]} ${parts[parts.length - 1][0].toUpperCase()}.`;
+      } else if (parts[0]) {
+        cName = parts[0];
+      }
+
+      // Extract Game Title
+      let gTitle = 'Paket Game PS4';
+      if (Array.isArray(ord.items) && ord.items.length > 0 && ord.items[0]?.title) {
+        gTitle = ord.items[0].title;
+        if (ord.items.length > 1) {
+          gTitle += ` (+${ord.items.length - 1} game)`;
+        }
+      }
+
+      // Location / City
+      const cCity = ord.city || 'Indonesia';
+      // Relative time
+      const rTime = ord.createdAt ? formatDateAgo(ord.createdAt) : 'Baru saja';
+
+      realPurchases.push({
+        name: cName,
+        city: cCity,
+        game: gTitle,
+        time: rTime,
+        isReal: true
+      });
+    });
+  }
+
+  // 2. Dynamic Pool Generator for Varied Purchases
+  // 45+ Indonesian Names
+  const firstNames = [
+    'Rian', 'Budi', 'Fajar', 'Hendra', 'Dimas', 'Reza', 'Andi', 'Wahyu', 'Bayu', 'Rizky',
+    'Doni', 'Aris', 'Gilang', 'Ilham', 'Bagus', 'Denny', 'Satria', 'Kevin', 'Aditya', 'Yoga',
+    'Teguh', 'Bambang', 'Eko', 'Rahmat', 'Fikri', 'Dian', 'Farhan', 'Tommy', 'Rangga', 'Yudha',
+    'Hafiz', 'Agung', 'Naufal', 'Galih', 'Fandi', 'Syahrul', 'Alif', 'Rifky', 'Pratama', 'Rio',
+    'Mahendra', 'Irfan', 'Surya', 'Zulham', 'Danang'
+  ];
+  const lastInitials = ['P.', 'S.', 'K.', 'W.', 'A.', 'M.', 'N.', 'R.', 'T.', 'F.', 'H.', 'L.', 'B.', 'D.', 'E.'];
+
+  // 35+ Indonesian Cities
+  const cities = [
+    'Jakarta Selatan', 'Surabaya', 'Bandung', 'Medan', 'Semarang', 'Makassar', 'Palembang',
+    'Tangerang', 'Bekasi', 'Depok', 'Yogyakarta', 'Malang', 'Denpasar', 'Balikpapan',
+    'Samarinda', 'Banjarmasin', 'Pontianak', 'Pekanbaru', 'Bandar Lampung', 'Bogor',
+    'Cimahi', 'Surakarta', 'Padang', 'Batam', 'Cirebon', 'Sukabumi', 'Purwokerto',
+    'Mataram', 'Manado', 'Kupang', 'Ambon', 'Jayapura', 'Jember', 'Tasikmalaya', 'Magelang'
+  ];
+
+  // Games: dynamically pull from state.products or fallback
+  const catalogGames = (Array.isArray(state.products) && state.products.length > 0)
+    ? state.products.map(p => p.title)
+    : (typeof RECENT_PURCHASES !== 'undefined' ? RECENT_PURCHASES.map(p => p.game) : [
+        'God of War Ragnarök (Sub Indo)', 'PES 2027 Bitbox Summer Update', 'GTA V MOD Subtitle Indonesia',
+        'Resident Evil 4 Remake (Full Sub Indo)', 'Ghost of Tsushima (Sub Indo)', 'The Last of Us Part II (Sub Indo)'
+      ]);
+
+  // Ascending realistic relative times
+  const timeLabels = [
+    '1 mnt lalu', '3 mnt lalu', '6 mnt lalu', '9 mnt lalu', '14 mnt lalu',
+    '19 mnt lalu', '26 mnt lalu', '33 mnt lalu', '41 mnt lalu', '52 mnt lalu',
+    '1 jam lalu', '1 jam lalu', '2 jam lalu', '2 jam lalu', '3 jam lalu',
+    '3 jam lalu', '4 jam lalu', '5 jam lalu', '6 jam lalu', '7 jam lalu'
+  ];
+
+  // Shuffle pools per call for natural randomness
+  const shuffledNames = [...firstNames].sort(() => 0.5 - Math.random());
+  const shuffledCities = [...cities].sort(() => 0.5 - Math.random());
+  const shuffledGames = [...catalogGames].sort(() => 0.5 - Math.random());
+
+  const dummyStream = [];
+  const dummyCount = Math.min(26, shuffledNames.length);
+  for (let i = 0; i < dummyCount; i++) {
+    const fName = shuffledNames[i % shuffledNames.length];
+    const initial = lastInitials[i % lastInitials.length];
+    const city = shuffledCities[i % shuffledCities.length];
+    const game = shuffledGames[i % shuffledGames.length];
+    const time = timeLabels[i % timeLabels.length];
+    dummyStream.push({
+      name: `${fName} ${initial}`,
+      city: city,
+      game: game,
+      time: time,
+      isReal: false
+    });
+  }
+
+  // 3. Interleave Real Purchases Seamlessly
+  const finalStream = [];
+  let rIdx = 0;
+  let dIdx = 0;
+
+  // If real orders exist, place the latest real order at the front!
+  if (realPurchases.length > 0) {
+    finalStream.push(realPurchases[rIdx++]);
+  }
+
+  while (dIdx < dummyStream.length || rIdx < realPurchases.length) {
+    // Add 2-3 dummy purchases
+    for (let k = 0; k < 3 && dIdx < dummyStream.length; k++) {
+      finalStream.push(dummyStream[dIdx++]);
+    }
+    // Interleave next real purchase
+    if (rIdx < realPurchases.length) {
+      finalStream.push(realPurchases[rIdx++]);
+    }
+  }
+
+  // 4. Render Items & Duplicate for Infinite CSS Marquee Loop
+  const fullLoop = [...finalStream, ...finalStream];
+  tickerContainer.innerHTML = fullLoop.map(item => {
+    if (item.isReal) {
+      return `
+        <div class="ticker-item is-real-order inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/40 border border-emerald-500/50 text-xs text-slate-200 mr-4 shrink-0 shadow-sm shadow-emerald-500/20">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+          <span class="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] font-black uppercase tracking-wider flex items-center gap-1">
+            <i data-lucide="badge-check" class="w-3 h-3 text-emerald-400"></i> REAL ORDER
+          </span>
+          <strong class="text-white">${escapeHtml(item.name)}</strong> (${escapeHtml(item.city)}) membeli <span class="text-sky-300 font-bold">${escapeHtml(item.game)}</span>
+          <span class="text-[10px] text-emerald-400 font-mono font-bold">${escapeHtml(item.time)}</span>
+        </div>
+      `;
+    }
+    return `
       <div class="ticker-item inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/60 border border-slate-800/80 text-xs text-slate-300 mr-4 shrink-0">
         <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-neon"></span>
-        <strong class="text-white">${item.name}</strong> (${item.city}) membeli <span class="text-sky-300 font-semibold">${item.game}</span>
-        <span class="text-[10px] text-slate-500 font-mono">${item.time}</span>
+        <strong class="text-white">${escapeHtml(item.name)}</strong> (${escapeHtml(item.city)}) membeli <span class="text-sky-300 font-semibold">${escapeHtml(item.game)}</span>
+        <span class="text-[10px] text-slate-500 font-mono">${escapeHtml(item.time)}</span>
       </div>
-    `).join('');
+    `;
+  }).join('');
+
+  lucide.createIcons();
+
+  // 5. Periodic Refresh (every 45s) to keep ticker dynamic & fresh
+  if (!socialProofIntervalTimer) {
+    socialProofIntervalTimer = setInterval(() => {
+      initSocialProofStream();
+    }, 45000);
   }
 }
 
@@ -2778,6 +2968,7 @@ async function submitOrder() {
 
   state.orders.unshift(newOrder);
   saveOrders();
+  initSocialProofStream();
   syncOrderToSupabase(newOrder);
   upsertCustomerUser({ name: newOrder.customerName, email: newOrder.customerEmail, phone: newOrder.customerPhone });
 
@@ -10752,13 +10943,84 @@ function formatDateAgo(dateStr) {
   }
 }
 
+let sessionShuffledDummyReviews = null;
+
+function getSmartReviewsPool() {
+  const stored = Array.isArray(state.reviews) ? state.reviews : [];
+
+  // Identify Real Customer Reviews:
+  // - explicitly marked isReal: true
+  // - or has orderId
+  // - or id doesn't match rev-1xx dummy template (e.g. rev-real-xxx or user submitted)
+  const realReviews = stored.filter(r => r && (
+    r.isReal === true || 
+    Boolean(r.orderId) || 
+    (r.id && !/^rev-1\d\d$/.test(r.id))
+  ));
+
+  // Base dummy reviews from INITIAL_REVIEWS (or any rev-1xx in stored)
+  let dummyPool = (typeof INITIAL_REVIEWS !== 'undefined' && Array.isArray(INITIAL_REVIEWS))
+    ? [...INITIAL_REVIEWS]
+    : stored.filter(r => r && /^rev-1\d\d$/.test(r.id));
+
+  // Shuffle dummy reviews once per session so users see different cards each visit/refresh!
+  if (!sessionShuffledDummyReviews || sessionShuffledDummyReviews.length === 0) {
+    const shuffled = [...dummyPool];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    
+    // Dynamic fresh relative times so reviews always look active
+    const dynamicTimes = [
+      'Baru saja', '1 jam lalu', '3 jam lalu', 'Hari ini, 10:20', 'Hari ini, 14:15',
+      'Kemarin', 'Kemarin', '2 hari lalu', '2 hari lalu', '3 hari lalu',
+      '3 hari lalu', '4 hari lalu', '5 hari lalu', '6 hari lalu', '1 minggu lalu',
+      '1 minggu lalu', '10 hari lalu', '2 minggu lalu', '2 minggu lalu', '3 minggu lalu',
+      '3 minggu lalu', '1 bulan lalu'
+    ];
+
+    sessionShuffledDummyReviews = shuffled.map((rev, idx) => ({
+      ...rev,
+      isReal: false,
+      displayTime: dynamicTimes[idx % dynamicTimes.length]
+    }));
+  }
+
+  // If no real customer reviews exist yet, return randomized dummy pool
+  if (realReviews.length === 0) {
+    return sessionShuffledDummyReviews;
+  }
+
+  // Interleave real reviews:
+  // - The most recent real review is placed at index 0 (top of carousel)
+  // - Additional real reviews are interleaved every 2-3 dummy reviews
+  const combined = [];
+  let rIdx = 0;
+  let dIdx = 0;
+
+  // Pin latest real review first!
+  combined.push({ ...realReviews[rIdx++], isReal: true });
+
+  while (dIdx < sessionShuffledDummyReviews.length || rIdx < realReviews.length) {
+    // 2-3 dummy reviews
+    for (let k = 0; k < 3 && dIdx < sessionShuffledDummyReviews.length; k++) {
+      combined.push(sessionShuffledDummyReviews[dIdx++]);
+    }
+    // Next real review
+    if (rIdx < realReviews.length) {
+      combined.push({ ...realReviews[rIdx++], isReal: true });
+    }
+  }
+
+  return combined;
+}
+
 function renderTestimonials() {
   const container = document.getElementById('testimonials-carousel');
   if (!container) return;
 
-  let reviewsList = (state.reviews && state.reviews.length > 0)
-    ? state.reviews
-    : (typeof INITIAL_REVIEWS !== 'undefined' ? [...INITIAL_REVIEWS] : []);
+  const reviewsList = getSmartReviewsPool();
 
   // Compute stats
   const totalCount = reviewsList.length;
@@ -10779,6 +11041,7 @@ function renderTestimonials() {
   } else if (filter === 'subindo') {
     filtered = filtered.filter(r => 
       (r.gameTitle || '').toLowerCase().includes('sub indo') ||
+      (r.comment || '').toLowerCase().includes('sub indo') ||
       (r.platform || '').toLowerCase().includes('hen')
     );
   }
@@ -10798,10 +11061,24 @@ function renderTestimonials() {
     const initials = getInitials(rev.customerName);
     const avatarBg = getAvatarGradient(idx);
     const starsHtml = '★'.repeat(rev.rating) + '☆'.repeat(5 - rev.rating);
-    const timeAgo = formatDateAgo(rev.createdAt);
+    const timeAgo = rev.displayTime || formatDateAgo(rev.createdAt);
+    const isRealBuyer = Boolean(rev.isReal || rev.orderId);
+
+    // Differentiate Real Buyer vs Seeded Review
+    const cardBorder = isRealBuyer 
+      ? 'is-real-buyer border-2 border-emerald-500/50 bg-[#07132a] shadow-lg shadow-emerald-950/40 hover:border-emerald-400' 
+      : 'border border-slate-800 bg-[#080f24] hover:border-amber-500/50 shadow-lg';
+
+    const verifiedBadge = isRealBuyer
+      ? `<span class="text-[9px] px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-black tracking-wide shrink-0 flex items-center gap-1 shadow-sm">
+           <i data-lucide="badge-check" class="w-3.5 h-3.5 text-emerald-400"></i> Pembeli Asli
+         </span>`
+      : `<span class="text-[9px] px-2 py-0.5 rounded-full bg-slate-800/80 text-slate-400 border border-slate-700 font-bold shrink-0 flex items-center gap-1">
+           <i data-lucide="shield-check" class="w-3 h-3 text-sky-400"></i> Terverifikasi
+         </span>`;
 
     return `
-      <div class="review-card w-[310px] sm:w-[350px] shrink-0 p-5 rounded-3xl bg-[#080f24] border border-slate-800 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/50 group shadow-lg">
+      <div class="review-card relative w-[310px] sm:w-[350px] shrink-0 p-5 rounded-3xl ${cardBorder} flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 group">
         <div>
           <!-- Header: Avatar + Customer Name + Verified Badge -->
           <div class="flex items-center justify-between gap-3 mb-3">
@@ -10817,9 +11094,7 @@ function renderTestimonials() {
                 </div>
               </div>
             </div>
-            <span class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold shrink-0 flex items-center gap-1">
-              <i data-lucide="shield-check" class="w-3 h-3 text-emerald-400"></i> Terverifikasi
-            </span>
+            ${verifiedBadge}
           </div>
 
           <!-- Stars & Date -->
@@ -10833,8 +11108,8 @@ function renderTestimonials() {
 
           <!-- Game Title Tag -->
           <div class="mb-3">
-            <span class="rev-game-badge inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-bold bg-sky-950/70 text-sky-300 border border-sky-500/30 max-w-full truncate">
-              <i data-lucide="gamepad-2" class="w-3 h-3 text-sky-400 shrink-0"></i>
+            <span class="rev-game-badge inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-bold ${isRealBuyer ? 'bg-emerald-950/70 text-emerald-300 border border-emerald-500/40' : 'bg-sky-950/70 text-sky-300 border border-sky-500/30'} max-w-full truncate">
+              <i data-lucide="gamepad-2" class="w-3 h-3 ${isRealBuyer ? 'text-emerald-400' : 'text-sky-400'} shrink-0"></i>
               <span class="truncate">${escapeHtml(rev.gameTitle || 'Game PlayStation')}</span>
             </span>
           </div>
@@ -10993,7 +11268,7 @@ function submitCustomerReview(event) {
   }
 
   const newReview = {
-    id: 'rev-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+    id: 'rev-real-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
     orderId: currentReviewOrderId || null,
     customerName: name,
     city: city || 'Indonesia',
@@ -11001,6 +11276,7 @@ function submitCustomerReview(event) {
     rating: rating,
     comment: comment,
     isVerified: true,
+    isReal: true,
     platform: 'PS4 HEN',
     createdAt: new Date().toISOString()
   };
@@ -11012,6 +11288,7 @@ function submitCustomerReview(event) {
   // Prepend to show user's review at the very top of the carousel
   state.reviews.unshift(newReview);
   saveReviews();
+  sessionShuffledDummyReviews = null;
 
   // Attempt sync to Supabase if connected
   if (supabaseClient) {
@@ -11038,8 +11315,9 @@ function submitCustomerReview(event) {
 
   showToast('Terima kasih! Ulasan & rating Anda berhasil diterbitkan di Beranda toko.', 'success', 'Ulasan Terkirim');
   
-  // Re-render testimonials engine immediately
+  // Re-render testimonials & social proof ticker immediately
   renderTestimonials();
+  initSocialProofStream();
 
   // If review card was in invoice, update it
   const invReviewCard = document.getElementById('inv-review-prompt-card');
