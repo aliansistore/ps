@@ -1401,26 +1401,37 @@ function showToast(message, type = 'info', title = '') {
   if (!container) return;
 
   const toast = document.createElement('div');
-  const bgClasses = {
-    success: 'bg-emerald-950/95 border-emerald-500/50 text-emerald-100 shadow-emerald-950/50',
-    error: 'bg-rose-950/95 border-rose-500/50 text-rose-100 shadow-rose-950/50',
-    info: 'bg-sky-950/95 border-sky-500/50 text-sky-100 shadow-sky-950/50',
-    warning: 'bg-amber-950/95 border-amber-500/50 text-amber-100 shadow-amber-950/50'
+  const typeConfigs = {
+    success: {
+      classes: 'toast-success bg-white dark:bg-emerald-950/95 border-emerald-500/50 text-emerald-900 dark:text-emerald-100 shadow-xl shadow-emerald-500/10 dark:shadow-emerald-950/50',
+      icon: 'check-circle-2',
+      iconClass: 'text-emerald-600 dark:text-emerald-400'
+    },
+    error: {
+      classes: 'toast-error bg-white dark:bg-rose-950/95 border-rose-500/50 text-rose-900 dark:text-rose-100 shadow-xl shadow-rose-500/10 dark:shadow-rose-950/50',
+      icon: 'alert-triangle',
+      iconClass: 'text-rose-600 dark:text-rose-400'
+    },
+    info: {
+      classes: 'toast-info bg-white dark:bg-sky-950/95 border-sky-500/50 text-sky-900 dark:text-sky-100 shadow-xl shadow-sky-500/10 dark:shadow-sky-950/50',
+      icon: 'sparkles',
+      iconClass: 'text-sky-600 dark:text-sky-400'
+    },
+    warning: {
+      classes: 'toast-warning bg-white dark:bg-amber-950/95 border-amber-500/50 text-amber-900 dark:text-amber-100 shadow-xl shadow-amber-500/10 dark:shadow-amber-950/50',
+      icon: 'alert-circle',
+      iconClass: 'text-amber-600 dark:text-amber-400'
+    }
   };
 
-  const iconName = {
-    success: 'check-circle-2',
-    error: 'alert-triangle',
-    info: 'sparkles',
-    warning: 'alert-circle'
-  }[type] || 'info';
+  const config = typeConfigs[type] || typeConfigs.info;
 
-  toast.className = `flex items-center gap-3 p-4 rounded-2xl border shadow-2xl backdrop-blur-xl transition-all duration-300 transform translate-y-3 opacity-0 ${bgClasses[type]}`;
+  toast.className = `app-toast toast-item toast-${type} flex items-start gap-3 p-4 rounded-2xl border backdrop-blur-xl transition-all duration-300 transform translate-y-3 opacity-0 ${config.classes}`;
   toast.innerHTML = `
-    <i data-lucide="${iconName}" class="w-5 h-5 shrink-0 text-sky-400"></i>
-    <div class="text-xs">
-      ${title ? `<strong class="block font-bold text-white mb-0.5 text-sm">${title}</strong>` : ''}
-      <span class="leading-relaxed">${message}</span>
+    <i data-lucide="${config.icon}" class="toast-icon w-5 h-5 shrink-0 ${config.iconClass} mt-0.5"></i>
+    <div class="text-xs flex-1 min-w-0">
+      ${title ? `<strong class="toast-title block font-bold text-slate-900 dark:text-white mb-0.5 text-sm">${title}</strong>` : ''}
+      <span class="toast-message block leading-relaxed text-slate-700 dark:text-slate-200">${message}</span>
     </div>
   `;
 

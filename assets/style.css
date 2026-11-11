@@ -974,30 +974,298 @@ html:not(.dark) .text-slate-200 { color: #1e293b !important; }
 html:not(.dark) .text-slate-300 { color: #334155 !important; }
 html:not(.dark) .text-slate-400 { color: #475569 !important; }
 html:not(.dark) .text-slate-500 { color: #64748b !important; }
+
+html:not(.dark) .text-sky-100,
+html:not(.dark) .text-sky-200,
 html:not(.dark) .text-sky-300,
 html:not(.dark) .text-sky-400,
-html:not(.dark) .text-cyan-400 { color: #0062ff !important; }
-html:not(.dark) .text-amber-400 { color: #d97706 !important; }
-html:not(.dark) .text-emerald-400 { color: #059669 !important; }
+html:not(.dark) .text-cyan-100,
+html:not(.dark) .text-cyan-200,
+html:not(.dark) .text-cyan-300,
+html:not(.dark) .text-cyan-400 { color: #0284c7 !important; }
+
+html:not(.dark) .text-amber-100,
+html:not(.dark) .text-amber-200,
+html:not(.dark) .text-amber-300,
+html:not(.dark) .text-amber-400 { color: #b45309 !important; }
+
+html:not(.dark) .text-emerald-100,
+html:not(.dark) .text-emerald-200,
+html:not(.dark) .text-emerald-300,
+html:not(.dark) .text-emerald-400 { color: #047857 !important; }
+
+html:not(.dark) .text-rose-100,
+html:not(.dark) .text-rose-200,
+html:not(.dark) .text-rose-300,
+html:not(.dark) .text-rose-400,
+html:not(.dark) .text-red-100,
+html:not(.dark) .text-red-200,
+html:not(.dark) .text-red-300,
+html:not(.dark) .text-red-400 { color: #be123c !important; }
+
+html:not(.dark) .text-purple-100,
+html:not(.dark) .text-purple-200,
+html:not(.dark) .text-purple-300,
+html:not(.dark) .text-purple-400 { color: #7e22ce !important; }
+
+/* Universal Accent Dark Badge / Pill Background Overrides in Light Mode */
+html:not(.dark) .bg-sky-950,
+html:not(.dark) .bg-sky-950\/30,
+html:not(.dark) .bg-sky-950\/40,
+html:not(.dark) .bg-sky-950\/50,
+html:not(.dark) .bg-sky-950\/60,
+html:not(.dark) .bg-sky-950\/70,
+html:not(.dark) .bg-sky-950\/80,
+html:not(.dark) .bg-sky-950\/90,
+html:not(.dark) .bg-sky-950\/95,
+html:not(.dark) [class*="bg-sky-950"] {
+  background-color: #f0f9ff !important;
+  border-color: #bae6fd !important;
+  color: #0284c7 !important;
+}
+html:not(.dark) .bg-sky-950:hover,
+html:not(.dark) .bg-sky-950\/70:hover,
+html:not(.dark) .bg-sky-950\/80:hover {
+  background-color: #e0f2fe !important;
+  color: #0070d1 !important;
+}
+html:not(.dark) .bg-emerald-950,
+html:not(.dark) .bg-emerald-950\/30,
+html:not(.dark) .bg-emerald-950\/40,
+html:not(.dark) .bg-emerald-950\/50,
+html:not(.dark) .bg-emerald-950\/60,
+html:not(.dark) .bg-emerald-950\/70,
+html:not(.dark) .bg-emerald-950\/80,
+html:not(.dark) .bg-emerald-950\/90,
+html:not(.dark) .bg-emerald-950\/95,
+html:not(.dark) [class*="bg-emerald-950"] {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+  color: #047857 !important;
+}
+html:not(.dark) .bg-emerald-950:hover,
+html:not(.dark) .bg-emerald-950\/70:hover,
+html:not(.dark) .bg-emerald-950\/80:hover {
+  background-color: #d1fae5 !important;
+  color: #065f46 !important;
+}
+html:not(.dark) .bg-amber-950,
+html:not(.dark) .bg-amber-950\/30,
+html:not(.dark) .bg-amber-950\/40,
+html:not(.dark) .bg-amber-950\/50,
+html:not(.dark) .bg-amber-950\/60,
+html:not(.dark) .bg-amber-950\/70,
+html:not(.dark) .bg-amber-950\/80,
+html:not(.dark) .bg-amber-950\/90,
+html:not(.dark) .bg-amber-950\/95,
+html:not(.dark) [class*="bg-amber-950"] {
+  background-color: #fef3c7 !important;
+  border-color: #fde68a !important;
+  color: #b45309 !important;
+}
+html:not(.dark) .bg-amber-950:hover,
+html:not(.dark) .bg-amber-950\/80:hover {
+  background-color: #fde68a !important;
+  color: #92400e !important;
+}
+html:not(.dark) .bg-purple-950,
+html:not(.dark) .bg-purple-950\/30,
+html:not(.dark) .bg-purple-950\/40,
+html:not(.dark) .bg-purple-950\/50,
+html:not(.dark) .bg-purple-950\/60,
+html:not(.dark) .bg-purple-950\/70,
+html:not(.dark) .bg-purple-950\/80,
+html:not(.dark) .bg-purple-950\/90,
+html:not(.dark) .bg-purple-950\/95,
+html:not(.dark) [class*="bg-purple-950"] {
+  background-color: #f5f3ff !important;
+  border-color: #d8b4fe !important;
+  color: #7e22ce !important;
+}
+html:not(.dark) .bg-purple-950:hover,
+html:not(.dark) .bg-purple-950\/60:hover {
+  background-color: #ede9fe !important;
+  color: #6b21a8 !important;
+}
+html:not(.dark) .bg-rose-950,
+html:not(.dark) .bg-rose-950\/30,
+html:not(.dark) .bg-rose-950\/40,
+html:not(.dark) .bg-rose-950\/50,
+html:not(.dark) .bg-rose-950\/60,
+html:not(.dark) .bg-rose-950\/70,
+html:not(.dark) .bg-rose-950\/80,
+html:not(.dark) .bg-rose-950\/90,
+html:not(.dark) .bg-rose-950\/95,
+html:not(.dark) [class*="bg-rose-950"],
+html:not(.dark) .bg-red-950,
+html:not(.dark) .bg-red-950\/80,
+html:not(.dark) [class*="bg-red-950"] {
+  background-color: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+  color: #be123c !important;
+}
+html:not(.dark) .bg-cyan-950,
+html:not(.dark) .bg-cyan-950\/30,
+html:not(.dark) .bg-cyan-950\/40,
+html:not(.dark) .bg-cyan-950\/50,
+html:not(.dark) .bg-cyan-950\/60,
+html:not(.dark) .bg-cyan-950\/70,
+html:not(.dark) .bg-cyan-950\/80,
+html:not(.dark) .bg-cyan-950\/90,
+html:not(.dark) .bg-cyan-950\/95,
+html:not(.dark) [class*="bg-cyan-950"] {
+  background-color: #ecfeff !important;
+  border-color: #a5f3fc !important;
+  color: #0e7490 !important;
+}
 
 /* Elements that MUST retain white text */
 html:not(.dark) .cyber-button,
 html:not(.dark) .cyber-button *,
 html:not(.dark) .cyber-btn-primary,
 html:not(.dark) .cyber-btn-primary *,
-html:not(.dark) .bg-sky-600,
-html:not(.dark) .bg-sky-600 *,
-html:not(.dark) .bg-blue-600,
-html:not(.dark) .bg-blue-600 *,
-html:not(.dark) .bg-emerald-600,
-html:not(.dark) .bg-emerald-600 *,
-html:not(.dark) .bg-rose-600,
-html:not(.dark) .bg-rose-600 *,
-html:not(.dark) .bg-purple-600,
-html:not(.dark) .bg-purple-600 *,
+html:not(.dark) .card-product-badge,
 html:not(.dark) .cart-badge,
-html:not(.dark) .force-white {
+html:not(.dark) #hero-game-badge,
+html:not(.dark) #hero-discount-badge,
+html:not(.dark) #customer-live-chat-launcher button,
+html:not(.dark) #customer-live-chat-launcher button *,
+html:not(.dark) #cust-chat-unread-badge,
+html:not(.dark) .force-white,
+html:not(.dark) .force-white *,
+html:not(.dark) [class*="bg-sky-600"],
+html:not(.dark) [class*="bg-sky-600"] *,
+html:not(.dark) [class*="bg-blue-600"],
+html:not(.dark) [class*="bg-blue-600"] *,
+html:not(.dark) [class*="bg-emerald-600"],
+html:not(.dark) [class*="bg-emerald-600"] *,
+html:not(.dark) [class*="bg-purple-600"],
+html:not(.dark) [class*="bg-purple-600"] *,
+html:not(.dark) [class*="bg-rose-600"],
+html:not(.dark) [class*="bg-rose-600"] *,
+html:not(.dark) [class*="bg-amber-500"],
+html:not(.dark) [class*="bg-amber-500"] * {
   color: #ffffff !important;
+}
+
+/* Toast Notification System */
+#toast-container {
+  z-index: 9999 !important;
+}
+
+/* Toast Notification System in Light Mode */
+html:not(.dark) #toast-container .app-toast,
+html:not(.dark) #toast-container .toast-item,
+html:not(.dark) #toast-container > div {
+  background-color: #ffffff !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.08) !important;
+  border-width: 1.5px !important;
+}
+
+html:not(.dark) #toast-container .toast-info,
+html:not(.dark) #toast-container [class*="bg-sky-950"] {
+  background-color: #f0f9ff !important;
+  border-color: #38bdf8 !important;
+}
+html:not(.dark) #toast-container .toast-info .toast-title,
+html:not(.dark) #toast-container [class*="bg-sky-950"] strong,
+html:not(.dark) #toast-container [class*="bg-sky-950"] .toast-title {
+  color: #0369a1 !important;
+  font-weight: 800 !important;
+}
+html:not(.dark) #toast-container .toast-info .toast-message,
+html:not(.dark) #toast-container [class*="bg-sky-950"] span,
+html:not(.dark) #toast-container [class*="bg-sky-950"] .toast-message {
+  color: #0c4a6e !important;
+}
+html:not(.dark) #toast-container .toast-info .toast-icon,
+html:not(.dark) #toast-container [class*="bg-sky-950"] svg,
+html:not(.dark) #toast-container [class*="bg-sky-950"] i {
+  color: #0284c7 !important;
+}
+
+html:not(.dark) #toast-container .toast-success,
+html:not(.dark) #toast-container [class*="bg-emerald-950"] {
+  background-color: #f0fdf4 !important;
+  border-color: #34d399 !important;
+}
+html:not(.dark) #toast-container .toast-success .toast-title,
+html:not(.dark) #toast-container [class*="bg-emerald-950"] strong,
+html:not(.dark) #toast-container [class*="bg-emerald-950"] .toast-title {
+  color: #065f46 !important;
+  font-weight: 800 !important;
+}
+html:not(.dark) #toast-container .toast-success .toast-message,
+html:not(.dark) #toast-container [class*="bg-emerald-950"] span,
+html:not(.dark) #toast-container [class*="bg-emerald-950"] .toast-message {
+  color: #064e3b !important;
+}
+html:not(.dark) #toast-container .toast-success .toast-icon,
+html:not(.dark) #toast-container [class*="bg-emerald-950"] svg,
+html:not(.dark) #toast-container [class*="bg-emerald-950"] i {
+  color: #059669 !important;
+}
+
+html:not(.dark) #toast-container .toast-error,
+html:not(.dark) #toast-container [class*="bg-rose-950"] {
+  background-color: #fff1f2 !important;
+  border-color: #fb7185 !important;
+}
+html:not(.dark) #toast-container .toast-error .toast-title,
+html:not(.dark) #toast-container [class*="bg-rose-950"] strong,
+html:not(.dark) #toast-container [class*="bg-rose-950"] .toast-title {
+  color: #9f1239 !important;
+  font-weight: 800 !important;
+}
+html:not(.dark) #toast-container .toast-error .toast-message,
+html:not(.dark) #toast-container [class*="bg-rose-950"] span,
+html:not(.dark) #toast-container [class*="bg-rose-950"] .toast-message {
+  color: #881337 !important;
+}
+html:not(.dark) #toast-container .toast-error .toast-icon,
+html:not(.dark) #toast-container [class*="bg-rose-950"] svg,
+html:not(.dark) #toast-container [class*="bg-rose-950"] i {
+  color: #e11d48 !important;
+}
+
+html:not(.dark) #toast-container .toast-warning,
+html:not(.dark) #toast-container [class*="bg-amber-950"] {
+  background-color: #fffbeb !important;
+  border-color: #f59e0b !important;
+}
+html:not(.dark) #toast-container .toast-warning .toast-title,
+html:not(.dark) #toast-container [class*="bg-amber-950"] strong,
+html:not(.dark) #toast-container [class*="bg-amber-950"] .toast-title {
+  color: #92400e !important;
+  font-weight: 800 !important;
+}
+html:not(.dark) #toast-container .toast-warning .toast-message,
+html:not(.dark) #toast-container [class*="bg-amber-950"] span,
+html:not(.dark) #toast-container [class*="bg-amber-950"] .toast-message {
+  color: #78350f !important;
+}
+html:not(.dark) #toast-container .toast-warning .toast-icon,
+html:not(.dark) #toast-container [class*="bg-amber-950"] svg,
+html:not(.dark) #toast-container [class*="bg-amber-950"] i {
+  color: #d97706 !important;
+}
+
+/* Toast in Dark Mode */
+html.dark #toast-container .toast-title,
+html.dark #toast-container strong {
+  color: #ffffff !important;
+}
+html.dark #toast-container .toast-info span {
+  color: #e0f2fe !important;
+}
+html.dark #toast-container .toast-success span {
+  color: #dcfce7 !important;
+}
+html.dark #toast-container .toast-error span {
+  color: #ffe4e6 !important;
+}
+html.dark #toast-container .toast-warning span {
+  color: #fef3c7 !important;
 }
 
 /* ==========================================================================
