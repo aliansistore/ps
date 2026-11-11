@@ -612,49 +612,6 @@ function loadStoredData() {
     state.orders = typeof INITIAL_ORDERS !== 'undefined' ? [...INITIAL_ORDERS] : [];
   }
 
-  // Ensure verified test order ALN-20261109-TEST is always available in memory
-  if (!state.orders.some(o => o && o.id === 'ALN-20261109-TEST')) {
-    const itTakesTwoProd = (state.products || []).find(p => p.id === 'game-it-takes-two-subindo');
-    const itTakesTwoLink = (itTakesTwoProd && itTakesTwoProd.driveLink) || 'https://drive.google.com/drive/folders/1Pw4Fe24O0LAAsV6Affwp_Ef4C0isK6JQ?usp=sharing';
-    state.orders.unshift({
-      id: 'ALN-20261109-TEST',
-      createdAt: '2026-11-09T06:54:03.122Z',
-      customerType: 'guest',
-      customerName: 'Alrizal Akbar (Tes Otomasi Drive)',
-      customerPhone: '085388597684',
-      customerEmail: 'alrizal.a.n@gmail.com',
-      notes: 'Tes Pembayaran Sukses & Auto-Share Google Drive',
-      items: [{
-        productId: 'game-it-takes-two-subindo',
-        title: 'It Takes Two (Full Subtitle Indonesia)',
-        variant: 'PS4 HEN',
-        platform: 'PS4',
-        unitPrice: 120000,
-        qty: 1,
-        driveLink: itTakesTwoLink
-      }],
-      subtotal: 120000,
-      discount: 0,
-      total: 120000,
-      voucherCode: null,
-      paymentMethod: 'QRIS',
-      paymentStatus: 'PAID',
-      status: 'COMPLETED',
-      fulfillment: {
-        type: 'PS4_HEN_PKG',
-        gdrive_shared: true,
-        customer_email: 'alrizal.a.n@gmail.com',
-        driveLink: itTakesTwoLink,
-        driveLinks: [{
-          gameId: 'game-it-takes-two-subindo',
-          title: 'It Takes Two (Full Subtitle Indonesia)',
-          url: itTakesTwoLink
-        }],
-        guideUrl: 'https://aliansistore.com/panduan-install-pkg-ps4-hen',
-        adminNotes: '1. Pastikan konsol PS4 sudah mengaktifkan GoldHEN / HEN.\n2. Download seluruh part file .pkg dari Google Drive ke Flashdisk / Harddisk Eksternal berformat exFAT.\n3. Tancapkan ke PS4, buka menu GoldHEN > Package Installer, lalu instal file game dan update patch sub indo secara berurutan.'
-      }
-    });
-  }
   saveOrders();
 
   // Config
@@ -701,8 +658,8 @@ function loadStoredData() {
     saveUsers();
   }
 
-  // Clear out legacy demo invoices, demo customer accounts, demo game requests & demo chats (Clean Slate v4)
-  const CLEAN_SLATE_KEY = 'aliansi_store_clean_slate_v4';
+  // Clear out legacy demo invoices, demo customer accounts, demo game requests & demo chats (Clean Slate v5)
+  const CLEAN_SLATE_KEY = 'aliansi_store_clean_slate_v5';
   if (localStorage.getItem(CLEAN_SLATE_KEY) !== 'true') {
     state.orders = [];
     saveOrders();
@@ -716,6 +673,10 @@ function loadStoredData() {
       state.users = typeof INITIAL_USERS !== 'undefined' ? [...INITIAL_USERS] : [];
     }
     saveUsers();
+    if (state.currentUser && state.currentUser.role !== 'admin') {
+      state.currentUser = null;
+      localStorage.removeItem(APP_STORAGE_KEYS.USER);
+    }
     localStorage.setItem(CLEAN_SLATE_KEY, 'true');
   }
 
@@ -723,9 +684,9 @@ function loadStoredData() {
   if (Array.isArray(state.users)) {
     let usersUpdated = false;
     
-    // Clean up removed demo customer accounts if previously cached
+    // Clean up all customer accounts if previously cached
     const beforeCount = state.users.length;
-    state.users = state.users.filter(u => u.role === 'admin' || (!['usr-cust-01', 'usr-cust-google-01', 'usr-cust-ms-01', 'usr-cust-02', 'usr-cust-bayu-01', 'usr-cust-derry-01'].includes(u.id) && !u.id.startsWith('usr-req-')));
+    state.users = state.users.filter(u => u.role === 'admin');
     if (state.users.length !== beforeCount) {
       usersUpdated = true;
     }
@@ -1060,7 +1021,7 @@ async function syncFromSupabase() {
 
     // 2. Fetch Orders from Cloud
     const { data: ords, error: oErr } = await supabaseClient.from('orders').select('*').order('created_at', { ascending: false });
-    if (!oErr && ords && ords.length > 0) {
+    if (!oErr && Array.isArray(ords)) {
       state.orders = ords.map(o => ({
         id: o.id,
         createdAt: o.created_at,
@@ -7102,6 +7063,14 @@ function renderAdminCustomersTable() {
               <i data-lucide="key-round" class="w-3.5 h-3.5"></i>
               <span>Reset Password</span>
             </button>
+            <button 
+              onclick="deleteAdminCustomer('${u.id}')" 
+              class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-300 dark:border-rose-500/30 flex items-center gap-1.5 transition-all cursor-pointer shadow-sm hover:scale-[1.02]"
+              title="Hapus akun member customer ini"
+            >
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              <span>Hapus</span>
+            </button>
           </div>
         </td>
       </tr>
@@ -7109,6 +7078,44 @@ function renderAdminCustomersTable() {
   }).join('');
 
   lucide.createIcons();
+}
+
+function deleteAdminCustomer(userId) {
+  playSfx('click');
+  const user = (state.users || []).find(u => u.id === userId);
+  if (!user) {
+    showToast('User customer tidak ditemukan!', 'error');
+    return;
+  }
+  if (user.role === 'admin') {
+    showToast('Akun Admin tidak dapat dihapus!', 'warning');
+    return;
+  }
+  if (!confirm(`Hapus akun customer "${user.name || user.email}"?`)) {
+    return;
+  }
+  state.users = (state.users || []).filter(u => u.id !== userId);
+  saveUsers();
+  renderAdminStats();
+  renderAdminCustomersTable();
+  showToast(`Customer "${user.name || user.email}" berhasil dihapus.`, 'success');
+}
+
+function adminClearAllCustomers() {
+  playSfx('click');
+  const nonAdminCount = (state.users || []).filter(u => u.role !== 'admin').length;
+  if (nonAdminCount === 0) {
+    showToast('Tidak ada data customer untuk dibersihkan.', 'info');
+    return;
+  }
+  if (!confirm(`Apakah Anda yakin ingin MENGHAPUS SEMUA (${nonAdminCount}) DATA CUSTOMER/MEMBER? Tindakan ini tidak dapat dibatalkan.`)) {
+    return;
+  }
+  state.users = (state.users || []).filter(u => u.role === 'admin');
+  saveUsers();
+  renderAdminStats();
+  renderAdminCustomersTable();
+  showToast('Seluruh data customer berhasil dibersihkan!', 'success');
 }
 
 function promptResetCustomerPassword(userId) {
@@ -7555,6 +7562,9 @@ function renderAdminOrdersTable() {
             <button onclick="openInvoiceModal('${order.id}')" class="p-1.5 rounded text-slate-400 hover:text-white" title="Lihat Invoice">
               <i data-lucide="file-text" class="w-4 h-4"></i>
             </button>
+            <button onclick="deleteAdminOrder('${order.id}')" class="p-1.5 rounded text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors" title="Hapus Pesanan / Invoice">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
           </div>
         </td>
       </tr>
@@ -7562,6 +7572,52 @@ function renderAdminOrdersTable() {
   }).join('');
 
   lucide.createIcons();
+}
+
+async function deleteAdminOrder(orderId) {
+  playSfx('click');
+  if (!confirm(`Apakah Anda yakin ingin menghapus pesanan/invoice ${orderId}? Tindakan ini permanen.`)) {
+    return;
+  }
+  state.orders = (state.orders || []).filter(o => o.id !== orderId);
+  saveOrders();
+
+  if (supabaseClient) {
+    try {
+      await supabaseClient.from('orders').delete().eq('id', orderId);
+    } catch (err) {
+      console.warn('Gagal menghapus order dari Supabase:', err);
+    }
+  }
+
+  renderAdminStats();
+  renderAdminOrdersTable();
+  showToast(`Pesanan ${orderId} berhasil dihapus.`, 'success');
+}
+
+async function adminClearAllOrders() {
+  playSfx('click');
+  if ((state.orders || []).length === 0) {
+    showToast('Tidak ada data pesanan untuk dibersihkan.', 'info');
+    return;
+  }
+  if (!confirm('Apakah Anda yakin ingin MENGHAPUS SEMUA PESANAN & INVOICE? Seluruh riwayat penjualan akan dibersihkan.')) {
+    return;
+  }
+  state.orders = [];
+  saveOrders();
+
+  if (supabaseClient) {
+    try {
+      await supabaseClient.from('orders').delete().neq('id', 'dummy');
+    } catch (err) {
+      console.warn('Gagal menghapus seluruh pesanan dari Supabase:', err);
+    }
+  }
+
+  renderAdminStats();
+  renderAdminOrdersTable();
+  showToast('Seluruh pesanan & invoice berhasil dibersihkan!', 'success');
 }
 
 function adminVerifyPayment(orderId) {

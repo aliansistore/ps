@@ -46,7 +46,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <!-- Custom Next-Gen Stylesheet (with cache buster query) -->
-  <link rel="stylesheet" href="assets/style.css?v=20261111_faq_wa_contrast_v60" />
+  <link rel="stylesheet" href="assets/style.css?v=20261111_clear_users_orders_v61" />
 
   <!-- Critical Inline Styles to Guarantee Immediate High-Contrast Rendering (Dark & Light Mode) -->
   <style>
@@ -1445,6 +1445,28 @@
     html:not(.dark) #admin-customers-table-body button[class*="bg-amber-500"] svg,
     html:not(.dark) #admin-customers-table-body button[class*="bg-amber-500"] i {
       color: #b45309 !important;
+    }
+    html:not(.dark) #admin-customers-table-body button[class*="bg-rose-500"] {
+      background-color: #fff1f2 !important;
+      border-color: #fecdd3 !important;
+      color: #e11d48 !important;
+    }
+    html:not(.dark) #admin-customers-table-body button[class*="bg-rose-500"]:hover {
+      background-color: #ffe4e6 !important;
+      color: #be123c !important;
+    }
+    html:not(.dark) #admin-customers-table-body button[class*="bg-rose-500"] *,
+    html:not(.dark) #admin-customers-table-body button[class*="bg-rose-500"] span,
+    html:not(.dark) #admin-customers-table-body button[class*="bg-rose-500"] svg,
+    html:not(.dark) #admin-customers-table-body button[class*="bg-rose-500"] i {
+      color: #e11d48 !important;
+    }
+    html:not(.dark) #admin-orders-table-body button.text-rose-500 {
+      color: #e11d48 !important;
+    }
+    html:not(.dark) #admin-orders-table-body button.text-rose-500:hover {
+      color: #be123c !important;
+      background-color: #fff1f2 !important;
     }
 
     /* Admin FAQ Management in Light Mode */
@@ -3392,6 +3414,9 @@
             <button id="tab-admin-processing" onclick="setAdminOrderFilter('processing')" class="admin-filter-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-transparent">Perlu Dikirim</button>
             <button id="tab-admin-unpaid" onclick="setAdminOrderFilter('unpaid')" class="admin-filter-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-transparent">Menunggu Bayar</button>
             <button id="tab-admin-completed" onclick="setAdminOrderFilter('completed')" class="admin-filter-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-transparent">Selesai</button>
+            <button onclick="adminClearAllOrders()" class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 dark:text-rose-400 border border-rose-500/30 flex items-center gap-1 transition-colors ml-2 cursor-pointer shrink-0" title="Hapus seluruh riwayat pesanan & invoice">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Bersihkan
+            </button>
           </div>
         </div>
 
@@ -3551,6 +3576,9 @@
               <button id="tab-cust-all" onclick="setAdminCustomerFilter('all')" class="admin-cust-tab px-3 py-1.5 rounded-lg text-xs font-bold bg-cyan-600 text-white shadow-sm transition-colors">Semua</button>
               <button id="tab-cust-active" onclick="setAdminCustomerFilter('active')" class="admin-cust-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-transparent transition-colors">Pernah Belanja</button>
               <button id="tab-cust-new" onclick="setAdminCustomerFilter('new')" class="admin-cust-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-transparent transition-colors">Member Baru</button>
+              <button onclick="adminClearAllCustomers()" class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 dark:text-rose-400 border border-rose-500/30 flex items-center gap-1 transition-colors ml-2 cursor-pointer shrink-0" title="Hapus seluruh data customer/member">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Bersihkan
+              </button>
             </div>
           </div>
         </div>
@@ -6214,6 +6242,6 @@
 
   <!-- Application Scripts (with cache-buster query) -->
   <script src="assets/products-data.js?v=20261111_smart_reviews_ticker_v53"></script>
-  <script src="assets/app.js?v=20261111_faq_wa_contrast_v60"></script>
+  <script src="assets/app.js?v=20261111_clear_users_orders_v61"></script>
 </body>
 </html>

@@ -858,6 +858,28 @@ html:not(.dark) #admin-customers-table-body button[class*="bg-amber-500"] svg,
 html:not(.dark) #admin-customers-table-body button[class*="bg-amber-500"] i {
   color: #b45309 !important;
 }
+html:not(.dark) #admin-customers-table-body button[class*="bg-rose-500"] {
+  background-color: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+  color: #e11d48 !important;
+}
+html:not(.dark) #admin-customers-table-body button[class*="bg-rose-500"]:hover {
+  background-color: #ffe4e6 !important;
+  color: #be123c !important;
+}
+html:not(.dark) #admin-customers-table-body button[class*="bg-rose-500"] *,
+html:not(.dark) #admin-customers-table-body button[class*="bg-rose-500"] span,
+html:not(.dark) #admin-customers-table-body button[class*="bg-rose-500"] svg,
+html:not(.dark) #admin-customers-table-body button[class*="bg-rose-500"] i {
+  color: #e11d48 !important;
+}
+html:not(.dark) #admin-orders-table-body button.text-rose-500 {
+  color: #e11d48 !important;
+}
+html:not(.dark) #admin-orders-table-body button.text-rose-500:hover {
+  color: #be123c !important;
+  background-color: #fff1f2 !important;
+}
 
 /* Admin FAQ Management in Light Mode */
 html:not(.dark) #admin-faq-list > div {
