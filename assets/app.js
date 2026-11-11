@@ -4384,33 +4384,11 @@ function handleSupabaseAuthUser(authUser) {
 
 async function initiateGoogleOAuth() {
   playSfx('click');
-  showToast('Memeriksa koneksi Google Sign-In...', 'info', 'Masuk dengan Google');
+  showToast('Mengarahkan ke Halaman Login Google...', 'info', 'Masuk dengan Google');
 
   const redirectUrl = window.location.origin + window.location.pathname;
 
-  // 1. Pre-flight check: Verify if Supabase Google provider is enabled in dashboard
-  try {
-    const testUrl = `${SUPABASE_CONFIG.url}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectUrl)}`;
-    const checkRes = await fetch(testUrl, {
-      method: 'GET',
-      headers: {
-        'apikey': SUPABASE_CONFIG.anonKey
-      }
-    });
-
-    if (!checkRes.ok) {
-      const errJson = await checkRes.json().catch(() => ({}));
-      if (errJson && errJson.msg && errJson.msg.toLowerCase().includes('not enabled')) {
-        console.warn('Supabase Google OAuth provider is not yet enabled:', errJson);
-        handleOAuthProviderNotConfigured('google', errJson);
-        return;
-      }
-    }
-  } catch (netErr) {
-    console.warn('Pre-flight check network warning:', netErr);
-  }
-
-  // 2. If provider is enabled in Supabase, proceed to official Google redirect
+  // 1. Direct official OAuth via Supabase Client
   if (supabaseClient && supabaseClient.auth && typeof supabaseClient.auth.signInWithOAuth === 'function') {
     try {
       const { data, error } = await supabaseClient.auth.signInWithOAuth({
@@ -4425,7 +4403,7 @@ async function initiateGoogleOAuth() {
       });
 
       if (error) {
-        console.warn('Supabase Google OAuth response:', error);
+        console.warn('Supabase Google OAuth error:', error);
         handleOAuthProviderNotConfigured('google', error);
       } else if (data && data.url) {
         // Direct redirect to official Google accounts login!
@@ -4434,13 +4412,14 @@ async function initiateGoogleOAuth() {
       return;
     } catch (err) {
       console.warn('Supabase Google OAuth exception:', err);
-      handleOAuthProviderNotConfigured('google', err);
+      // Fallback direct URL redirect to Supabase Authorize
+      window.location.href = `${SUPABASE_CONFIG.url}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectUrl)}`;
       return;
     }
   }
 
-  // Fallback
-  handleOAuthProviderNotConfigured('google', { msg: 'SDK_NOT_READY' });
+  // 2. Direct browser redirect fallback
+  window.location.href = `${SUPABASE_CONFIG.url}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectUrl)}`;
 }
 
 function handleOAuthProviderNotConfigured(provider, error) {
