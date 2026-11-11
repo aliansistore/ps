@@ -46,7 +46,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <!-- Custom Next-Gen Stylesheet (with cache buster query) -->
-  <link rel="stylesheet" href="assets/style.css?v=20261111_ticker_speed_v54" />
+  <link rel="stylesheet" href="assets/style.css?v=20261111_light_mode_contrast_v55" />
 
   <!-- Critical Inline Styles to Guarantee Immediate High-Contrast Rendering (Dark & Light Mode) -->
   <style>
@@ -340,6 +340,12 @@
     }
     html:not(.dark) .ticker-wrapper #live-social-ticker > div.is-real-order strong {
       color: #064e3b !important;
+    }
+    html:not(.dark) .ticker-wrapper #live-social-ticker span.text-slate-400 {
+      color: #475569 !important;
+    }
+    html:not(.dark) .ticker-wrapper #live-social-ticker span.text-slate-500 {
+      color: #64748b !important;
     }
 
     /* Primary vs Secondary Comparison Cards in Light Mode */
@@ -1231,6 +1237,38 @@
     html:not(.dark) .review-card .rev-customer-name {
       color: #0f172a !important;
     }
+    html:not(.dark) .review-card .rev-city,
+    html:not(.dark) .review-card .rev-city span {
+      color: #475569 !important;
+    }
+    html:not(.dark) .review-card .rev-city i,
+    html:not(.dark) .review-card .rev-city svg {
+      color: #64748b !important;
+    }
+    html:not(.dark) .review-card .rev-date {
+      color: #64748b !important;
+      font-weight: 600 !important;
+    }
+    html:not(.dark) .review-card .rev-badge-verified {
+      background-color: #f1f5f9 !important;
+      border: 1px solid #cbd5e1 !important;
+      color: #1e293b !important;
+      font-weight: 700 !important;
+    }
+    html:not(.dark) .review-card .rev-badge-verified i,
+    html:not(.dark) .review-card .rev-badge-verified svg {
+      color: #0284c7 !important;
+    }
+    html:not(.dark) .review-card .rev-badge-real {
+      background-color: #ecfdf5 !important;
+      border: 1px solid #6ee7b7 !important;
+      color: #065f46 !important;
+      font-weight: 800 !important;
+    }
+    html:not(.dark) .review-card .rev-badge-real i,
+    html:not(.dark) .review-card .rev-badge-real svg {
+      color: #059669 !important;
+    }
     html:not(.dark) .review-card .rev-comment {
       color: #334155 !important;
     }
@@ -1248,6 +1286,18 @@
       background-color: #ecfdf5 !important;
       border-color: #a7f3d0 !important;
       color: #059669 !important;
+    }
+    html:not(.dark) .review-card .rev-footer {
+      border-top-color: #e2e8f0 !important;
+      color: #475569 !important;
+    }
+    html:not(.dark) .review-card .rev-footer .text-emerald-400,
+    html:not(.dark) .review-card .rev-footer .text-emerald-600 {
+      color: #059669 !important;
+    }
+    html:not(.dark) .review-card .rev-footer .text-slate-400,
+    html:not(.dark) .review-card .rev-footer .text-slate-500 {
+      color: #475569 !important;
     }
     html:not(.dark) #inv-review-prompt-card {
       background: linear-gradient(135deg, #fffbeb 0%, #ffffff 50%, #fff7ed 100%) !important;
@@ -5867,6 +5917,6 @@
 
   <!-- Application Scripts (with cache-buster query) -->
   <script src="assets/products-data.js?v=20261111_smart_reviews_ticker_v53"></script>
-  <script src="assets/app.js?v=20261111_ticker_speed_v54"></script>
+  <script src="assets/app.js?v=20261111_light_mode_contrast_v55"></script>
 </body>
 </html>
