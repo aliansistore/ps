@@ -4437,21 +4437,15 @@ async function initiateMicrosoftOAuth() {
 
       if (error) {
         console.warn('Supabase Azure OAuth error:', error);
-        showToast('Kredensial Azure Supabase belum disetel. Membuka formulir instan Outlook...', 'warning');
-        renderOAuthModal('microsoft', true);
-        const modal = document.getElementById('modal-oauth-picker');
-        if (modal) modal.classList.remove('hidden');
-        lucide.createIcons();
+        window.location.href = `${SUPABASE_CONFIG.url}/auth/v1/authorize?provider=azure&redirect_to=${encodeURIComponent(redirectUrl)}`;
+        return;
       } else if (data && data.url) {
         window.location.href = data.url;
+        return;
       }
-      return;
     } catch (err) {
       console.warn('Supabase Azure OAuth exception:', err);
-      renderOAuthModal('microsoft', true);
-      const modal = document.getElementById('modal-oauth-picker');
-      if (modal) modal.classList.remove('hidden');
-      lucide.createIcons();
+      window.location.href = `${SUPABASE_CONFIG.url}/auth/v1/authorize?provider=azure&redirect_to=${encodeURIComponent(redirectUrl)}`;
       return;
     }
   }
@@ -4476,6 +4470,11 @@ function loginWithProvider(provider) {
 
   if (provider === 'google') {
     initiateGoogleOAuth();
+    return;
+  }
+
+  if (provider === 'microsoft' || provider === 'outlook' || provider === 'azure') {
+    initiateMicrosoftOAuth();
     return;
   }
 
