@@ -1588,16 +1588,25 @@ html:not(.dark) .logo-light-theme { display: inline-block !important; }
 .ticker-wrapper {
   overflow: hidden;
   white-space: nowrap;
+  position: relative;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 48px, black calc(100% - 48px), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, black 48px, black calc(100% - 48px), transparent 100%);
 }
 
 .ticker-inner {
   display: inline-flex;
-  animation: tickerSlide 160s linear infinite;
+  animation: tickerSlide 320s linear infinite;
   will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  perspective: 1000px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 .ticker-wrapper:hover .ticker-inner,
 .ticker-inner:hover {
-  animation-play-state: paused;
+  animation-play-state: paused !important;
   cursor: pointer;
 }
 
