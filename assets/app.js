@@ -4422,6 +4422,47 @@ async function initiateGoogleOAuth() {
   window.location.href = `${SUPABASE_CONFIG.url}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectUrl)}`;
 }
 
+async function initiateMicrosoftOAuth() {
+  playSfx('click');
+  showToast('Mengarahkan ke Halaman Login Microsoft / Outlook...', 'info', 'Masuk dengan Outlook');
+
+  const redirectUrl = window.location.origin + window.location.pathname;
+
+  if (supabaseClient && supabaseClient.auth && typeof supabaseClient.auth.signInWithOAuth === 'function') {
+    try {
+      const { data, error } = await supabaseClient.auth.signInWithOAuth({
+        provider: 'azure',
+        options: {
+          redirectTo: redirectUrl,
+          scopes: 'email profile openid'
+        }
+      });
+
+      if (error) {
+        console.warn('Supabase Azure OAuth error:', error);
+        showToast('Kredensial Azure Supabase belum disetel. Membuka formulir instan Outlook...', 'warning');
+        renderOAuthModal('microsoft', true);
+        const modal = document.getElementById('modal-oauth-picker');
+        if (modal) modal.classList.remove('hidden');
+        lucide.createIcons();
+      } else if (data && data.url) {
+        window.location.href = data.url;
+      }
+      return;
+    } catch (err) {
+      console.warn('Supabase Azure OAuth exception:', err);
+      renderOAuthModal('microsoft', true);
+      const modal = document.getElementById('modal-oauth-picker');
+      if (modal) modal.classList.remove('hidden');
+      lucide.createIcons();
+      return;
+    }
+  }
+
+  // Fallback to direct redirect
+  window.location.href = `${SUPABASE_CONFIG.url}/auth/v1/authorize?provider=azure&redirect_to=${encodeURIComponent(redirectUrl)}`;
+}
+
 function handleOAuthProviderNotConfigured(provider, error) {
   closeModals();
   renderOAuthModal(provider, true);
@@ -4570,99 +4611,151 @@ function renderOAuthModal(provider, showConfigBanner = false) {
     `;
   } else if (provider === 'microsoft') {
     container.innerHTML = `
-      <div class="text-center mb-5">
-        <svg class="w-9 h-9 mx-auto mb-2" viewBox="0 0 23 23">
-          <path fill="#f35325" d="M1 1h10v10H1z"/>
-          <path fill="#81bc06" d="M12 1h10v10H12z"/>
-          <path fill="#05a6f0" d="M1 12h10v10H1z"/>
-          <path fill="#ffba08" d="M12 12h10v10H12z"/>
-        </svg>
-        <h3 class="text-base font-black text-white font-display">Masuk dengan Microsoft</h3>
-        <p class="text-xs text-slate-400 mt-0.5">Gunakan akun <strong class="text-sky-400">Outlook / Hotmail</strong> Anda</p>
-      </div>
-
-      <div class="space-y-2 mb-4">
-        <div 
-          onclick="executeOAuthLogin({ provider: 'microsoft', name: 'Dimas Pratama', email: 'dimas.gamer@outlook.com', phone: '081234567890' })"
-          class="oauth-account-item flex items-center gap-3 p-3 rounded-2xl bg-slate-900/80 border border-slate-700/80 hover:border-sky-500 cursor-pointer transition-all shadow-sm"
-        >
-          <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-sky-600 to-indigo-600 text-white flex items-center justify-center font-black text-sm shrink-0">
-            DP
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="oauth-account-name text-xs font-bold text-white truncate">Dimas Pratama</div>
-            <div class="oauth-account-email text-[11px] text-slate-400 truncate">dimas.gamer@outlook.com</div>
-          </div>
-          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+      <div class="text-center mb-4">
+        <div class="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center mx-auto mb-2 shadow-lg">
+          <svg class="w-7 h-7" viewBox="0 0 23 23">
+            <path fill="#f35325" d="M1 1h10v10H1z"/>
+            <path fill="#81bc06" d="M12 1h10v10H12z"/>
+            <path fill="#05a6f0" d="M1 12h10v10H1z"/>
+            <path fill="#ffba08" d="M12 12h10v10H12z"/>
+          </svg>
         </div>
+        <h3 class="text-base font-black text-white font-display">Masuk dengan Akun Microsoft / Outlook</h3>
+        <p class="text-xs text-slate-400 mt-0.5">Otentikasi mudah menggunakan email <strong>@outlook.com</strong> atau <strong>@hotmail.com</strong></p>
       </div>
 
-      <!-- Option: Custom Microsoft Account -->
-      <div id="oauth-custom-section" class="border-t border-slate-800 pt-3">
-        <button 
-          type="button" 
-          onclick="toggleOAuthCustomInput()" 
-          class="w-full py-2 text-xs text-sky-400 hover:text-sky-300 font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-        >
-          <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
-          <span>Gunakan Akun Outlook Lain</span>
+      <!-- Action Button: Open Official Microsoft OAuth -->
+      <button 
+        type="button" 
+        onclick="initiateMicrosoftOAuth()" 
+        class="w-full mb-3.5 py-2.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 via-sky-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs shadow-lg shadow-sky-600/30 flex items-center justify-center gap-2.5 transition-all transform active:scale-98 cursor-pointer"
+      >
+        <i data-lucide="external-link" class="w-4 h-4"></i>
+        <span>Buka Halaman Login Resmi Microsoft</span>
+      </button>
+
+      <div class="relative flex py-2 items-center mb-3">
+        <div class="flex-grow border-t border-slate-800"></div>
+        <span class="flex-shrink mx-2 text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Atau Isi Form Cepat Outlook:</span>
+        <div class="flex-grow border-t border-slate-800"></div>
+      </div>
+
+      <form id="oauth-custom-form" onsubmit="event.preventDefault(); submitCustomOAuth('microsoft');" class="space-y-2.5">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-300 mb-1">Nama Lengkap Anda <span class="text-rose-400">*</span>:</label>
+          <input type="text" id="oauth-custom-name" placeholder="Contoh: Reza Kurniawan" class="w-full px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" required />
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-300 mb-1">Email Outlook / Hotmail <span class="text-rose-400">*</span>:</label>
+          <input type="email" id="oauth-custom-email" placeholder="nama@outlook.com" class="w-full px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500 font-mono" required />
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-300 mb-1">No. WhatsApp (Opsional):</label>
+          <input type="tel" id="oauth-custom-phone" placeholder="081234..." class="w-full px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500 font-mono" />
+        </div>
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs shadow-md transition-all cursor-pointer">
+          Masuk &amp; Hubungkan Akun Outlook
         </button>
+      </form>
 
-        <form id="oauth-custom-form" onsubmit="event.preventDefault(); submitCustomOAuth('microsoft');" class="space-y-2.5 mt-3 hidden">
-          <div>
-            <label class="block text-[11px] font-bold text-slate-300 mb-1">Nama Lengkap:</label>
-            <input type="text" id="oauth-custom-name" placeholder="Contoh: Reza Kurniawan" class="w-full px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" required />
-          </div>
-          <div>
-            <label class="block text-[11px] font-bold text-slate-300 mb-1">Email Outlook / Hotmail:</label>
-            <input type="email" id="oauth-custom-email" placeholder="nama@outlook.com" class="w-full px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" required />
-          </div>
-          <div>
-            <label class="block text-[11px] font-bold text-slate-300 mb-1">No. WhatsApp (Opsional):</label>
-            <input type="tel" id="oauth-custom-phone" placeholder="081234..." class="w-full px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" />
-          </div>
-          <button type="submit" class="w-full py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs shadow-md transition-all cursor-pointer">
-            Masuk dengan Microsoft
-          </button>
-        </form>
-      </div>
-
-      <p class="oauth-footer-text text-[10px] text-slate-500 text-center mt-4">
-        Aman & terlindungi dengan enkripsi Microsoft Authentication Library.
+      <p class="oauth-footer-text text-[10px] text-slate-500 text-center mt-3">
+        Aman &amp; terlindungi. Data hanya digunakan untuk pengiriman faktur &amp; link Google Drive game.
       </p>
     `;
   } else if (provider === 'psn') {
     container.innerHTML = `
-      <div class="text-center mb-5">
-        <div class="w-12 h-12 rounded-2xl bg-sky-500/15 border border-sky-500/30 text-sky-400 flex items-center justify-center mx-auto mb-2.5 shadow-lg">
-          <i data-lucide="gamepad-2" class="w-6 h-6"></i>
+      <div class="text-center mb-4">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-600/30 to-blue-700/30 border border-sky-400/40 text-sky-400 flex items-center justify-center mx-auto mb-2 shadow-lg shadow-sky-500/20">
+          <i data-lucide="gamepad-2" class="w-6 h-6 text-sky-300"></i>
         </div>
-        <h3 class="text-base font-black text-white font-display">PlayStation™Network ID</h3>
-        <p class="text-xs text-slate-400 mt-0.5">Hubungkan akun PSN untuk sinkronisasi pesanan game</p>
+        <h3 class="text-base font-black text-white font-display flex items-center justify-center gap-1.5">
+          <span>Hubungkan PlayStation™Network</span>
+          <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-sky-500/20 text-sky-300 border border-sky-500/40">PS4 &amp; PS5</span>
+        </h3>
+        <p class="text-xs text-slate-400 mt-0.5">Daftar instan sebagai member komunitas PlayStation Aliansi Store</p>
       </div>
 
       <form onsubmit="event.preventDefault(); submitCustomOAuth('psn');" class="space-y-3">
         <div>
-          <label class="block text-[11px] font-bold text-slate-300 mb-1">PlayStation™Network Online ID <span class="text-rose-400">*</span>:</label>
-          <input type="text" id="oauth-psn-id" placeholder="Contoh: GamerSultan_ID atau Reza_PS5" class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500 font-mono" required />
-          <span class="text-[10px] text-slate-500">ID profil akun PlayStation Anda</span>
+          <label class="block text-[11px] font-bold text-slate-300 mb-1">
+            PlayStation™Network Online ID (PSN ID) <span class="text-rose-400">*</span>:
+          </label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+              <i data-lucide="gamepad" class="w-3.5 h-3.5"></i>
+            </div>
+            <input type="text" id="oauth-psn-id" placeholder="Contoh: GamerSultan_ID atau Reza_PS4" class="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500 font-mono" required />
+          </div>
+          <span class="text-[10px] text-slate-500">Nama Online ID PSN yang tertera di konsol PlayStation Anda</span>
         </div>
-        <div>
-          <label class="block text-[11px] font-bold text-slate-300 mb-1">Nama Panggilan / Lengkap:</label>
-          <input type="text" id="oauth-custom-name" placeholder="Contoh: Reza Aliansi" class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" required />
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-300 mb-1">Nama Lengkap <span class="text-rose-400">*</span>:</label>
+            <input type="text" id="oauth-custom-name" placeholder="Contoh: Reza Aliansi" class="w-full px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" required />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-300 mb-1">No. WhatsApp:</label>
+            <input type="tel" id="oauth-custom-phone" placeholder="081234567890" class="w-full px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500 font-mono" />
+          </div>
         </div>
+
         <div>
-          <label class="block text-[11px] font-bold text-slate-300 mb-1">No. WhatsApp / Email:</label>
-          <input type="text" id="oauth-custom-phone" placeholder="Contoh: 081234567890" class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" required />
+          <label class="block text-[11px] font-bold text-slate-300 mb-1">
+            Email Aktif (Kirim Link Game Google Drive) <span class="text-rose-400">*</span>:
+          </label>
+          <input type="email" id="oauth-custom-email" placeholder="emailanda@gmail.com" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500 font-mono" required />
+        </div>
+
+        <!-- Choice of Gamer Avatar -->
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Pilih Avatar Gamer PlayStation:</label>
+          <div class="grid grid-cols-5 gap-2" id="psn-avatar-picker">
+            <label class="cursor-pointer">
+              <input type="radio" name="psn_avatar" value="spiderman" class="peer sr-only" checked />
+              <div class="p-1 rounded-xl border border-slate-700 peer-checked:border-sky-400 peer-checked:bg-sky-500/20 text-center transition-all">
+                <img src="assets/covers/spiderman.jpg" alt="Spider-Man" class="w-8 h-8 rounded-lg object-cover mx-auto" onerror="this.src='assets/covers/service-1tb.jpg'" />
+                <span class="text-[9px] text-slate-400 block truncate mt-0.5">Spidey</span>
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="psn_avatar" value="kratos" class="peer sr-only" />
+              <div class="p-1 rounded-xl border border-slate-700 peer-checked:border-sky-400 peer-checked:bg-sky-500/20 text-center transition-all">
+                <img src="assets/covers/gow-ragnarok.jpg" alt="Kratos" class="w-8 h-8 rounded-lg object-cover mx-auto" onerror="this.src='assets/covers/service-1tb.jpg'" />
+                <span class="text-[9px] text-slate-400 block truncate mt-0.5">Kratos</span>
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="psn_avatar" value="jin" class="peer sr-only" />
+              <div class="p-1 rounded-xl border border-slate-700 peer-checked:border-sky-400 peer-checked:bg-sky-500/20 text-center transition-all">
+                <img src="assets/covers/ghost-tsushima.jpg" alt="Jin Sakai" class="w-8 h-8 rounded-lg object-cover mx-auto" onerror="this.src='assets/covers/service-1tb.jpg'" />
+                <span class="text-[9px] text-slate-400 block truncate mt-0.5">Tsushima</span>
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="psn_avatar" value="ellie" class="peer sr-only" />
+              <div class="p-1 rounded-xl border border-slate-700 peer-checked:border-sky-400 peer-checked:bg-sky-500/20 text-center transition-all">
+                <img src="assets/covers/tlou-part2.jpg" alt="TLOU" class="w-8 h-8 rounded-lg object-cover mx-auto" onerror="this.src='assets/covers/service-1tb.jpg'" />
+                <span class="text-[9px] text-slate-400 block truncate mt-0.5">TLOU</span>
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="psn_avatar" value="pes" class="peer sr-only" />
+              <div class="p-1 rounded-xl border border-slate-700 peer-checked:border-sky-400 peer-checked:bg-sky-500/20 text-center transition-all">
+                <img src="assets/covers/pes-2027.jpg" alt="PES" class="w-8 h-8 rounded-lg object-cover mx-auto" onerror="this.src='assets/covers/service-1tb.jpg'" />
+                <span class="text-[9px] text-slate-400 block truncate mt-0.5">Pro PES</span>
+              </div>
+            </label>
+          </div>
         </div>
 
         <button type="submit" class="w-full py-2.5 rounded-xl cyber-button font-black text-xs shadow-lg shadow-sky-500/20 flex items-center justify-center gap-2 mt-2 cursor-pointer">
           <i data-lucide="check-circle" class="w-4 h-4"></i>
-          <span>Hubungkan & Masuk ke Toko</span>
+          <span>Hubungkan PlayStation ID &amp; Masuk</span>
         </button>
       </form>
 
-      <p class="oauth-footer-text text-[10px] text-slate-500 text-center mt-4">
+      <p class="oauth-footer-text text-[10px] text-slate-500 text-center mt-3">
         🔒 100% Aman. Kami <strong>tidak pernah meminta password</strong> akun PlayStation Anda.
       </p>
     `;
@@ -4687,16 +4780,53 @@ function submitCustomOAuth(provider) {
   const phone = phoneInput ? phoneInput.value.trim() : '';
   const psnId = psnIdInput ? psnIdInput.value.trim() : '';
 
+  if (provider === 'psn') {
+    if (!psnId) {
+      showToast('Mohon masukkan PSN Online ID Anda!', 'warning');
+      if (psnIdInput) psnIdInput.focus();
+      return;
+    }
+    if (!name) {
+      showToast('Mohon masukkan nama Anda!', 'warning');
+      if (nameInput) nameInput.focus();
+      return;
+    }
+    if (!email || !email.includes('@')) {
+      showToast('Mohon masukkan email aktif untuk menerima link game Google Drive!', 'warning');
+      if (emailInput) emailInput.focus();
+      return;
+    }
+
+    const avatarRadio = document.querySelector('input[name="psn_avatar"]:checked');
+    const avatarKey = avatarRadio ? avatarRadio.value : 'spiderman';
+    const avatarMap = {
+      spiderman: 'assets/covers/spiderman.jpg',
+      kratos: 'assets/covers/gow-ragnarok.jpg',
+      jin: 'assets/covers/ghost-tsushima.jpg',
+      ellie: 'assets/covers/tlou-part2.jpg',
+      pes: 'assets/covers/pes-2027.jpg'
+    };
+    const avatar = avatarMap[avatarKey] || 'assets/covers/spiderman.jpg';
+
+    executeOAuthLogin({
+      provider: 'psn',
+      name: name,
+      email: email,
+      phone: phone,
+      psnId: psnId,
+      avatar: avatar
+    });
+    return;
+  }
+
   if (!name) {
     showToast('Mohon masukkan nama Anda!', 'warning');
+    if (nameInput) nameInput.focus();
     return;
   }
-  if (provider === 'psn' && !psnId) {
-    showToast('Mohon masukkan PSN Online ID Anda!', 'warning');
-    return;
-  }
-  if ((provider === 'google' || provider === 'microsoft') && !email) {
-    showToast('Mohon masukkan alamat email Anda!', 'warning');
+  if (!email || !email.includes('@')) {
+    showToast('Mohon masukkan alamat email yang valid!', 'warning');
+    if (emailInput) emailInput.focus();
     return;
   }
 
