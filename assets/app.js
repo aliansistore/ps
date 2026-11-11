@@ -3957,6 +3957,15 @@ function updateNavAuthUI() {
     else footerAuthBtn.textContent = 'Masuk / Login Akun';
   }
 
+  // If user was prompted to login to use Live Chat, open it once logged in!
+  if (state.currentUser && sessionStorage.getItem('aliansi_pending_open_chat') === 'true') {
+    sessionStorage.removeItem('aliansi_pending_open_chat');
+    setTimeout(() => {
+      toggleCustomerChat(true);
+      showToast(`Selamat datang ${state.currentUser.name || 'Member'}! Sesi Live Chat Anda siap.`, 'success');
+    }, 450);
+  }
+
   lucide.createIcons();
 }
 
@@ -9799,64 +9808,53 @@ function getCurrentCustomerChatName() {
 
 function renderCustomerChatIdentity() {
   const strip = document.getElementById('cust-chat-identity-text');
+  const btnUbah = document.querySelector('#cust-chat-identity-strip button');
   if (!strip) return;
 
-  const email = getCurrentCustomerChatEmail();
-  const name = getCurrentCustomerChatName();
-
-  if (email) {
-    strip.innerHTML = `Chat sebagai: <strong class="text-white">${escapeHtml(name)}</strong> <span class="text-sky-400 font-mono text-[10px]">(${escapeHtml(email)})</span>`;
+  if (state.currentUser) {
+    const email = state.currentUser.email || '';
+    const name = state.currentUser.name || 'Member';
+    strip.innerHTML = `Akun: <strong class="text-white">${escapeHtml(name)}</strong> <span class="text-sky-400 font-mono text-[10px]">(${escapeHtml(email)})</span> <span class="ml-1 px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Member Terverifikasi</span>`;
+    if (btnUbah) btnUbah.style.display = 'none';
   } else {
-    strip.innerHTML = `<span class="text-amber-300 font-bold">Belum ada email</span> • <span class="text-slate-400">Klik "Ubah" untuk isi identitas</span>`;
+    strip.innerHTML = `<span class="text-amber-300 font-bold">Khusus Member</span> • <span class="text-slate-400">Silakan login akun</span>`;
+    if (btnUbah) btnUbah.style.display = 'none';
   }
 }
 
 function promptChangeCustomerChatIdentity() {
   playSfx('click');
-  const currentName = getCurrentCustomerChatName();
-  const currentEmail = getCurrentCustomerChatEmail();
-
-  const newName = prompt('Masukkan Nama Lengkap Anda:', currentName !== 'Customer' ? currentName : '');
-  if (newName === null) return;
-  if (!newName.trim()) {
-    showToast('Nama tidak boleh kosong.', 'warning');
+  if (state.currentUser) {
+    showToast(`Identitas chat terhubung permanen ke akun Member: ${state.currentUser.name} (${state.currentUser.email})`, 'info');
     return;
   }
-
-  const newEmail = prompt('Masukkan Alamat Email Anda (untuk menerima notifikasi balasan Admin):', currentEmail || '');
-  if (newEmail === null) return;
-  if (!newEmail.trim() || !newEmail.includes('@')) {
-    showToast('Alamat email tidak valid!', 'warning');
-    return;
-  }
-
-  localStorage.setItem('aliansi_guest_chat_name', newName.trim());
-  localStorage.setItem('aliansi_guest_chat_email', newEmail.trim().toLowerCase());
-
-  renderCustomerChatIdentity();
-  renderCustomerChatMessages();
-  updateChatBadges();
-  showToast(`Identitas chat disimpan sebagai ${newName.trim()} (${newEmail.trim()})`, 'success');
+  openAuthModal('login');
 }
 
-function toggleCustomerChat() {
+function toggleCustomerChat(forceOpen = false) {
   const box = document.getElementById('customer-live-chat-box');
   if (!box) return;
 
   const isHidden = box.classList.contains('hidden');
 
-  if (isHidden) {
+  if (isHidden || forceOpen) {
+    // Enforce Registered Member Authentication
+    if (!state.currentUser) {
+      playSfx('warning');
+      showToast('Fitur Live Chat hanya untuk Member terdaftar. Silakan Masuk atau Daftar Akun terlebih dahulu.', 'info', 'Akses Member Diperlukan');
+      sessionStorage.setItem('aliansi_pending_open_chat', 'true');
+      openAuthModal('login');
+      return;
+    }
+
     playSfx('switch');
     box.classList.remove('hidden');
     state.isCustomerChatOpen = true;
 
-    // Ensure customer has identity or prompt gently
-    if (!getCurrentCustomerChatEmail()) {
-      // Check if there is a customer in state.currentUser or default to Bayu Perkasa demo or prompt
-      if (state.currentUser && state.currentUser.email) {
-        localStorage.setItem('aliansi_guest_chat_email', state.currentUser.email);
-        localStorage.setItem('aliansi_guest_chat_name', state.currentUser.name);
-      }
+    // Sync member identity
+    if (state.currentUser && state.currentUser.email) {
+      localStorage.setItem('aliansi_guest_chat_email', state.currentUser.email);
+      localStorage.setItem('aliansi_guest_chat_name', state.currentUser.name || 'Member');
     }
 
     renderCustomerChatIdentity();
@@ -9883,6 +9881,11 @@ function toggleCustomerChat() {
     box.classList.add('hidden');
     state.isCustomerChatOpen = false;
   }
+}
+
+// Global alias for FAQ and external buttons
+function toggleCustomerLiveChat(forceOpen = false) {
+  toggleCustomerChat(forceOpen);
 }
 
 function renderCustomerChatMessages() {
@@ -9976,15 +9979,16 @@ function sendCustomerChatMessage() {
   const text = input.value.trim();
   if (!text) return;
 
-  let custEmail = getCurrentCustomerChatEmail();
-  let custName = getCurrentCustomerChatName();
-
-  if (!custEmail) {
-    promptChangeCustomerChatIdentity();
-    custEmail = getCurrentCustomerChatEmail();
-    custName = getCurrentCustomerChatName();
-    if (!custEmail) return;
+  // Enforce registered member
+  if (!state.currentUser) {
+    showToast('Fitur Live Chat hanya untuk Member terdaftar. Silakan Masuk terlebih dahulu.', 'warning', 'Member Diperlukan');
+    openAuthModal('login');
+    return;
   }
+
+  const custEmail = (state.currentUser.email || '').toLowerCase().trim();
+  const custName = state.currentUser.name || 'Member';
+  const custPhone = state.currentUser.phone || '';
 
   const adminEmail = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
   const custPhone = (state.currentUser && state.currentUser.phone) || localStorage.getItem('aliansi_guest_chat_phone') || '';
