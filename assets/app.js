@@ -460,6 +460,14 @@ function initApp() {
   sanitizeSearchInputsFromAutofill();
 }
 
+function isCredentialAutofillValue(str) {
+  if (!str) return false;
+  const s = String(str).toLowerCase().trim();
+  if (s === 'admin' || s === 'administrator' || s === 'aliansi' || s === 'owner') return true;
+  if (s.includes('aliansistore.com') || s.includes('admin@') || s.includes('@')) return true;
+  return false;
+}
+
 function sanitizeSearchInputsFromAutofill() {
   const searchIds = [
     'faq-search-input',
@@ -473,25 +481,50 @@ function sanitizeSearchInputsFromAutofill() {
   ];
 
   const clearCredentials = () => {
+    let catalogNeedsRender = false;
+    let faqNeedsRender = false;
+
     searchIds.forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
-      const val = (el.value || '').trim().toLowerCase();
+      const val = (el.value || '').trim();
       // If browser/password manager mistakenly autofilled "admin" or email into search bars
-      if (document.activeElement !== el && (val === 'admin' || val.includes('aliansistore.com') || val.includes('admin@'))) {
+      if (document.activeElement !== el && isCredentialAutofillValue(val)) {
         el.value = '';
-        if (id === 'faq-search-input') renderFaqList();
-        if (id === 'catalog-search-input') renderProducts();
-        if (id === 'main-search-input') handleSearch('');
+        if (id === 'faq-search-input') faqNeedsRender = true;
+        if (id === 'catalog-search-input' || id === 'main-search-input') {
+          catalogNeedsRender = true;
+        }
       }
     });
+
+    if (isCredentialAutofillValue(state.searchQuery)) {
+      state.searchQuery = '';
+      catalogNeedsRender = true;
+    }
+
+    if (catalogNeedsRender) {
+      state.searchQuery = '';
+      const cInput = document.getElementById('catalog-search-input');
+      const mInput = document.getElementById('main-search-input');
+      if (cInput) cInput.value = '';
+      if (mInput) mInput.value = '';
+      const feedbackBar = document.getElementById('catalog-search-feedback');
+      const clearBtn = document.getElementById('catalog-search-clear');
+      if (feedbackBar) feedbackBar.classList.add('hidden');
+      if (clearBtn) clearBtn.classList.add('hidden');
+      renderProducts();
+    }
+
+    if (faqNeedsRender) {
+      renderFaqList();
+    }
   };
 
   // Immediate sanitize
   clearCredentials();
-  // Deferred sanitize (handles late browser extension / password manager autofills)
-  setTimeout(clearCredentials, 400);
-  setTimeout(clearCredentials, 1200);
+  // Deferred sanitize across various ticks to catch late password manager extensions
+  [30, 100, 250, 500, 1000, 1800, 3000].forEach(delay => setTimeout(clearCredentials, delay));
 }
 
 function loadStoredData() {
@@ -1597,11 +1630,11 @@ function getFilteredProducts() {
 
   // Search Query
   if (state.searchQuery && state.searchQuery.trim()) {
-    const q = state.searchQuery.toLowerCase().trim();
-    if (q === 'admin') {
-      // Ironclad emergency safeguard: 'admin' must never filter the catalog
+    if (isCredentialAutofillValue(state.searchQuery)) {
+      // Ironclad emergency safeguard: autofilled credentials must never filter the catalog
       state.searchQuery = '';
     } else {
+      const q = state.searchQuery.toLowerCase().trim();
       list = list.filter(p => {
         // 1. Direct text fields match
         const titleMatch = (p.title || '').toLowerCase().includes(q);
@@ -9657,9 +9690,8 @@ function setupEventListeners() {
   if (mainSearchInput) mainSearchInput.value = '';
 
   const handleLiveSearch = (val) => {
-    const cleanVal = (val || '').trim();
-    // Ironclad guard: if browser or extension tries to autofill 'admin', wipe it out immediately
-    if (cleanVal.toLowerCase() === 'admin') {
+    // Ironclad guard: if browser or extension tries to autofill credentials, wipe it out immediately
+    if (isCredentialAutofillValue(val)) {
       state.searchQuery = '';
       if (catalogSearchInput) catalogSearchInput.value = '';
       if (mainSearchInput) mainSearchInput.value = '';
@@ -9671,12 +9703,12 @@ function setupEventListeners() {
       return;
     }
 
-    state.searchQuery = val;
+    state.searchQuery = val || '';
     if (catalogSearchInput && catalogSearchInput.value !== val) {
-      catalogSearchInput.value = val;
+      catalogSearchInput.value = val || '';
     }
     if (mainSearchInput && mainSearchInput.value !== val) {
-      mainSearchInput.value = val;
+      mainSearchInput.value = val || '';
     }
     renderProducts();
   };
@@ -9696,26 +9728,27 @@ function setupEventListeners() {
     mainSearchInput.addEventListener('change', (e) => handleLiveSearch(e.target.value));
   }
 
-  // Bulletproof anti-autofill watchdog: continuously cleanses 'admin' from inputs and state
+  // Bulletproof anti-autofill watchdog: continuously cleanses credentials from inputs and state
   const purgeAdminAutofill = () => {
     const ci = document.getElementById('catalog-search-input');
     const mi = document.getElementById('main-search-input');
     let dirty = false;
 
-    if (ci && (ci.value || '').toLowerCase().trim() === 'admin') {
+    if (ci && isCredentialAutofillValue(ci.value)) {
       ci.value = '';
       dirty = true;
     }
-    if (mi && (mi.value || '').toLowerCase().trim() === 'admin') {
+    if (mi && isCredentialAutofillValue(mi.value)) {
       mi.value = '';
       dirty = true;
     }
-    if (state.searchQuery && state.searchQuery.toLowerCase().trim() === 'admin') {
+    if (state.searchQuery && isCredentialAutofillValue(state.searchQuery)) {
       state.searchQuery = '';
       dirty = true;
     }
 
     if (dirty) {
+      state.searchQuery = '';
       const feedbackBar = document.getElementById('catalog-search-feedback');
       const clearBtn = document.getElementById('catalog-search-clear');
       if (feedbackBar) feedbackBar.classList.add('hidden');
@@ -10885,8 +10918,8 @@ function renderFaqList() {
 
   const searchInput = document.getElementById('faq-search-input');
 
-  // Prevent browser/password manager from erroneously autofilling "admin" into FAQ search
-  if (searchInput && (searchInput.value === 'admin' || searchInput.value.toLowerCase() === 'admin@aliansistore.com') && document.activeElement !== searchInput) {
+  // Prevent browser/password manager from erroneously autofilling credentials into FAQ search
+  if (searchInput && isCredentialAutofillValue(searchInput.value) && document.activeElement !== searchInput) {
     searchInput.value = '';
   }
 
