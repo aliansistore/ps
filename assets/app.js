@@ -4370,10 +4370,33 @@ function handleSupabaseAuthUser(authUser) {
 
 async function initiateGoogleOAuth() {
   playSfx('click');
-  showToast('Menghubungkan ke server otentikasi Google...', 'info', 'Masuk dengan Google');
+  showToast('Memeriksa koneksi Google Sign-In...', 'info', 'Masuk dengan Google');
 
   const redirectUrl = window.location.origin + window.location.pathname;
 
+  // 1. Pre-flight check: Verify if Supabase Google provider is enabled in dashboard
+  try {
+    const testUrl = `${SUPABASE_CONFIG.url}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectUrl)}`;
+    const checkRes = await fetch(testUrl, {
+      method: 'GET',
+      headers: {
+        'apikey': SUPABASE_CONFIG.anonKey
+      }
+    });
+
+    if (!checkRes.ok) {
+      const errJson = await checkRes.json().catch(() => ({}));
+      if (errJson && errJson.msg && errJson.msg.toLowerCase().includes('not enabled')) {
+        console.warn('Supabase Google OAuth provider is not yet enabled:', errJson);
+        handleOAuthProviderNotConfigured('google', errJson);
+        return;
+      }
+    }
+  } catch (netErr) {
+    console.warn('Pre-flight check network warning:', netErr);
+  }
+
+  // 2. If provider is enabled in Supabase, proceed to official Google redirect
   if (supabaseClient && supabaseClient.auth && typeof supabaseClient.auth.signInWithOAuth === 'function') {
     try {
       const { data, error } = await supabaseClient.auth.signInWithOAuth({
@@ -4402,19 +4425,17 @@ async function initiateGoogleOAuth() {
     }
   }
 
-  // Fallback REST endpoint
-  try {
-    const directUrl = `${SUPABASE_CONFIG.url}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectUrl)}`;
-    window.location.href = directUrl;
-  } catch (err) {
-    handleOAuthProviderNotConfigured('google', err);
-  }
+  // Fallback
+  handleOAuthProviderNotConfigured('google', { msg: 'SDK_NOT_READY' });
 }
 
 function handleOAuthProviderNotConfigured(provider, error) {
+  closeModals();
   renderOAuthModal(provider, true);
   const modal = document.getElementById('modal-oauth-picker');
   if (modal) modal.classList.remove('hidden');
+  const customForm = document.getElementById('oauth-custom-form');
+  if (customForm) customForm.classList.remove('hidden');
   lucide.createIcons();
 }
 
