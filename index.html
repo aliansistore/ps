@@ -46,7 +46,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <!-- Custom Next-Gen Stylesheet (with cache buster query) -->
-  <link rel="stylesheet" href="assets/style.css?v=20261111_admin_contrast_v58" />
+  <link rel="stylesheet" href="assets/style.css?v=20261111_remove_account_guide_v59" />
 
   <!-- Critical Inline Styles to Guarantee Immediate High-Contrast Rendering (Dark & Light Mode) -->
   <style>
@@ -3256,7 +3256,6 @@
             &copy; 2026 <strong>ALIANSI STORE</strong>. All Rights Reserved. Not affiliated with Sony Interactive Entertainment.
           </div>
           <div class="flex items-center gap-4">
-            <span class="hover:text-slate-400 cursor-pointer" onclick="document.getElementById('modal-account-guide').classList.remove('hidden')">Panduan Akun</span>
             <span class="hover:text-slate-400 cursor-pointer" onclick="document.getElementById('modal-search-order').classList.remove('hidden')">Lacak Pesanan</span>
             <span class="hover:text-slate-400 cursor-pointer" onclick="handleFooterAuthClick()" id="footer-auth-link">Login Akun</span>
           </div>
@@ -3642,9 +3641,6 @@
         <div class="mb-5">
           <div class="flex items-center justify-between mb-2">
             <label id="modal-variant-label" class="text-xs font-black text-white uppercase tracking-wider">Format & Tipe Game:</label>
-            <button id="btn-modal-account-guide" onclick="document.getElementById('modal-account-guide').classList.remove('hidden')" class="text-xs text-sky-400 hover:underline flex items-center gap-1 font-semibold hidden">
-              <i data-lucide="help-circle" class="w-3.5 h-3.5"></i> Beda Primary & Secondary?
-            </button>
           </div>
           <div id="modal-variant-container"></div>
         </div>
@@ -3675,52 +3671,6 @@
     </div>
   </div>
 
-  <!-- MODAL: Panduan Akun -->
-  <div id="modal-account-guide" class="app-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop-blur">
-    <div class="bg-[#080f24] border border-slate-700 rounded-3xl max-w-xl w-full max-h-[90vh] overflow-y-auto modal-custom-scroll shadow-2xl relative p-6" onclick="event.stopPropagation()">
-      <button onclick="document.getElementById('modal-account-guide').classList.add('hidden')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
-        <i data-lucide="x" class="w-4 h-4"></i>
-      </button>
-
-      <div class="text-center mb-6">
-        <div class="w-12 h-12 rounded-2xl bg-sky-500/20 text-sky-400 flex items-center justify-center mx-auto mb-2 border border-sky-500/30">
-          <i data-lucide="help-circle" class="w-6 h-6"></i>
-        </div>
-        <h3 class="text-lg font-black text-white font-display">Panduan Tipe Akun Game PS4 & PS5</h3>
-        <p class="text-xs text-slate-400">Pilih opsi yang paling sesuai dengan kebutuhan Anda</p>
-      </div>
-
-      <div class="space-y-4 mb-6">
-        <div class="p-4 rounded-2xl bg-sky-950/40 border border-sky-500/40">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-sm font-bold text-sky-300">🎮 AKUN PRIMARY (Paling Direkomendasikan)</span>
-            <span class="px-2 py-0.5 rounded text-[10px] font-black bg-sky-500 text-white">FAVORIT</span>
-          </div>
-          <ul class="space-y-1.5 text-xs text-slate-300">
-            <li class="flex items-start gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400 mt-0.5 shrink-0"></i><span><strong>Main di Profil Sendiri:</strong> Anda memainkan game menggunakan ID PSN pribadi Anda.</span></li>
-            <li class="flex items-start gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400 mt-0.5 shrink-0"></i><span><strong>Trophy & Save Permanen:</strong> Tersimpan di ID pribadi dan akun Anda.</span></li>
-            <li class="flex items-start gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400 mt-0.5 shrink-0"></i><span><strong>Bisa Online & Offline:</strong> Tidak harus selalu terkoneksi internet.</span></li>
-          </ul>
-        </div>
-
-        <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-700">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-sm font-bold text-slate-200">🕹️ AKUN SECONDARY (Harga Paling Hemat)</span>
-            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-700 text-slate-300">HEMAT 50%</span>
-          </div>
-          <ul class="space-y-1.5 text-xs text-slate-300">
-            <li class="flex items-start gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400 mt-0.5 shrink-0"></i><span><strong>Main di User Akun Toko:</strong> Anda bermain langsung di user yang kami kirimkan.</span></li>
-            <li class="flex items-start gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400 mt-0.5 shrink-0"></i><span><strong>Wajib Internet Aktif:</strong> Konsol harus terhubung WiFi / LAN saat bermain.</span></li>
-            <li class="flex items-start gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400 mt-0.5 shrink-0"></i><span>Diskon hingga 75% lebih murah, cocok untuk story campaign.</span></li>
-          </ul>
-        </div>
-      </div>
-
-      <button onclick="document.getElementById('modal-account-guide').classList.add('hidden')" class="w-full py-3 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold">
-        Saya Mengerti, Kembali Belanja
-      </button>
-    </div>
-  </div>
 
   <!-- MODAL: Checkout -->
   <div id="modal-checkout" class="app-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop-blur">
@@ -6242,6 +6192,6 @@
 
   <!-- Application Scripts (with cache-buster query) -->
   <script src="assets/products-data.js?v=20261111_smart_reviews_ticker_v53"></script>
-  <script src="assets/app.js?v=20261111_admin_contrast_v58"></script>
+  <script src="assets/app.js?v=20261111_remove_account_guide_v59"></script>
 </body>
 </html>

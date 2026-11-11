@@ -2156,13 +2156,8 @@ function openProductDetail(productId) {
   const isHenGame = isHenProduct(product);
   const isSpecial = product.category === 'service-hen' || product.category === 'tool' || isHenGame;
 
-  // Toggle account guide button & label for HEN vs Digital
-  const guideBtn = document.getElementById('btn-modal-account-guide');
+  // Variant label for HEN vs Digital
   const variantLabel = document.getElementById('modal-variant-label');
-  if (guideBtn) {
-    if (isHenGame) guideBtn.classList.add('hidden');
-    else guideBtn.classList.remove('hidden');
-  }
   if (variantLabel) {
     variantLabel.textContent = isHenGame ? 'Format Game & Pengiriman:' : 'Pilih Tipe Akun Game:';
   }
