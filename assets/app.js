@@ -1763,8 +1763,8 @@ function initSocialProofStream() {
     </div>
   `).join('');
 
-  // 5. Calm, steady, 60fps hardware-composited speed (~8.5s per item = ~32px/sec)
-  const durationSec = Math.max(80, Math.round(finalStream.length * 8.5));
+  // 5. Calm, ultra-smooth marquee speed (~13s per item = ~22-25px/sec) for maximum reading comfort
+  const durationSec = Math.max(130, Math.round(finalStream.length * 13.0));
   tickerContainer.style.animationDuration = `${durationSec}s`;
 
   // Pause smoothly on touch for mobile/touchscreen devices
