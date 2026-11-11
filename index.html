@@ -46,7 +46,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <!-- Custom Next-Gen Stylesheet (with cache buster query) -->
-  <link rel="stylesheet" href="assets/style.css?v=20261111_clear_users_orders_v61" />
+  <link rel="stylesheet" href="assets/style.css?v=20261111_optional_game_size_v62" />
 
   <!-- Critical Inline Styles to Guarantee Immediate High-Contrast Rendering (Dark & Light Mode) -->
   <style>
@@ -3658,8 +3658,7 @@
               <span>Publisher: <strong id="modal-product-publisher" class="text-slate-200"></strong></span>
               <span>•</span>
               <span>Rilis: <strong id="modal-product-year" class="text-slate-200"></strong></span>
-              <span>•</span>
-              <span id="modal-product-size"></span>
+              <span id="modal-product-size-wrap" class="hidden">• <strong id="modal-product-size" class="text-slate-200 font-bold font-mono"></strong></span>
             </div>
             <div class="flex items-center gap-1.5 text-xs text-amber-400 font-bold mb-3">
               <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
@@ -4483,15 +4482,27 @@
             </div>
           </div>
         </div>
-        <!-- Kode CUSA Game ID -->
-        <div>
-          <label class="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
-            <span class="flex items-center gap-1.5 text-sky-400">
-              <i data-lucide="disc" class="w-3.5 h-3.5"></i> Kode CUSA (PlayStation Game ID)
-            </span>
-            <span class="text-[9px] text-slate-400 font-mono">cth: CUSA-00341</span>
-          </label>
-          <input type="text" id="new-game-cusa" placeholder="Contoh: CUSA-00341 (khusus PS4 / HEN)" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:border-sky-500 font-mono uppercase" />
+        <!-- Kode CUSA & Ukuran Game (Opsional) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
+              <span class="flex items-center gap-1.5 text-sky-400">
+                <i data-lucide="disc" class="w-3.5 h-3.5"></i> Kode CUSA (ID Game)
+              </span>
+              <span class="text-[9px] text-slate-500 font-mono">Opsional</span>
+            </label>
+            <input type="text" id="new-game-cusa" placeholder="Contoh: CUSA-00341" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:border-sky-500 font-mono uppercase" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
+              <span class="flex items-center gap-1.5 text-emerald-400">
+                <i data-lucide="hard-drive" class="w-3.5 h-3.5"></i> Ukuran File Game (Size)
+              </span>
+              <span class="text-[9px] text-slate-500 font-mono">Opsional</span>
+            </label>
+            <input type="text" id="new-game-size" placeholder="Contoh: 50 GB" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:border-emerald-500 font-mono" />
+          </div>
         </div>
         <!-- Harga Normal & Checklist Diskon Promo -->
         <div class="space-y-3">
@@ -4716,15 +4727,27 @@
             </div>
           </div>
         </div>
-        <!-- Kode CUSA Game ID -->
-        <div>
-          <label class="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
-            <span class="flex items-center gap-1.5 text-sky-400">
-              <i data-lucide="disc" class="w-3.5 h-3.5"></i> Kode CUSA (PlayStation Game ID)
-            </span>
-            <span class="text-[9px] text-slate-400 font-mono">cth: CUSA-00341</span>
-          </label>
-          <input type="text" id="edit-game-cusa" placeholder="Contoh: CUSA-00341 (khusus PS4 / HEN)" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:border-sky-500 font-mono uppercase" />
+        <!-- Kode CUSA & Ukuran Game (Opsional) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
+              <span class="flex items-center gap-1.5 text-sky-400">
+                <i data-lucide="disc" class="w-3.5 h-3.5"></i> Kode CUSA (ID Game)
+              </span>
+              <span class="text-[9px] text-slate-500 font-mono">Opsional</span>
+            </label>
+            <input type="text" id="edit-game-cusa" placeholder="Contoh: CUSA-00341" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:border-sky-500 font-mono uppercase" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
+              <span class="flex items-center gap-1.5 text-emerald-400">
+                <i data-lucide="hard-drive" class="w-3.5 h-3.5"></i> Ukuran File Game (Size)
+              </span>
+              <span class="text-[9px] text-slate-500 font-mono">Opsional</span>
+            </label>
+            <input type="text" id="edit-game-size" placeholder="Contoh: 50 GB" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:border-emerald-500 font-mono" />
+          </div>
         </div>
         <!-- Harga Normal & Checklist Diskon Promo -->
         <div class="space-y-3">
@@ -6242,6 +6265,6 @@
 
   <!-- Application Scripts (with cache-buster query) -->
   <script src="assets/products-data.js?v=20261111_smart_reviews_ticker_v53"></script>
-  <script src="assets/app.js?v=20261111_clear_users_orders_v61"></script>
+  <script src="assets/app.js?v=20261111_optional_game_size_v62"></script>
 </body>
 </html>

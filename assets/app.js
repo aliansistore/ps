@@ -2152,7 +2152,17 @@ function openProductDetail(productId) {
 
   document.getElementById('modal-product-publisher').textContent = product.publisher || 'PlayStation Store';
   document.getElementById('modal-product-year').textContent = product.releaseYear || '2024';
-  document.getElementById('modal-product-size').textContent = product.size || 'Digital Download';
+  // Optional Product File Size display (only visible if size is set)
+  const sizeWrap = document.getElementById('modal-product-size-wrap');
+  const sizeEl = document.getElementById('modal-product-size');
+  const cleanSize = (product.size || '').trim();
+  if (cleanSize && cleanSize !== 'Digital Download') {
+    if (sizeEl) sizeEl.textContent = cleanSize;
+    if (sizeWrap) sizeWrap.classList.remove('hidden');
+  } else {
+    if (sizeEl) sizeEl.textContent = '';
+    if (sizeWrap) sizeWrap.classList.add('hidden');
+  }
   document.getElementById('modal-product-rating').textContent = `${product.rating || '4.9'} (${product.soldCount || 100}+ terjual)`;
   document.getElementById('modal-product-desc').textContent = product.description;
 
@@ -9582,6 +9592,8 @@ function openAddProductModal() {
   document.getElementById('new-game-title').value = '';
   const newCusaEl = document.getElementById('new-game-cusa');
   if (newCusaEl) newCusaEl.value = '';
+  const newSizeEl = document.getElementById('new-game-size');
+  if (newSizeEl) newSizeEl.value = '';
   const normalEl = document.getElementById('new-game-price-normal');
   if (normalEl) normalEl.value = '';
   const discCheckEl = document.getElementById('new-game-has-discount');
@@ -9795,6 +9807,7 @@ function submitNewProduct() {
   const posterUrl = document.getElementById('new-game-poster').value.trim();
   const backdropUrl = document.getElementById('new-game-backdrop') ? document.getElementById('new-game-backdrop').value.trim() : '';
   const desc = document.getElementById('new-game-desc').value.trim();
+  const sizeVal = document.getElementById('new-game-size') ? document.getElementById('new-game-size').value.trim() : '';
 
   const newGame = {
     id: 'game-' + Date.now(),
@@ -9809,7 +9822,7 @@ function submitNewProduct() {
     rating: 5.0,
     soldCount: 0,
     releaseYear: 2024,
-    size: '50 GB',
+    size: sizeVal || '',
     publisher: 'PlayStation Publisher',
     tagline: 'Game PlayStation Berkualitas Tinggi ALIANSI STORE',
     images: {
@@ -9862,6 +9875,8 @@ function openEditProductModal(productId) {
   document.getElementById('edit-game-title').value = p.title;
   const editCusaEl = document.getElementById('edit-game-cusa');
   if (editCusaEl) editCusaEl.value = p.cusa || '';
+  const editSizeEl = document.getElementById('edit-game-size');
+  if (editSizeEl) editSizeEl.value = p.size || '';
   const editCatEl = document.getElementById('edit-game-category');
   if (editCatEl && p.category) editCatEl.value = p.category;
   const editPlatCbs = document.querySelectorAll('input[name="edit-game-platform"]');
@@ -9937,6 +9952,8 @@ function submitEditProduct() {
   p.title = document.getElementById('edit-game-title').value.trim();
   const editCusaEl = document.getElementById('edit-game-cusa');
   if (editCusaEl) p.cusa = editCusaEl.value.trim().toUpperCase();
+  const editSizeEl = document.getElementById('edit-game-size');
+  p.size = editSizeEl ? editSizeEl.value.trim() : (p.size || '');
   const editCatEl = document.getElementById('edit-game-category');
   if (editCatEl && editCatEl.value) p.category = editCatEl.value;
   const editPlatCbs = Array.from(document.querySelectorAll('input[name="edit-game-platform"]:checked')).map(cb => cb.value);
