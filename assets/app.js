@@ -7020,13 +7020,13 @@ function renderAdminCustomersTable() {
     const provider = (u.authProvider || 'local').toLowerCase();
 
     // Provider badge
-    let providerBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-slate-800 text-slate-300 border border-slate-700">LOCAL</span>`;
+    let providerBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700">LOCAL</span>`;
     if (provider === 'google') {
-      providerBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-blue-500/15 text-blue-300 border border-blue-500/30">GOOGLE</span>`;
+      providerBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-blue-100 dark:bg-blue-500/15 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-500/30">GOOGLE</span>`;
     } else if (provider === 'microsoft' || provider === 'outlook') {
-      providerBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">OUTLOOK</span>`;
+      providerBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-cyan-100 dark:bg-cyan-500/15 text-cyan-800 dark:text-cyan-300 border border-cyan-300 dark:border-cyan-500/30">OUTLOOK</span>`;
     } else if (provider === 'psn') {
-      providerBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-sky-500/15 text-sky-300 border border-sky-500/30">PSN</span>`;
+      providerBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-sky-100 dark:bg-sky-500/15 text-sky-800 dark:text-sky-300 border border-sky-300 dark:border-sky-500/30">PSN</span>`;
     }
 
     // Avatar
@@ -7076,12 +7076,12 @@ function renderAdminCustomersTable() {
         </td>
         <td class="py-3 px-3">
           <div>
-            <div class="text-sm font-black text-emerald-400 font-display">${formatRupiah(stats.totalSpent)}</div>
+            <div class="text-sm font-black text-emerald-600 dark:text-emerald-400 font-display">${formatRupiah(stats.totalSpent)}</div>
             <div class="flex items-center gap-2 mt-1">
-              <span class="text-[10px] text-slate-400">${stats.orderCount} pesanan (${stats.completedCount} lunas)</span>
+              <span class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">${stats.orderCount} pesanan (${stats.completedCount} lunas)</span>
               <button 
                 onclick="openCustomerHistoryModal('${u.id}')" 
-                class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 hover:border-sky-500/50 cursor-pointer transition-colors"
+                class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-50 dark:bg-slate-800 hover:bg-sky-100 dark:hover:bg-slate-700 text-sky-700 dark:text-sky-400 border border-sky-200 dark:border-slate-700 cursor-pointer transition-colors"
                 title="Lihat rincian riwayat invoice belanja"
               >
                 Detail
@@ -7093,7 +7093,7 @@ function renderAdminCustomersTable() {
           <div class="flex items-center justify-end gap-1.5 flex-wrap">
             <button 
               onclick="openAdminChatForCustomer('${u.id}')" 
-              class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center gap-1.5 transition-all cursor-pointer shadow-sm hover:scale-[1.02]"
+              class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-cyan-50 dark:bg-cyan-500/10 hover:bg-cyan-100 dark:hover:bg-cyan-500/20 text-cyan-700 dark:text-cyan-400 border border-cyan-300 dark:border-cyan-500/30 flex items-center gap-1.5 transition-all cursor-pointer shadow-sm hover:scale-[1.02]"
               title="Buka Chat Dua Arah dengan ${escapeHtml(u.name)}"
             >
               <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
@@ -7101,7 +7101,7 @@ function renderAdminCustomersTable() {
             </button>
             <button 
               onclick="promptResetCustomerPassword('${u.id}')" 
-              class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center gap-1.5 transition-all cursor-pointer shadow-sm hover:scale-[1.02]"
+              class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-amber-50 dark:bg-amber-500/10 hover:bg-amber-100 dark:hover:bg-amber-500/20 text-amber-800 dark:text-amber-400 border border-amber-300 dark:border-amber-500/30 flex items-center gap-1.5 transition-all cursor-pointer shadow-sm hover:scale-[1.02]"
               title="Kirim tautan pembuatan password baru ke email customer"
             >
               <i data-lucide="key-round" class="w-3.5 h-3.5"></i>
@@ -11450,24 +11450,24 @@ function renderAdminFaqList() {
   container.innerHTML = sorted.map((faq, idx) => {
     const isAct = faq.isActive !== false;
     return `
-      <div class="p-4 rounded-xl bg-slate-900/70 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+      <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-sm hover:shadow transition-all">
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-1 flex-wrap">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300">#${faq.order || (idx + 1)}</span>
-            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-500/20 text-sky-400 border border-sky-500/30">${escapeHtml(faq.category || 'Umum')}</span>
-            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isAct ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'}">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">#${faq.order || (idx + 1)}</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-100 dark:bg-sky-500/20 text-sky-800 dark:text-sky-400 border border-sky-300 dark:border-sky-500/30">${escapeHtml(faq.category || 'Umum')}</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isAct ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30' : 'bg-rose-100 dark:bg-rose-500/20 text-rose-800 dark:text-rose-400 border border-rose-300 dark:border-rose-500/30'}">
               ${isAct ? 'TAMPIL DI BERANDA' : 'DISEMBUNYIKAN'}
             </span>
           </div>
-          <div class="font-bold text-white text-sm mb-1">${escapeHtml(faq.question)}</div>
-          <p class="text-slate-400 text-[11px] line-clamp-2 leading-relaxed">${escapeHtml(faq.answer)}</p>
+          <div class="font-bold text-slate-900 dark:text-white text-sm mb-1">${escapeHtml(faq.question)}</div>
+          <p class="text-slate-600 dark:text-slate-400 text-[11px] line-clamp-2 leading-relaxed">${escapeHtml(faq.answer)}</p>
         </div>
 
         <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
           <button 
             type="button" 
             onclick="toggleAdminFaqStatus('${faq.id}')" 
-            class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold ${isAct ? 'bg-slate-800 text-slate-300 hover:text-amber-400' : 'bg-emerald-950 text-emerald-300'} border border-slate-700 transition-colors cursor-pointer"
+            class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold ${isAct ? 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-amber-600 border border-slate-300 dark:border-slate-700' : 'bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/40'} transition-colors cursor-pointer shadow-sm"
             title="${isAct ? 'Sembunyikan dari Beranda' : 'Aktifkan di Beranda'}"
           >
             <i data-lucide="${isAct ? 'eye-off' : 'eye'}" class="w-3.5 h-3.5"></i>
@@ -11475,14 +11475,14 @@ function renderAdminFaqList() {
           <button 
             type="button" 
             onclick="openAdminFaqModal('${faq.id}')" 
-            class="px-3 py-1.5 rounded-lg text-[11px] font-bold bg-sky-950/70 hover:bg-sky-900 text-sky-300 border border-sky-500/40 transition-colors flex items-center gap-1 cursor-pointer"
+            class="px-3 py-1.5 rounded-lg text-[11px] font-bold bg-sky-50 dark:bg-sky-950/70 hover:bg-sky-100 dark:hover:bg-sky-900 text-sky-700 dark:text-sky-300 border border-sky-300 dark:border-sky-500/40 transition-colors flex items-center gap-1 cursor-pointer shadow-sm"
           >
             <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Edit
           </button>
           <button 
             type="button" 
             onclick="deleteAdminFaq('${faq.id}')" 
-            class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/50 transition-colors cursor-pointer" 
+            class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800/50 transition-colors cursor-pointer shadow-sm" 
             title="Hapus FAQ"
           >
             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>

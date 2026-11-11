@@ -726,7 +726,7 @@ html:not(.dark) .gamepad-hud .bg-slate-700 {
   background-color: #cbd5e1 !important;
 }
 
-/* Admin Dashboard in Light Mode */
+/* ================= ADMIN DASHBOARD IN LIGHT MODE ================= */
 html:not(.dark) #admin-dashboard-view {
   background-color: #f1f5f9 !important;
   color: #0f172a !important;
@@ -738,6 +738,15 @@ html:not(.dark) #admin-dashboard-view header {
 html:not(.dark) #admin-dashboard-view header span.text-white {
   color: #0f172a !important;
 }
+html:not(.dark) #admin-dashboard-view header button.bg-slate-800 {
+  background-color: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+}
+html:not(.dark) #admin-dashboard-view header button.bg-slate-800:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
 html:not(.dark) #admin-dashboard-view .stat-card,
 html:not(.dark) #admin-dashboard-view .grid > div {
   background-color: #ffffff !important;
@@ -745,20 +754,191 @@ html:not(.dark) #admin-dashboard-view .grid > div {
   color: #0f172a !important;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
 }
+html:not(.dark) #admin-dashboard-view .grid > div span.text-xs {
+  color: #334155 !important;
+  font-weight: 700 !important;
+}
+html:not(.dark) #admin-dashboard-view .grid > div div[class*="text-sky-300"],
+html:not(.dark) #admin-dashboard-view .grid > div div[class*="text-purple-300"],
+html:not(.dark) #admin-dashboard-view .grid > div div[class*="text-cyan-300"],
+html:not(.dark) #admin-dashboard-view .grid > div div[class*="text-slate-500"] {
+  color: #475569 !important;
+  font-weight: 600 !important;
+}
 html:not(.dark) #admin-dashboard-view section {
   background-color: #ffffff !important;
   border-color: #e2e8f0 !important;
   color: #0f172a !important;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04) !important;
 }
+html:not(.dark) #admin-dashboard-view section h3,
+html:not(.dark) #admin-dashboard-view section h3 * {
+  color: #0f172a !important;
+}
+html:not(.dark) #admin-dashboard-view section p.text-slate-400 {
+  color: #475569 !important;
+}
 html:not(.dark) #admin-dashboard-view th {
   background-color: #f8fafc !important;
-  color: #475569 !important;
-  border-bottom: 2px solid #e2e8f0 !important;
+  color: #334155 !important;
+  border-bottom: 2px solid #cbd5e1 !important;
 }
 html:not(.dark) #admin-dashboard-view td {
   color: #1e293b !important;
   border-bottom: 1px solid #f1f5f9 !important;
+}
+html:not(.dark) #admin-dashboard-view tr.bg-slate-900\/60,
+html:not(.dark) #admin-dashboard-view thead tr {
+  background-color: #f8fafc !important;
+}
+
+/* Admin Filter Tabs in Light Mode */
+html:not(.dark) #admin-dashboard-view .admin-filter-tab.bg-slate-800,
+html:not(.dark) #admin-dashboard-view .admin-req-tab.bg-slate-800,
+html:not(.dark) #admin-dashboard-view .admin-cust-tab.bg-slate-800 {
+  background-color: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #475569 !important;
+}
+html:not(.dark) #admin-dashboard-view .admin-filter-tab.bg-slate-800:hover,
+html:not(.dark) #admin-dashboard-view .admin-req-tab.bg-slate-800:hover,
+html:not(.dark) #admin-dashboard-view .admin-cust-tab.bg-slate-800:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+/* Admin Search Inputs in Light Mode */
+html:not(.dark) #admin-dashboard-view #admin-customer-search-input,
+html:not(.dark) #admin-dashboard-view #admin-product-search-input {
+  background-color: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+}
+html:not(.dark) #admin-dashboard-view #admin-customer-search-input::placeholder,
+html:not(.dark) #admin-dashboard-view #admin-product-search-input::placeholder {
+  color: #64748b !important;
+}
+
+/* Admin Customer Table Badges & Action Buttons in Light Mode */
+html:not(.dark) #admin-customers-table-body .bg-slate-800 {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+html:not(.dark) #admin-customers-table-body button.bg-slate-800 {
+  background-color: #f0f9ff !important;
+  border-color: #bae6fd !important;
+  color: #0284c7 !important;
+}
+html:not(.dark) #admin-customers-table-body button.bg-slate-800:hover {
+  background-color: #e0f2fe !important;
+  color: #0369a1 !important;
+}
+html:not(.dark) #admin-customers-table-body button[class*="bg-cyan-500"] {
+  background-color: #ecfeff !important;
+  border-color: #a5f3fc !important;
+  color: #0891b2 !important;
+}
+html:not(.dark) #admin-customers-table-body button[class*="bg-cyan-500"]:hover {
+  background-color: #cffafe !important;
+  color: #0e7490 !important;
+}
+html:not(.dark) #admin-customers-table-body button[class*="bg-amber-500"] {
+  background-color: #fffbeb !important;
+  border-color: #fde68a !important;
+  color: #b45309 !important;
+}
+html:not(.dark) #admin-customers-table-body button[class*="bg-amber-500"]:hover {
+  background-color: #fef3c7 !important;
+  color: #92400e !important;
+}
+html:not(.dark) #admin-customers-table-body button[class*="bg-amber-500"] *,
+html:not(.dark) #admin-customers-table-body button[class*="bg-amber-500"] span,
+html:not(.dark) #admin-customers-table-body button[class*="bg-amber-500"] svg,
+html:not(.dark) #admin-customers-table-body button[class*="bg-amber-500"] i {
+  color: #b45309 !important;
+}
+
+/* Admin FAQ Management in Light Mode */
+html:not(.dark) #admin-faq-list > div {
+  background-color: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03) !important;
+}
+html:not(.dark) #admin-faq-list > div:hover {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06) !important;
+}
+html:not(.dark) #admin-faq-list .font-bold.text-white {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+}
+html:not(.dark) #admin-faq-list p.text-slate-400 {
+  color: #334155 !important;
+}
+html:not(.dark) #admin-faq-list span.bg-slate-800 {
+  background-color: #e2e8f0 !important;
+  color: #334155 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+html:not(.dark) #admin-faq-list span[class*="bg-sky-500"] {
+  background-color: #e0f2fe !important;
+  border-color: #bae6fd !important;
+  color: #0369a1 !important;
+}
+html:not(.dark) #admin-faq-list span[class*="bg-emerald-500"] {
+  background-color: #dcfce7 !important;
+  border-color: #a7f3d0 !important;
+  color: #15803d !important;
+}
+html:not(.dark) #admin-faq-list span[class*="bg-rose-500"] {
+  background-color: #ffe4e6 !important;
+  border-color: #fecdd3 !important;
+  color: #be123c !important;
+}
+html:not(.dark) #admin-faq-list button.bg-slate-800 {
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #475569 !important;
+}
+html:not(.dark) #admin-faq-list button.bg-slate-800:hover {
+  background-color: #f1f5f9 !important;
+  color: #b45309 !important;
+}
+html:not(.dark) #admin-faq-list button.bg-sky-950\/70 {
+  background-color: #f0f9ff !important;
+  border-color: #bae6fd !important;
+  color: #0284c7 !important;
+}
+html:not(.dark) #admin-faq-list button.bg-sky-950\/70:hover {
+  background-color: #e0f2fe !important;
+  color: #0369a1 !important;
+}
+html:not(.dark) #admin-faq-list button.bg-rose-950\/60 {
+  background-color: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+  color: #e11d48 !important;
+}
+html:not(.dark) #admin-faq-list button.bg-rose-950\/60:hover {
+  background-color: #ffe4e6 !important;
+  color: #be123c !important;
+}
+
+/* FAQ section badge and icon box */
+html:not(.dark) #admin-faq-count-badge {
+  background-color: #fef3c7 !important;
+  border-color: #fde68a !important;
+  color: #b45309 !important;
+}
+html:not(.dark) #admin-dashboard-view .w-10.h-10.bg-amber-500\/10 {
+  background-color: #fef3c7 !important;
+  border-color: #fde68a !important;
+  color: #b45309 !important;
+}
+html:not(.dark) #admin-dashboard-view .w-10.h-10.bg-amber-500\/10 svg,
+html:not(.dark) #admin-dashboard-view .w-10.h-10.bg-amber-500\/10 i {
+  color: #b45309 !important;
 }
 
 /* User Dropdown in Light Mode */
@@ -1113,18 +1293,20 @@ html:not(.dark) #customer-live-chat-launcher button *,
 html:not(.dark) #cust-chat-unread-badge,
 html:not(.dark) .force-white,
 html:not(.dark) .force-white *,
-html:not(.dark) [class*="bg-sky-600"],
-html:not(.dark) [class*="bg-sky-600"] *,
-html:not(.dark) [class*="bg-blue-600"],
-html:not(.dark) [class*="bg-blue-600"] *,
-html:not(.dark) [class*="bg-emerald-600"],
-html:not(.dark) [class*="bg-emerald-600"] *,
-html:not(.dark) [class*="bg-purple-600"],
-html:not(.dark) [class*="bg-purple-600"] *,
-html:not(.dark) [class*="bg-rose-600"],
-html:not(.dark) [class*="bg-rose-600"] *,
-html:not(.dark) [class*="bg-amber-500"],
-html:not(.dark) [class*="bg-amber-500"] * {
+html:not(.dark) .bg-sky-600:not([class*="/"]),
+html:not(.dark) .bg-sky-600:not([class*="/"]) *,
+html:not(.dark) .bg-blue-600:not([class*="/"]),
+html:not(.dark) .bg-blue-600:not([class*="/"]) *,
+html:not(.dark) .bg-emerald-600:not([class*="/"]),
+html:not(.dark) .bg-emerald-600:not([class*="/"]) *,
+html:not(.dark) .bg-purple-600:not([class*="/"]),
+html:not(.dark) .bg-purple-600:not([class*="/"]) *,
+html:not(.dark) .bg-rose-600:not([class*="/"]),
+html:not(.dark) .bg-rose-600:not([class*="/"]) *,
+html:not(.dark) .bg-amber-500:not([class*="/"]),
+html:not(.dark) .bg-amber-500:not([class*="/"]) *,
+html:not(.dark) .bg-amber-600:not([class*="/"]),
+html:not(.dark) .bg-amber-600:not([class*="/"]) * {
   color: #ffffff !important;
 }
 
