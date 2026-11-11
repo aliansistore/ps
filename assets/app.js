@@ -4073,7 +4073,6 @@ function switchAuthTab(tab) {
   const modalTitle = document.getElementById('auth-modal-title');
   const oauthGoogleLabel = document.getElementById('oauth-google-label');
   const oauthMsLabel = document.getElementById('oauth-microsoft-label');
-  const oauthPsnLabel = document.getElementById('oauth-psn-label');
   const oauthDividerLabel = document.getElementById('oauth-divider-label');
 
   if (tab === 'login') {
@@ -4083,8 +4082,7 @@ function switchAuthTab(tab) {
     if (formReg) formReg.classList.add('hidden');
     if (modalTitle) modalTitle.textContent = 'Masuk ke ALIANSI STORE';
     if (oauthGoogleLabel) oauthGoogleLabel.textContent = 'Lanjutkan dengan Google';
-    if (oauthMsLabel) oauthMsLabel.textContent = 'Outlook / Microsoft';
-    if (oauthPsnLabel) oauthPsnLabel.textContent = 'PlayStation ID';
+    if (oauthMsLabel) oauthMsLabel.textContent = 'Lanjutkan dengan Outlook / Microsoft';
     if (oauthDividerLabel) oauthDividerLabel.textContent = 'Atau Masuk dengan No. HP / Akun Toko';
   } else {
     if (tabReg) tabReg.className = 'flex-1 py-2 text-xs font-bold rounded-lg bg-sky-600 text-white shadow transition-all cursor-pointer flex items-center justify-center gap-1.5';
@@ -4093,8 +4091,7 @@ function switchAuthTab(tab) {
     if (formLogin) formLogin.classList.add('hidden');
     if (modalTitle) modalTitle.textContent = 'Daftar Member Baru';
     if (oauthGoogleLabel) oauthGoogleLabel.textContent = 'Daftar Cepat dengan Google';
-    if (oauthMsLabel) oauthMsLabel.textContent = 'Daftar dengan Outlook';
-    if (oauthPsnLabel) oauthPsnLabel.textContent = 'Daftar dengan PSN';
+    if (oauthMsLabel) oauthMsLabel.textContent = 'Daftar Cepat dengan Outlook';
     if (oauthDividerLabel) oauthDividerLabel.textContent = 'Atau Isi Formulir Manual di Bawah';
   }
   lucide.createIcons();
@@ -4662,103 +4659,6 @@ function renderOAuthModal(provider, showConfigBanner = false) {
         Aman &amp; terlindungi. Data hanya digunakan untuk pengiriman faktur &amp; link Google Drive game.
       </p>
     `;
-  } else if (provider === 'psn') {
-    container.innerHTML = `
-      <div class="text-center mb-4">
-        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-600/30 to-blue-700/30 border border-sky-400/40 text-sky-400 flex items-center justify-center mx-auto mb-2 shadow-lg shadow-sky-500/20">
-          <i data-lucide="gamepad-2" class="w-6 h-6 text-sky-300"></i>
-        </div>
-        <h3 class="text-base font-black text-white font-display flex items-center justify-center gap-1.5">
-          <span>Hubungkan PlayStation™Network</span>
-          <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-sky-500/20 text-sky-300 border border-sky-500/40">PS4 &amp; PS5</span>
-        </h3>
-        <p class="text-xs text-slate-400 mt-0.5">Daftar instan sebagai member komunitas PlayStation Aliansi Store</p>
-      </div>
-
-      <form onsubmit="event.preventDefault(); submitCustomOAuth('psn');" class="space-y-3">
-        <div>
-          <label class="block text-[11px] font-bold text-slate-300 mb-1">
-            PlayStation™Network Online ID (PSN ID) <span class="text-rose-400">*</span>:
-          </label>
-          <div class="relative">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
-              <i data-lucide="gamepad" class="w-3.5 h-3.5"></i>
-            </div>
-            <input type="text" id="oauth-psn-id" placeholder="Contoh: GamerSultan_ID atau Reza_PS4" class="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500 font-mono" required />
-          </div>
-          <span class="text-[10px] text-slate-500">Nama Online ID PSN yang tertera di konsol PlayStation Anda</span>
-        </div>
-
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-[11px] font-bold text-slate-300 mb-1">Nama Lengkap <span class="text-rose-400">*</span>:</label>
-            <input type="text" id="oauth-custom-name" placeholder="Contoh: Reza Aliansi" class="w-full px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" required />
-          </div>
-          <div>
-            <label class="block text-[11px] font-bold text-slate-300 mb-1">No. WhatsApp:</label>
-            <input type="tel" id="oauth-custom-phone" placeholder="081234567890" class="w-full px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500 font-mono" />
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-[11px] font-bold text-slate-300 mb-1">
-            Email Aktif (Kirim Link Game Google Drive) <span class="text-rose-400">*</span>:
-          </label>
-          <input type="email" id="oauth-custom-email" placeholder="emailanda@gmail.com" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500 font-mono" required />
-        </div>
-
-        <!-- Choice of Gamer Avatar -->
-        <div>
-          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Pilih Avatar Gamer PlayStation:</label>
-          <div class="grid grid-cols-5 gap-2" id="psn-avatar-picker">
-            <label class="cursor-pointer">
-              <input type="radio" name="psn_avatar" value="spiderman" class="peer sr-only" checked />
-              <div class="p-1 rounded-xl border border-slate-700 peer-checked:border-sky-400 peer-checked:bg-sky-500/20 text-center transition-all">
-                <img src="assets/covers/spiderman.jpg" alt="Spider-Man" class="w-8 h-8 rounded-lg object-cover mx-auto" onerror="this.src='assets/covers/service-1tb.jpg'" />
-                <span class="text-[9px] text-slate-400 block truncate mt-0.5">Spidey</span>
-              </div>
-            </label>
-            <label class="cursor-pointer">
-              <input type="radio" name="psn_avatar" value="kratos" class="peer sr-only" />
-              <div class="p-1 rounded-xl border border-slate-700 peer-checked:border-sky-400 peer-checked:bg-sky-500/20 text-center transition-all">
-                <img src="assets/covers/gow-ragnarok.jpg" alt="Kratos" class="w-8 h-8 rounded-lg object-cover mx-auto" onerror="this.src='assets/covers/service-1tb.jpg'" />
-                <span class="text-[9px] text-slate-400 block truncate mt-0.5">Kratos</span>
-              </div>
-            </label>
-            <label class="cursor-pointer">
-              <input type="radio" name="psn_avatar" value="jin" class="peer sr-only" />
-              <div class="p-1 rounded-xl border border-slate-700 peer-checked:border-sky-400 peer-checked:bg-sky-500/20 text-center transition-all">
-                <img src="assets/covers/ghost-tsushima.jpg" alt="Jin Sakai" class="w-8 h-8 rounded-lg object-cover mx-auto" onerror="this.src='assets/covers/service-1tb.jpg'" />
-                <span class="text-[9px] text-slate-400 block truncate mt-0.5">Tsushima</span>
-              </div>
-            </label>
-            <label class="cursor-pointer">
-              <input type="radio" name="psn_avatar" value="ellie" class="peer sr-only" />
-              <div class="p-1 rounded-xl border border-slate-700 peer-checked:border-sky-400 peer-checked:bg-sky-500/20 text-center transition-all">
-                <img src="assets/covers/tlou-part2.jpg" alt="TLOU" class="w-8 h-8 rounded-lg object-cover mx-auto" onerror="this.src='assets/covers/service-1tb.jpg'" />
-                <span class="text-[9px] text-slate-400 block truncate mt-0.5">TLOU</span>
-              </div>
-            </label>
-            <label class="cursor-pointer">
-              <input type="radio" name="psn_avatar" value="pes" class="peer sr-only" />
-              <div class="p-1 rounded-xl border border-slate-700 peer-checked:border-sky-400 peer-checked:bg-sky-500/20 text-center transition-all">
-                <img src="assets/covers/pes-2027.jpg" alt="PES" class="w-8 h-8 rounded-lg object-cover mx-auto" onerror="this.src='assets/covers/service-1tb.jpg'" />
-                <span class="text-[9px] text-slate-400 block truncate mt-0.5">Pro PES</span>
-              </div>
-            </label>
-          </div>
-        </div>
-
-        <button type="submit" class="w-full py-2.5 rounded-xl cyber-button font-black text-xs shadow-lg shadow-sky-500/20 flex items-center justify-center gap-2 mt-2 cursor-pointer">
-          <i data-lucide="check-circle" class="w-4 h-4"></i>
-          <span>Hubungkan PlayStation ID &amp; Masuk</span>
-        </button>
-      </form>
-
-      <p class="oauth-footer-text text-[10px] text-slate-500 text-center mt-3">
-        🔒 100% Aman. Kami <strong>tidak pernah meminta password</strong> akun PlayStation Anda.
-      </p>
-    `;
   }
 
   lucide.createIcons();
@@ -4773,51 +4673,29 @@ function submitCustomOAuth(provider) {
   const nameInput = document.getElementById('oauth-custom-name');
   const emailInput = document.getElementById('oauth-custom-email');
   const phoneInput = document.getElementById('oauth-custom-phone');
-  const psnIdInput = document.getElementById('oauth-psn-id');
 
   const name = nameInput ? nameInput.value.trim() : '';
   const email = emailInput ? emailInput.value.trim() : '';
   const phone = phoneInput ? phoneInput.value.trim() : '';
-  const psnId = psnIdInput ? psnIdInput.value.trim() : '';
 
-  if (provider === 'psn') {
-    if (!psnId) {
-      showToast('Mohon masukkan PSN Online ID Anda!', 'warning');
-      if (psnIdInput) psnIdInput.focus();
-      return;
-    }
-    if (!name) {
-      showToast('Mohon masukkan nama Anda!', 'warning');
-      if (nameInput) nameInput.focus();
-      return;
-    }
-    if (!email || !email.includes('@')) {
-      showToast('Mohon masukkan email aktif untuk menerima link game Google Drive!', 'warning');
-      if (emailInput) emailInput.focus();
-      return;
-    }
-
-    const avatarRadio = document.querySelector('input[name="psn_avatar"]:checked');
-    const avatarKey = avatarRadio ? avatarRadio.value : 'spiderman';
-    const avatarMap = {
-      spiderman: 'assets/covers/spiderman.jpg',
-      kratos: 'assets/covers/gow-ragnarok.jpg',
-      jin: 'assets/covers/ghost-tsushima.jpg',
-      ellie: 'assets/covers/tlou-part2.jpg',
-      pes: 'assets/covers/pes-2027.jpg'
-    };
-    const avatar = avatarMap[avatarKey] || 'assets/covers/spiderman.jpg';
-
-    executeOAuthLogin({
-      provider: 'psn',
-      name: name,
-      email: email,
-      phone: phone,
-      psnId: psnId,
-      avatar: avatar
-    });
+  if (!name) {
+    showToast('Mohon masukkan nama Anda!', 'warning');
+    if (nameInput) nameInput.focus();
     return;
   }
+  if (!email || !email.includes('@')) {
+    showToast('Mohon masukkan alamat email yang valid!', 'warning');
+    if (emailInput) emailInput.focus();
+    return;
+  }
+
+  executeOAuthLogin({
+    provider: provider,
+    name: name,
+    email: email,
+    phone: phone
+  });
+}
 
   if (!name) {
     showToast('Mohon masukkan nama Anda!', 'warning');

@@ -3739,34 +3739,21 @@
           <span id="oauth-google-label">Lanjutkan dengan Google</span>
         </button>
 
-        <div class="grid grid-cols-2 gap-2">
-          <!-- Microsoft / Outlook Button -->
-          <button 
-            type="button" 
-            onclick="loginWithProvider('microsoft')" 
-            class="oauth-btn py-2 px-3 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-sky-500/50 text-white text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer group"
-            title="Login instan dengan akun Microsoft / Outlook / Hotmail"
-          >
-            <svg class="w-3.5 h-3.5 shrink-0 transition-transform group-hover:scale-110" viewBox="0 0 23 23">
-              <path fill="#f35325" d="M1 1h10v10H1z"/>
-              <path fill="#81bc06" d="M12 1h10v10H12z"/>
-              <path fill="#05a6f0" d="M1 12h10v10H1z"/>
-              <path fill="#ffba08" d="M12 12h10v10H12z"/>
-            </svg>
-            <span id="oauth-microsoft-label" class="truncate">Outlook / Microsoft</span>
-          </button>
-
-          <!-- PlayStation Network (PSN) Button -->
-          <button 
-            type="button" 
-            onclick="loginWithProvider('psn')" 
-            class="oauth-btn py-2 px-3 rounded-xl bg-sky-950/70 hover:bg-sky-900/90 border border-sky-600/40 hover:border-sky-400 text-sky-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm cursor-pointer group"
-            title="Hubungkan akun PlayStation™Network (PSN ID)"
-          >
-            <i data-lucide="gamepad-2" class="w-3.5 h-3.5 text-sky-400 shrink-0 transition-transform group-hover:scale-110"></i>
-            <span id="oauth-psn-label" class="truncate">PlayStation ID</span>
-          </button>
-        </div>
+        <!-- Microsoft / Outlook Button -->
+        <button 
+          type="button" 
+          onclick="loginWithProvider('microsoft')" 
+          class="oauth-btn w-full py-2.5 px-4 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-sky-500/50 text-white text-xs font-bold flex items-center justify-center gap-2.5 transition-all shadow-sm cursor-pointer group"
+          title="Login instan dengan akun Microsoft / Outlook / Hotmail"
+        >
+          <svg class="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" viewBox="0 0 23 23">
+            <path fill="#f35325" d="M1 1h10v10H1z"/>
+            <path fill="#81bc06" d="M12 1h10v10H12z"/>
+            <path fill="#05a6f0" d="M1 12h10v10H1z"/>
+            <path fill="#ffba08" d="M12 12h10v10H12z"/>
+          </svg>
+          <span id="oauth-microsoft-label" class="truncate">Lanjutkan dengan Outlook / Microsoft</span>
+        </button>
       </div>
 
       <!-- Divider -->
@@ -5861,6 +5848,6 @@
 
   <!-- Application Scripts (with cache-buster query) -->
   <script src="assets/products-data.js?v=20261111_reviews_faq_v6"></script>
-  <script src="assets/app.js?v=20261111_social_oauth_v49"></script>
+  <script src="assets/app.js?v=20261111_auth_clean_v50"></script>
 </body>
 </html>
