@@ -1775,29 +1775,15 @@ function initSocialProofStream() {
     }
   }
 
-  // 4. Render Items & Duplicate for Infinite CSS Marquee Loop
+  // 4. Render Items & Duplicate for Infinite CSS Marquee Loop (All Uniform & Seamless)
   const fullLoop = [...finalStream, ...finalStream];
-  tickerContainer.innerHTML = fullLoop.map(item => {
-    if (item.isReal) {
-      return `
-        <div class="ticker-item is-real-order inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-emerald-950/40 border border-emerald-500/50 text-xs sm:text-[13px] text-slate-200 mr-5 shrink-0 shadow-sm shadow-emerald-500/20">
-          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-          <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] font-black uppercase tracking-wider flex items-center gap-1">
-            <i data-lucide="badge-check" class="w-3.5 h-3.5 text-emerald-400"></i> REAL ORDER
-          </span>
-          <strong class="text-white">${escapeHtml(item.name)}</strong> <span class="text-slate-400 font-normal">(${escapeHtml(item.city)})</span> membeli <span class="text-sky-300 font-bold">${escapeHtml(item.game)}</span>
-          <span class="text-[10px] sm:text-xs text-emerald-400 font-mono font-bold ml-1">${escapeHtml(item.time)}</span>
-        </div>
-      `;
-    }
-    return `
-      <div class="ticker-item inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-slate-900/60 border border-slate-800/80 text-xs sm:text-[13px] text-slate-300 mr-5 shrink-0">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-neon"></span>
-        <strong class="text-white">${escapeHtml(item.name)}</strong> <span class="text-slate-400 font-normal">(${escapeHtml(item.city)})</span> membeli <span class="text-sky-300 font-semibold">${escapeHtml(item.game)}</span>
-        <span class="text-[10px] sm:text-xs text-slate-500 font-mono ml-1">${escapeHtml(item.time)}</span>
-      </div>
-    `;
-  }).join('');
+  tickerContainer.innerHTML = fullLoop.map(item => `
+    <div class="ticker-item inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-slate-900/60 border border-slate-800/80 text-xs sm:text-[13px] text-slate-300 mr-5 shrink-0">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-neon"></span>
+      <strong class="text-white">${escapeHtml(item.name)}</strong> <span class="text-slate-400 font-normal">(${escapeHtml(item.city)})</span> membeli <span class="text-sky-300 font-semibold">${escapeHtml(item.game)}</span>
+      <span class="text-[10px] sm:text-xs text-slate-500 font-mono ml-1">${escapeHtml(item.time)}</span>
+    </div>
+  `).join('');
 
   // 5. Gentle, readable marquee speed (~6.0s per unique purchase item so visitors can read comfortably)
   const durationSec = Math.max(150, Math.round(finalStream.length * 6.0));
@@ -11068,23 +11054,14 @@ function renderTestimonials() {
     const avatarBg = getAvatarGradient(idx);
     const starsHtml = '★'.repeat(rev.rating) + '☆'.repeat(5 - rev.rating);
     const timeAgo = rev.displayTime || formatDateAgo(rev.createdAt);
-    const isRealBuyer = Boolean(rev.isReal || rev.orderId);
 
-    // Differentiate Real Buyer vs Seeded Review
-    const cardBorder = isRealBuyer 
-      ? 'is-real-buyer border-2 border-emerald-500/50 bg-[#07132a] shadow-lg shadow-emerald-950/40 hover:border-emerald-400' 
-      : 'border border-slate-800 bg-[#080f24] hover:border-amber-500/50 shadow-lg';
-
-    const verifiedBadge = isRealBuyer
-      ? `<span class="rev-badge-real text-[9px] px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40 font-black tracking-wide shrink-0 flex items-center gap-1 shadow-sm">
-           <i data-lucide="badge-check" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400"></i> Pembeli Asli
-         </span>`
-      : `<span class="rev-badge-verified text-[9px] px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 border border-slate-300 dark:bg-slate-800/80 dark:text-slate-300 dark:border-slate-700 font-bold shrink-0 flex items-center gap-1">
-           <i data-lucide="shield-check" class="w-3 h-3 text-sky-600 dark:text-sky-400"></i> Terverifikasi
-         </span>`;
+    // Uniform styling for all reviews (seamless, trusted, identical badge)
+    const verifiedBadge = `<span class="rev-badge-verified text-[9px] px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 border border-slate-300 dark:bg-slate-800/80 dark:text-slate-300 dark:border-slate-700 font-bold shrink-0 flex items-center gap-1">
+      <i data-lucide="shield-check" class="w-3 h-3 text-sky-600 dark:text-sky-400"></i> Terverifikasi
+    </span>`;
 
     return `
-      <div class="review-card relative w-[310px] sm:w-[350px] shrink-0 p-5 rounded-3xl ${cardBorder} flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 group">
+      <div class="review-card relative w-[310px] sm:w-[350px] shrink-0 p-5 rounded-3xl border border-slate-800 bg-[#080f24] hover:border-amber-500/50 shadow-lg flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 group">
         <div>
           <!-- Header: Avatar + Customer Name + Verified Badge -->
           <div class="flex items-center justify-between gap-3 mb-3">
@@ -11114,8 +11091,8 @@ function renderTestimonials() {
 
           <!-- Game Title Tag -->
           <div class="mb-3">
-            <span class="rev-game-badge inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-bold ${isRealBuyer ? 'bg-emerald-950/70 text-emerald-300 border border-emerald-500/40' : 'bg-sky-950/70 text-sky-300 border border-sky-500/30'} max-w-full truncate">
-              <i data-lucide="gamepad-2" class="w-3 h-3 ${isRealBuyer ? 'text-emerald-400' : 'text-sky-400'} shrink-0"></i>
+            <span class="rev-game-badge inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-bold bg-sky-950/70 text-sky-300 border border-sky-500/30 max-w-full truncate">
+              <i data-lucide="gamepad-2" class="w-3 h-3 text-sky-400 shrink-0"></i>
               <span class="truncate">${escapeHtml(rev.gameTitle || 'Game PlayStation')}</span>
             </span>
           </div>
