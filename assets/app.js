@@ -10056,10 +10056,8 @@ function sendCustomerChatMessage() {
 
   const custEmail = (state.currentUser.email || '').toLowerCase().trim();
   const custName = state.currentUser.name || 'Member';
-  const custPhone = state.currentUser.phone || '';
-
-  const adminEmail = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
   const custPhone = (state.currentUser && state.currentUser.phone) || localStorage.getItem('aliansi_guest_chat_phone') || '';
+  const adminEmail = (state.config && state.config.adminEmail) || 'aliansistore.id@gmail.com';
 
   const newMsg = {
     id: 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
@@ -11189,6 +11187,10 @@ function deleteAdminFaq(faqId) {
 }
 
 
-document.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    initApp();
+  });
+} else {
   initApp();
-});
+}
