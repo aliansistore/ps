@@ -46,7 +46,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <!-- Custom Next-Gen Stylesheet (with cache buster query) -->
-  <link rel="stylesheet" href="assets/style.css?v=20261111_remove_account_guide_v59" />
+  <link rel="stylesheet" href="assets/style.css?v=20261111_faq_wa_contrast_v60" />
 
   <!-- Critical Inline Styles to Guarantee Immediate High-Contrast Rendering (Dark & Light Mode) -->
   <style>
@@ -1880,6 +1880,28 @@
       color: #ffffff !important;
     }
 
+    /* Explicit High-Contrast Solid Emerald Buttons in Light Mode */
+    html:not(.dark) #btn-faq-whatsapp,
+    html:not(.dark) .bg-emerald-600:not([class*="/"]),
+    html:not(.dark) a.bg-emerald-600:not([class*="/"]),
+    html:not(.dark) button.bg-emerald-600:not([class*="/"]) {
+      background-color: #059669 !important;
+      color: #ffffff !important;
+    }
+    html:not(.dark) #btn-faq-whatsapp:hover,
+    html:not(.dark) .bg-emerald-600:not([class*="/"]):hover,
+    html:not(.dark) a.bg-emerald-600:not([class*="/"]):hover,
+    html:not(.dark) button.bg-emerald-600:not([class*="/"]):hover {
+      background-color: #10b981 !important;
+      color: #ffffff !important;
+    }
+    html:not(.dark) #btn-faq-whatsapp *,
+    html:not(.dark) .bg-emerald-600:not([class*="/"]) *,
+    html:not(.dark) a.bg-emerald-600:not([class*="/"]) *,
+    html:not(.dark) button.bg-emerald-600:not([class*="/"]) * {
+      color: #ffffff !important;
+    }
+
     /* Toast Notification System */
     #toast-container {
       z-index: 9999 !important;
@@ -3057,7 +3079,7 @@
             </div>
           </div>
           <div class="flex items-center gap-2 shrink-0 justify-center">
-            <a href="https://wa.me/6281234567890" target="_blank" class="wa-contact-link px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md transition-all force-white">
+            <a id="btn-faq-whatsapp" href="https://wa.me/6281234567890" target="_blank" class="wa-contact-link px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md transition-all force-white">
               <i data-lucide="message-square" class="w-4 h-4"></i> Tanya CS WhatsApp
             </a>
             <button type="button" onclick="toggleCustomerLiveChat()" class="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md transition-all force-white cursor-pointer" title="Buka Live Chat Khusus Member">
@@ -6192,6 +6214,6 @@
 
   <!-- Application Scripts (with cache-buster query) -->
   <script src="assets/products-data.js?v=20261111_smart_reviews_ticker_v53"></script>
-  <script src="assets/app.js?v=20261111_remove_account_guide_v59"></script>
+  <script src="assets/app.js?v=20261111_faq_wa_contrast_v60"></script>
 </body>
 </html>

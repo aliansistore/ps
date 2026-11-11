@@ -1010,17 +1010,21 @@ html:not(.dark) footer button.bg-slate-900:hover {
   border-color: #0070d1 !important;
 }
 html:not(.dark) footer a.bg-emerald-950,
-html:not(.dark) a.wa-contact-link,
-html:not(.dark) .wa-contact-link {
+html:not(.dark) footer a.wa-contact-link,
+html:not(.dark) footer .wa-contact-link {
   background-color: #ecfdf5 !important;
   border-color: #a7f3d0 !important;
   color: #059669 !important;
 }
 html:not(.dark) footer a.bg-emerald-950:hover,
-html:not(.dark) a.wa-contact-link:hover,
-html:not(.dark) .wa-contact-link:hover {
+html:not(.dark) footer a.wa-contact-link:hover,
+html:not(.dark) footer .wa-contact-link:hover {
   background-color: #d1fae5 !important;
   color: #047857 !important;
+}
+html:not(.dark) footer a.wa-contact-link span,
+html:not(.dark) footer a.wa-contact-link i {
+  color: #059669 !important;
 }
 html:not(.dark) a.store-admin-email-link,
 html:not(.dark) .store-admin-email-link {
@@ -1307,6 +1311,28 @@ html:not(.dark) .bg-amber-500:not([class*="/"]),
 html:not(.dark) .bg-amber-500:not([class*="/"]) *,
 html:not(.dark) .bg-amber-600:not([class*="/"]),
 html:not(.dark) .bg-amber-600:not([class*="/"]) * {
+  color: #ffffff !important;
+}
+
+/* Explicit High-Contrast Solid Emerald Buttons in Light Mode */
+html:not(.dark) #btn-faq-whatsapp,
+html:not(.dark) .bg-emerald-600:not([class*="/"]),
+html:not(.dark) a.bg-emerald-600:not([class*="/"]),
+html:not(.dark) button.bg-emerald-600:not([class*="/"]) {
+  background-color: #059669 !important;
+  color: #ffffff !important;
+}
+html:not(.dark) #btn-faq-whatsapp:hover,
+html:not(.dark) .bg-emerald-600:not([class*="/"]):hover,
+html:not(.dark) a.bg-emerald-600:not([class*="/"]):hover,
+html:not(.dark) button.bg-emerald-600:not([class*="/"]):hover {
+  background-color: #10b981 !important;
+  color: #ffffff !important;
+}
+html:not(.dark) #btn-faq-whatsapp *,
+html:not(.dark) .bg-emerald-600:not([class*="/"]) *,
+html:not(.dark) a.bg-emerald-600:not([class*="/"]) *,
+html:not(.dark) button.bg-emerald-600:not([class*="/"]) * {
   color: #ffffff !important;
 }
 
