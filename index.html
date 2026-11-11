@@ -2569,11 +2569,6 @@
                 </div>
               </div>
             </div>
-
-            <button type="button" onclick="openReviewModal()" class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-black text-xs shadow-lg shadow-amber-500/25 flex items-center gap-2 transform hover:scale-105 active:scale-95 transition-all cursor-pointer force-white">
-              <i data-lucide="message-square-plus" class="w-4 h-4"></i>
-              <span>+ Tulis Testimoni</span>
-            </button>
           </div>
         </div>
 
@@ -2623,12 +2618,24 @@
             </p>
           </div>
 
-          <!-- Quick Search inside FAQ -->
+          <!-- Quick Search inside FAQ (Anti-Autofill Protected) -->
           <div class="relative w-full sm:w-72">
             <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
             <input 
-              type="text" 
+              type="search" 
               id="faq-search-input" 
+              name="faq_topic_search_query_nocreds"
+              readonly
+              onfocus="this.removeAttribute('readonly')"
+              onpointerdown="this.removeAttribute('readonly')"
+              ontouchstart="this.removeAttribute('readonly')"
+              autocomplete="new-password"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="false"
+              data-lpignore="true"
+              data-1p-ignore="true"
+              data-form-type="other"
               oninput="renderFaqList()" 
               placeholder="Cari pertanyaan / kendala..." 
               class="w-full pl-9 pr-4 py-2.5 text-xs rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-sky-500 transition-colors shadow-sm"
@@ -3003,8 +3010,20 @@
             <div class="relative w-full sm:w-60">
               <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
               <input 
-                type="text" 
+                type="search" 
                 id="admin-product-search-input" 
+                name="admin_product_search_filter"
+                readonly
+                onfocus="this.removeAttribute('readonly')"
+                onpointerdown="this.removeAttribute('readonly')"
+                ontouchstart="this.removeAttribute('readonly')"
+                autocomplete="new-password"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                data-lpignore="true"
+                data-1p-ignore="true"
+                data-form-type="other"
                 oninput="renderAdminProductsTable()" 
                 placeholder="Cari game di admin..." 
                 class="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-400 focus:border-sky-500 outline-none"
@@ -3089,8 +3108,20 @@
             <div class="relative w-full sm:w-64">
               <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
               <input 
-                type="text" 
+                type="search" 
                 id="admin-customer-search-input" 
+                name="admin_customer_search_filter"
+                readonly
+                onfocus="this.removeAttribute('readonly')"
+                onpointerdown="this.removeAttribute('readonly')"
+                ontouchstart="this.removeAttribute('readonly')"
+                autocomplete="new-password"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                data-lpignore="true"
+                data-1p-ignore="true"
+                data-form-type="other"
                 oninput="renderAdminCustomersTable()" 
                 placeholder="Cari nama, email, no. HP..." 
                 class="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-400 focus:border-cyan-500 outline-none" 
@@ -3617,8 +3648,18 @@
           <input 
             type="search" 
             id="order-search-input" 
-            autocomplete="off"
+            name="order_tracking_query_nocreds"
+            readonly
+            onfocus="this.removeAttribute('readonly')"
+            onpointerdown="this.removeAttribute('readonly')"
+            ontouchstart="this.removeAttribute('readonly')"
+            autocomplete="new-password"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
             data-lpignore="true"
+            data-1p-ignore="true"
+            data-form-type="other"
             placeholder="ALN-20261103-7842 atau 081234..." 
             class="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500 font-mono"
             onkeydown="if(event.key === 'Enter') searchInvoice();"
@@ -5487,8 +5528,20 @@
             <div class="relative">
               <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
               <input 
-                type="text" 
+                type="search" 
                 id="admin-chat-search" 
+                name="admin_chat_search_query_nocreds"
+                readonly
+                onfocus="this.removeAttribute('readonly')"
+                onpointerdown="this.removeAttribute('readonly')"
+                ontouchstart="this.removeAttribute('readonly')"
+                autocomplete="new-password"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                data-lpignore="true"
+                data-1p-ignore="true"
+                data-form-type="other"
                 oninput="renderAdminChatConversationsList()" 
                 placeholder="Cari customer / email..." 
                 class="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-slate-900 border border-slate-700/80 text-white placeholder-slate-500 outline-none focus:border-cyan-500" 
@@ -5656,7 +5709,25 @@
         <div class="flex items-center gap-2">
           <div class="relative flex-1">
             <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
-            <input type="text" id="image-picker-search-input" onkeydown="if(event.key==='Enter'){event.preventDefault();searchInternetImagesFromPicker();}" placeholder="Ketik judul game untuk cari poster/wallpaper di internet..." class="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-400 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 font-sans" />
+            <input 
+              type="search" 
+              id="image-picker-search-input" 
+              name="image_picker_search_query_nocreds"
+              readonly
+              onfocus="this.removeAttribute('readonly')"
+              onpointerdown="this.removeAttribute('readonly')"
+              ontouchstart="this.removeAttribute('readonly')"
+              autocomplete="new-password"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="false"
+              data-lpignore="true"
+              data-1p-ignore="true"
+              data-form-type="other"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();searchInternetImagesFromPicker();}" 
+              placeholder="Ketik judul game untuk cari poster/wallpaper di internet..." 
+              class="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-400 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 font-sans" 
+            />
           </div>
           <button type="button" id="btn-search-internet-picker" onclick="searchInternetImagesFromPicker()" class="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-sky-600/30 transition-all cursor-pointer shrink-0">
             <i data-lucide="globe" class="w-3.5 h-3.5 text-sky-200"></i>
@@ -5781,7 +5852,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261111_reviews_faq_v3"></script>
-  <script src="assets/app.js?v=20261111_member_livechat_v40"></script>
+  <script src="assets/products-data.js?v=20261111_reviews_faq_v4"></script>
+  <script src="assets/app.js?v=20261111_anti_autofill_faq_v41"></script>
 </body>
 </html>

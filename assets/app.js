@@ -457,6 +457,41 @@ function initApp() {
   syncFromSupabase();
   initLiveChatUI();
   checkUrlForActions();
+  sanitizeSearchInputsFromAutofill();
+}
+
+function sanitizeSearchInputsFromAutofill() {
+  const searchIds = [
+    'faq-search-input',
+    'main-search-input',
+    'catalog-search-input',
+    'order-search-input',
+    'admin-product-search-input',
+    'admin-customer-search-input',
+    'admin-chat-search',
+    'image-picker-search-input'
+  ];
+
+  const clearCredentials = () => {
+    searchIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const val = (el.value || '').trim().toLowerCase();
+      // If browser/password manager mistakenly autofilled "admin" or email into search bars
+      if (document.activeElement !== el && (val === 'admin' || val.includes('aliansistore.com') || val.includes('admin@'))) {
+        el.value = '';
+        if (id === 'faq-search-input') renderFaqList();
+        if (id === 'catalog-search-input') renderProducts();
+        if (id === 'main-search-input') handleSearch('');
+      }
+    });
+  };
+
+  // Immediate sanitize
+  clearCredentials();
+  // Deferred sanitize (handles late browser extension / password manager autofills)
+  setTimeout(clearCredentials, 400);
+  setTimeout(clearCredentials, 1200);
 }
 
 function loadStoredData() {
@@ -10849,6 +10884,12 @@ function renderFaqList() {
   if (!container) return;
 
   const searchInput = document.getElementById('faq-search-input');
+
+  // Prevent browser/password manager from erroneously autofilling "admin" into FAQ search
+  if (searchInput && (searchInput.value === 'admin' || searchInput.value.toLowerCase() === 'admin@aliansistore.com') && document.activeElement !== searchInput) {
+    searchInput.value = '';
+  }
+
   activeFaqSearchQuery = searchInput ? searchInput.value.trim().toLowerCase() : '';
 
   let list = (state.faqs && state.faqs.length > 0)
