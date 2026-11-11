@@ -4697,26 +4697,6 @@ function submitCustomOAuth(provider) {
   });
 }
 
-  if (!name) {
-    showToast('Mohon masukkan nama Anda!', 'warning');
-    if (nameInput) nameInput.focus();
-    return;
-  }
-  if (!email || !email.includes('@')) {
-    showToast('Mohon masukkan alamat email yang valid!', 'warning');
-    if (emailInput) emailInput.focus();
-    return;
-  }
-
-  executeOAuthLogin({
-    provider: provider,
-    name: name,
-    email: email,
-    phone: phone,
-    psnId: psnId
-  });
-}
-
 function executeOAuthLogin(accountData) {
   playSfx('success');
   const { provider, name, email, phone, avatar, psnId } = accountData;

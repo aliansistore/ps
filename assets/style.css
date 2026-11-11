@@ -1045,10 +1045,12 @@ html:not(.dark) .logo-light-theme { display: inline-block !important; }
 .gamepad-hud {
   position: fixed;
   bottom: 24px;
-  right: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  right: auto;
   z-index: 45;
   border-radius: 9999px;
-  padding: 8px 16px;
+  padding: 8px 20px;
 }
 
 /* ==========================================================================
