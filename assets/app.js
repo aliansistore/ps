@@ -630,6 +630,16 @@ function loadStoredData() {
     state.config.adminEmail = 'aliansistoreofficial@gmail.com';
     saveConfig();
   }
+  if (Array.isArray(state.config.vouchers)) {
+    state.config.vouchers = state.config.vouchers
+      .filter(v => v && v.code !== '__SYSTEM_CONFIG__')
+      .map(normalizeVoucher)
+      .filter(Boolean);
+  } else {
+    state.config.vouchers = (typeof INITIAL_CONFIG !== 'undefined' && Array.isArray(INITIAL_CONFIG.vouchers))
+      ? INITIAL_CONFIG.vouchers.map(normalizeVoucher).filter(Boolean)
+      : [];
+  }
   updateStoreContactUI();
 
   // Live Chat Messages (Two-Way Chat)
@@ -1051,7 +1061,7 @@ async function syncFromSupabase() {
     if (!cErr && cfg) {
       const rawVouchers = Array.isArray(cfg.vouchers) ? cfg.vouchers : [];
       const sysMeta = rawVouchers.find(v => v && v.code === '__SYSTEM_CONFIG__') || {};
-      const cleanVouchers = rawVouchers.filter(v => v && v.code !== '__SYSTEM_CONFIG__');
+      const cleanVouchers = rawVouchers.filter(v => v && v.code !== '__SYSTEM_CONFIG__').map(normalizeVoucher).filter(Boolean);
       const localAppsScriptUrl = (state.config && state.config.appsScriptUrl) || '';
       const cloudAppsScriptUrl = cfg.apps_script_url || sysMeta.appsScriptUrl || '';
 
@@ -1064,7 +1074,7 @@ async function syncFromSupabase() {
         adminPin: cfg.admin_pin || state.config.adminPin || '1234',
         appsScriptUrl: cloudAppsScriptUrl || localAppsScriptUrl || '',
         bankAccounts: cfg.bank_accounts || state.config.bankAccounts,
-        vouchers: cleanVouchers.length > 0 ? cleanVouchers : (state.config.vouchers || []).filter(v => v && v.code !== '__SYSTEM_CONFIG__')
+        vouchers: cleanVouchers.length > 0 ? cleanVouchers : (state.config.vouchers || []).filter(v => v && v.code !== '__SYSTEM_CONFIG__').map(normalizeVoucher).filter(Boolean)
       };
       localStorage.setItem(APP_STORAGE_KEYS.CONFIG, JSON.stringify(state.config));
       updateStoreContactUI();
@@ -1284,6 +1294,75 @@ function formatRupiah(num) {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   }).format(num);
+}
+
+function formatRupiahShort(num) {
+  const n = Number(num) || 0;
+  if (n >= 1000000) {
+    const jt = n / 1000000;
+    return `Rp ${jt % 1 === 0 ? jt : jt.toFixed(1)}jt`;
+  }
+  if (n >= 1000) {
+    const rb = n / 1000;
+    return `Rp ${rb % 1 === 0 ? rb : rb.toFixed(0)}rb`;
+  }
+  return formatRupiah(n);
+}
+
+function normalizeVoucher(v) {
+  if (!v || typeof v !== 'object') return null;
+  return {
+    code: String(v.code || '').trim().toUpperCase(),
+    name: v.name || v.title || v.code || 'Promo Diskon',
+    type: v.type === 'fixed' ? 'fixed' : 'percent',
+    discountPercent: Number(v.discountPercent) || 0,
+    discountAmount: Number(v.discountAmount) || 0,
+    minPurchase: Number(v.minPurchase) || 0,
+    maxDiscount: Number(v.maxDiscount) || 0,
+    expiryDate: v.expiryDate || '',
+    quota: Number(v.quota) || 0,
+    usedCount: Number(v.usedCount) || 0,
+    isActive: v.isActive !== false,
+    description: v.description || ''
+  };
+}
+
+function isVoucherExpired(v) {
+  if (!v || !v.expiryDate) return false;
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const exp = new Date(v.expiryDate + 'T23:59:59');
+    return !isNaN(exp.getTime()) && today.getTime() > exp.getTime();
+  } catch (e) {
+    return false;
+  }
+}
+
+function formatVoucherExpiry(expiryDate) {
+  if (!expiryDate) return 'Aktif Selamanya';
+  try {
+    const d = new Date(expiryDate + 'T00:00:00');
+    if (isNaN(d.getTime())) return expiryDate;
+    return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+  } catch (e) {
+    return expiryDate;
+  }
+}
+
+function calculateVoucherDiscount(voucher, subtotal) {
+  if (!voucher || subtotal <= 0) return 0;
+  let discount = 0;
+  if (voucher.type === 'fixed') {
+    discount = Number(voucher.discountAmount) || 0;
+  } else {
+    const pct = Number(voucher.discountPercent) || 0;
+    discount = Math.round(subtotal * (pct / 100));
+    if (voucher.maxDiscount && Number(voucher.maxDiscount) > 0 && discount > Number(voucher.maxDiscount)) {
+      discount = Number(voucher.maxDiscount);
+    }
+  }
+  return Math.min(discount, subtotal);
 }
 
 // Live input formatter for Rupiah with dots (e.g. 15000 -> 15.000)
@@ -2684,12 +2763,21 @@ function renderCheckoutSummary() {
     subtotal += item.unitPrice * item.qty;
   });
 
+  // Re-verify applied voucher validity against cart subtotal, active status & expiry
+  if (state.appliedVoucher) {
+    const currentVoucher = (state.config && state.config.vouchers || []).find(v => v && v.code === state.appliedVoucher.code);
+    if (!currentVoucher || currentVoucher.isActive === false || isVoucherExpired(currentVoucher)) {
+      state.appliedVoucher = null;
+    } else if (currentVoucher.minPurchase && Number(currentVoucher.minPurchase) > 0 && subtotal < Number(currentVoucher.minPurchase)) {
+      state.appliedVoucher = null;
+    } else {
+      state.appliedVoucher = currentVoucher; // keep in sync with newest parameters
+    }
+  }
+
   let discount = 0;
   if (state.appliedVoucher) {
-    discount = Math.round(subtotal * (state.appliedVoucher.discountPercent / 100));
-    if (state.appliedVoucher.maxDiscount && discount > state.appliedVoucher.maxDiscount) {
-      discount = state.appliedVoucher.maxDiscount;
-    }
+    discount = calculateVoucherDiscount(state.appliedVoucher, subtotal);
   }
 
   const finalTotal = Math.max(0, subtotal - discount);
@@ -2717,27 +2805,123 @@ function renderCheckoutSummary() {
   if (discountElem) discountElem.textContent = discount > 0 ? `-${formatRupiah(discount)}` : 'Rp 0';
   if (totalElem) totalElem.textContent = formatRupiah(finalTotal);
 
+  // Render Available Voucher Quick-Select Pills & Applied Info Banner
+  const voucherPillsWrap = document.getElementById('checkout-voucher-pills-wrap');
+  const voucherPillsContainer = document.getElementById('checkout-voucher-pills');
+  const appliedInfoWrap = document.getElementById('checkout-voucher-applied-info');
+  const appliedInfoText = document.getElementById('checkout-voucher-applied-text');
+  const voucherInput = document.getElementById('voucher-input');
+
+  const rawVouchers = (state.config && state.config.vouchers) || [];
+  const activeVouchers = rawVouchers.filter(v => v && v.code && v.code !== '__SYSTEM_CONFIG__' && v.isActive !== false && !isVoucherExpired(v));
+
+  if (appliedInfoWrap && appliedInfoText) {
+    if (state.appliedVoucher) {
+      appliedInfoWrap.classList.remove('hidden');
+      const v = state.appliedVoucher;
+      const discText = v.type === 'fixed' 
+        ? formatRupiah(v.discountAmount || 0) 
+        : `${v.discountPercent || 0}% (Hemat ${formatRupiah(discount)})`;
+      appliedInfoText.textContent = `Voucher ${v.code} aktif: Potongan ${discText}`;
+      if (voucherInput) voucherInput.value = v.code;
+    } else {
+      appliedInfoWrap.classList.add('hidden');
+    }
+  }
+
+  if (voucherPillsWrap && voucherPillsContainer) {
+    if (!state.appliedVoucher && activeVouchers.length > 0) {
+      voucherPillsWrap.classList.remove('hidden');
+      voucherPillsContainer.innerHTML = activeVouchers.map(v => {
+        const isEligible = !v.minPurchase || subtotal >= Number(v.minPurchase);
+        const discBadge = v.type === 'fixed' ? `-${formatRupiahShort(v.discountAmount)}` : `-${v.discountPercent}%`;
+        return `
+          <button 
+            type="button" 
+            onclick="quickApplyVoucher('${escapeHtml(v.code)}')" 
+            class="px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold ${isEligible ? 'bg-sky-950/80 text-sky-300 border border-sky-500/40 hover:bg-sky-900 cursor-pointer shadow-sm' : 'bg-slate-900/60 text-slate-500 border border-slate-800 cursor-not-allowed opacity-60'} flex items-center gap-1 transition-all"
+            title="${isEligible ? 'Klik untuk pasang kupon ' + v.code : 'Minimal belanja ' + formatRupiah(v.minPurchase)}"
+          >
+            <i data-lucide="ticket" class="w-3 h-3 text-sky-400"></i>
+            <span>${escapeHtml(v.code)} (${discBadge})</span>
+          </button>
+        `;
+      }).join('');
+    } else {
+      voucherPillsWrap.classList.add('hidden');
+      voucherPillsContainer.innerHTML = '';
+    }
+  }
+
   if (state.currentUser) {
     setCheckoutType('member');
   }
+  if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
 }
 
-function applyVoucherCode() {
+function applyVoucherCode(targetCode = null) {
   playSfx('click');
   const input = document.getElementById('voucher-input');
-  if (!input) return;
-  const code = input.value.trim().toUpperCase();
+  const code = (targetCode || (input ? input.value : '')).trim().toUpperCase();
 
-  const voucher = state.config.vouchers.find(v => v.code === code);
+  if (!code) {
+    showToast('Masukkan kode voucher terlebih dahulu!', 'warning');
+    return;
+  }
+
+  let subtotal = 0;
+  state.cart.forEach(item => {
+    subtotal += item.unitPrice * item.qty;
+  });
+
+  const voucher = (state.config && state.config.vouchers || []).find(v => v && v.code === code && v.code !== '__SYSTEM_CONFIG__');
   if (!voucher) {
-    showToast('Kode voucher tidak ditemukan!', 'error');
+    showToast(`Kode voucher "${code}" tidak ditemukan!`, 'error');
+    return;
+  }
+
+  if (voucher.isActive === false) {
+    showToast(`Voucher "${voucher.code}" saat ini sedang dinonaktifkan.`, 'warning');
+    return;
+  }
+
+  if (isVoucherExpired(voucher)) {
+    showToast(`Voucher "${voucher.code}" sudah kadaluarsa (${formatVoucherExpiry(voucher.expiryDate)}).`, 'warning');
+    return;
+  }
+
+  if (voucher.quota && Number(voucher.quota) > 0 && (Number(voucher.usedCount) || 0) >= Number(voucher.quota)) {
+    showToast(`Kuota pemakaian voucher "${voucher.code}" sudah habis!`, 'warning');
+    return;
+  }
+
+  const minSpend = Number(voucher.minPurchase) || 0;
+  if (minSpend > 0 && subtotal < minSpend) {
+    showToast(`Voucher ini memerlukan minimal belanja ${formatRupiah(minSpend)}. Kurang ${formatRupiah(minSpend - subtotal)}.`, 'warning');
     return;
   }
 
   state.appliedVoucher = voucher;
+  if (input) input.value = voucher.code;
   playSfx('success');
   renderCheckoutSummary();
-  showToast(`Voucher ${voucher.code} dipasang! Diskon ${voucher.discountPercent}%`, 'success');
+  const discStr = voucher.type === 'fixed' ? formatRupiah(voucher.discountAmount) : `${voucher.discountPercent}%`;
+  showToast(`Voucher ${voucher.code} berhasil dipasang! Potongan ${discStr}.`, 'success');
+}
+
+function removeAppliedVoucher() {
+  playSfx('click');
+  state.appliedVoucher = null;
+  const input = document.getElementById('voucher-input');
+  if (input) input.value = '';
+  renderCheckoutSummary();
+  showToast('Voucher dibatalkan.', 'info');
+}
+
+function quickApplyVoucher(code) {
+  const input = document.getElementById('voucher-input');
+  if (input) input.value = code;
+  applyVoucherCode(code);
 }
 
 function setCheckoutType(type) {
@@ -2888,10 +3072,7 @@ async function submitOrder() {
 
   let discount = 0;
   if (state.appliedVoucher) {
-    discount = Math.round(subtotal * (state.appliedVoucher.discountPercent / 100));
-    if (state.appliedVoucher.maxDiscount && discount > state.appliedVoucher.maxDiscount) {
-      discount = state.appliedVoucher.maxDiscount;
-    }
+    discount = calculateVoucherDiscount(state.appliedVoucher, subtotal);
   }
 
   const finalTotal = Math.max(0, subtotal - discount);
@@ -2950,6 +3131,16 @@ async function submitOrder() {
   initSocialProofStream();
   syncOrderToSupabase(newOrder);
   upsertCustomerUser({ name: newOrder.customerName, email: newOrder.customerEmail, phone: newOrder.customerPhone });
+
+  // If voucher applied, track its usage count
+  if (state.appliedVoucher) {
+    const vRef = (state.config && state.config.vouchers || []).find(v => v && v.code === state.appliedVoucher.code);
+    if (vRef) {
+      vRef.usedCount = (Number(vRef.usedCount) || 0) + 1;
+      saveConfig();
+      syncConfigToSupabase();
+    }
+  }
 
   // Clear cart
   state.cart = [];
@@ -5404,6 +5595,7 @@ function openAdminDashboard() {
     renderAdminRequestsTable();
     renderAdminCustomersTable();
     renderAdminFaqList();
+    renderAdminVouchersList();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   lucide.createIcons();
@@ -5449,6 +5641,10 @@ function updateStoreContactUI() {
 
   // Render Marketplace buttons on Beranda (if enabled by admin)
   renderBerandaMarketplaces();
+
+  // Render Dynamic Active Vouchers on Top HUD & Beranda
+  renderTopHudVoucher();
+  renderBerandaVouchers();
 }
 
 // Dynamic Marketplace Hub on Beranda (Appears only when explicitly enabled by Admin)
@@ -11853,6 +12049,496 @@ function deleteAdminFaq(faqId) {
   renderAdminFaqList();
   renderFaqList();
   showToast('FAQ berhasil dihapus.', 'info');
+}
+
+// ================= VOUCHER PROMO & DISCOUNT MANAGEMENT =================
+
+function scrollToAdminVouchers() {
+  playSfx('click');
+  const section = document.getElementById('admin-vouchers-section');
+  if (section) {
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    section.classList.add('ring-2', 'ring-emerald-500');
+    setTimeout(() => {
+      section.classList.remove('ring-2', 'ring-emerald-500');
+    }, 2000);
+  }
+}
+
+function renderAdminVouchersList() {
+  const container = document.getElementById('admin-vouchers-list');
+  const countBadge = document.getElementById('admin-vouchers-count-badge');
+  if (!container) return;
+
+  const raw = (state.config && state.config.vouchers) || [];
+  const vouchers = raw.filter(v => v && v.code && v.code !== '__SYSTEM_CONFIG__');
+
+  if (countBadge) {
+    countBadge.textContent = `${vouchers.length} Voucher`;
+  }
+
+  if (vouchers.length === 0) {
+    container.innerHTML = `
+      <div class="text-center py-8 text-xs text-slate-400">
+        <i data-lucide="ticket" class="w-8 h-8 mx-auto mb-2 opacity-40"></i>
+        <div>Belum ada data voucher promo. Klik tombol "Tambah Voucher Baru" untuk membuat kupon diskon.</div>
+      </div>
+    `;
+    if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
+    return;
+  }
+
+  container.innerHTML = vouchers.map(v => {
+    const isAct = v.isActive !== false;
+    const isExp = isVoucherExpired(v);
+    const isFixed = v.type === 'fixed';
+    const discLabel = isFixed 
+      ? `Potongan ${formatRupiah(v.discountAmount || 0)}` 
+      : `Diskon ${v.discountPercent || 0}%${v.maxDiscount ? ' (Maks. ' + formatRupiah(v.maxDiscount) + ')' : ' (Tanpa Batas Maks)'}`;
+    
+    const minSpendLabel = v.minPurchase && Number(v.minPurchase) > 0 
+      ? `Min. Belanja: ${formatRupiah(v.minPurchase)}` 
+      : 'Tanpa Min. Belanja';
+    
+    const quotaLabel = v.quota && Number(v.quota) > 0 
+      ? `Kuota: ${v.usedCount || 0} / ${v.quota} terpakai` 
+      : `Kuota: Tanpa Batas (${v.usedCount || 0} terpakai)`;
+
+    const expiryLabel = v.expiryDate 
+      ? `Berlaku s/d ${formatVoucherExpiry(v.expiryDate)}` 
+      : 'Aktif Selamanya';
+
+    let statusBadge = '';
+    if (isExp) {
+      statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-400 border border-amber-300 dark:border-amber-500/30">KADALUARSA</span>`;
+    } else if (isAct) {
+      statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span> AKTIF DI BERANDA</span>`;
+    } else {
+      statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700">NONAKTIF</span>`;
+    }
+
+    return `
+      <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 flex flex-col lg:flex-row lg:items-center justify-between gap-3 text-xs shadow-sm hover:shadow transition-all ${!isAct || isExp ? 'opacity-75' : ''}">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+            <span class="px-2.5 py-1 rounded-lg font-mono font-black text-xs bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/40 flex items-center gap-1.5 shadow-sm">
+              <i data-lucide="ticket" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400"></i>
+              <span>${escapeHtml(v.code)}</span>
+            </span>
+            ${v.name && v.name !== v.code ? `<span class="font-bold text-slate-900 dark:text-white text-xs">${escapeHtml(v.name)}</span>` : ''}
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isFixed ? 'bg-sky-100 dark:bg-sky-500/20 text-sky-800 dark:text-sky-300 border border-sky-300 dark:border-sky-500/30' : 'bg-purple-100 dark:bg-purple-500/20 text-purple-800 dark:text-purple-300 border border-purple-300 dark:border-purple-500/30'}">
+              ${isFixed ? 'Nominal (Rp)' : 'Persen (%)'}
+            </span>
+            ${statusBadge}
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-[11px] text-slate-600 dark:text-slate-400 mt-2">
+            <div class="flex items-center gap-1.5">
+              <i data-lucide="tag" class="w-3.5 h-3.5 text-emerald-500 shrink-0"></i>
+              <span class="font-bold text-slate-900 dark:text-emerald-300">${discLabel}</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <i data-lucide="shopping-cart" class="w-3.5 h-3.5 text-sky-500 shrink-0"></i>
+              <span>${minSpendLabel}</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <i data-lucide="calendar" class="w-3.5 h-3.5 text-amber-500 shrink-0"></i>
+              <span>${expiryLabel}</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <i data-lucide="users" class="w-3.5 h-3.5 text-purple-500 shrink-0"></i>
+              <span>${quotaLabel}</span>
+            </div>
+          </div>
+
+          ${v.description ? `<p class="text-[11px] text-slate-500 dark:text-slate-400 mt-2 italic line-clamp-2">${escapeHtml(v.description)}</p>` : ''}
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0 self-end lg:self-center pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-200 dark:border-slate-800 w-full lg:w-auto justify-end">
+          <button 
+            type="button" 
+            onclick="toggleAdminVoucherStatus('${escapeHtml(v.code)}')" 
+            class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold ${isAct ? 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-amber-600 border border-slate-300 dark:border-slate-700' : 'bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/40'} transition-colors cursor-pointer shadow-sm flex items-center gap-1"
+            title="${isAct ? 'Nonaktifkan voucher ini' : 'Aktifkan voucher ini'}"
+          >
+            <i data-lucide="${isAct ? 'eye-off' : 'eye'}" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">${isAct ? 'Nonaktifkan' : 'Aktifkan'}</span>
+          </button>
+
+          <button 
+            type="button" 
+            onclick="openAdminVoucherModal('${escapeHtml(v.code)}')" 
+            class="px-3 py-1.5 rounded-lg text-[11px] font-bold bg-sky-50 dark:bg-sky-950/70 hover:bg-sky-100 dark:hover:bg-sky-900 text-sky-700 dark:text-sky-300 border border-sky-300 dark:border-sky-500/40 transition-colors flex items-center gap-1 cursor-pointer shadow-sm"
+          >
+            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Edit
+          </button>
+
+          <button 
+            type="button" 
+            onclick="deleteAdminVoucher('${escapeHtml(v.code)}')" 
+            class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800/50 transition-colors cursor-pointer shadow-sm" 
+            title="Hapus voucher ini"
+          >
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
+}
+
+function toggleVoucherTypeFields() {
+  const isFixed = document.getElementById('voucher-type-fixed')?.checked;
+  const percentWrap = document.getElementById('voucher-field-percent-wrap');
+  const fixedWrap = document.getElementById('voucher-field-fixed-wrap');
+  const maxWrap = document.getElementById('voucher-field-max-wrap');
+  const percentInput = document.getElementById('voucher-form-percent');
+  const fixedInput = document.getElementById('voucher-form-fixed');
+
+  if (isFixed) {
+    if (percentWrap) percentWrap.classList.add('hidden');
+    if (fixedWrap) fixedWrap.classList.remove('hidden');
+    if (maxWrap) maxWrap.classList.add('hidden');
+    if (percentInput) percentInput.removeAttribute('required');
+    if (fixedInput) fixedInput.setAttribute('required', 'true');
+  } else {
+    if (percentWrap) percentWrap.classList.remove('hidden');
+    if (fixedWrap) fixedWrap.classList.add('hidden');
+    if (maxWrap) maxWrap.classList.remove('hidden');
+    if (percentInput) percentInput.setAttribute('required', 'true');
+    if (fixedInput) fixedInput.removeAttribute('required');
+  }
+}
+
+function toggleVoucherExpiryForever() {
+  const foreverCheck = document.getElementById('voucher-form-forever');
+  const dateInput = document.getElementById('voucher-form-expiry-date');
+  if (!foreverCheck || !dateInput) return;
+  if (foreverCheck.checked) {
+    dateInput.value = '';
+    dateInput.disabled = true;
+    dateInput.classList.add('opacity-50', 'cursor-not-allowed');
+  } else {
+    dateInput.disabled = false;
+    dateInput.classList.remove('opacity-50', 'cursor-not-allowed');
+    if (!dateInput.value) {
+      const d = new Date();
+      d.setDate(d.getDate() + 30);
+      dateInput.value = d.toISOString().split('T')[0];
+    }
+  }
+}
+
+function openAdminVoucherModal(code = null) {
+  playSfx('click');
+  closeModals();
+  const modal = document.getElementById('modal-admin-voucher');
+  const title = document.getElementById('modal-voucher-title');
+  const origCodeInput = document.getElementById('voucher-form-original-code');
+  const codeInput = document.getElementById('voucher-form-code');
+  const nameInput = document.getElementById('voucher-form-name');
+  const percentRadio = document.getElementById('voucher-type-percent');
+  const fixedRadio = document.getElementById('voucher-type-fixed');
+  const percentInput = document.getElementById('voucher-form-percent');
+  const fixedInput = document.getElementById('voucher-form-fixed');
+  const maxDiscInput = document.getElementById('voucher-form-max-discount');
+  const minPurchInput = document.getElementById('voucher-form-min-purchase');
+  const quotaInput = document.getElementById('voucher-form-quota');
+  const dateInput = document.getElementById('voucher-form-expiry-date');
+  const foreverCheck = document.getElementById('voucher-form-forever');
+  const descInput = document.getElementById('voucher-form-desc');
+  const activeCheck = document.getElementById('voucher-form-is-active');
+
+  if (!modal) return;
+
+  if (code) {
+    const v = (state.config && state.config.vouchers || []).find(x => x && x.code === code);
+    if (!v) return;
+    if (title) title.textContent = `Edit Voucher: ${v.code}`;
+    if (origCodeInput) origCodeInput.value = v.code;
+    if (codeInput) {
+      codeInput.value = v.code;
+    }
+    if (nameInput) nameInput.value = v.name || '';
+    if (v.type === 'fixed') {
+      if (fixedRadio) fixedRadio.checked = true;
+    } else {
+      if (percentRadio) percentRadio.checked = true;
+    }
+    if (percentInput) percentInput.value = v.discountPercent || 10;
+    if (fixedInput) fixedInput.value = v.discountAmount || 15000;
+    if (maxDiscInput) maxDiscInput.value = v.maxDiscount || '';
+    if (minPurchInput) minPurchInput.value = v.minPurchase || '';
+    if (quotaInput) quotaInput.value = v.quota || '';
+    if (v.expiryDate) {
+      if (dateInput) {
+        dateInput.value = v.expiryDate;
+        dateInput.disabled = false;
+        dateInput.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+      if (foreverCheck) foreverCheck.checked = false;
+    } else {
+      if (dateInput) {
+        dateInput.value = '';
+        dateInput.disabled = true;
+        dateInput.classList.add('opacity-50', 'cursor-not-allowed');
+      }
+      if (foreverCheck) foreverCheck.checked = true;
+    }
+    if (descInput) descInput.value = v.description || '';
+    if (activeCheck) activeCheck.checked = v.isActive !== false;
+  } else {
+    if (title) title.textContent = 'Tambah Voucher Promo Baru';
+    if (origCodeInput) origCodeInput.value = '';
+    if (codeInput) {
+      codeInput.value = '';
+    }
+    if (nameInput) nameInput.value = '';
+    if (percentRadio) percentRadio.checked = true;
+    if (percentInput) percentInput.value = '10';
+    if (fixedInput) fixedInput.value = '15000';
+    if (maxDiscInput) maxDiscInput.value = '';
+    if (minPurchInput) minPurchInput.value = '';
+    if (quotaInput) quotaInput.value = '';
+    if (dateInput) {
+      dateInput.value = '';
+      dateInput.disabled = true;
+      dateInput.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+    if (foreverCheck) foreverCheck.checked = true;
+    if (descInput) descInput.value = '';
+    if (activeCheck) activeCheck.checked = true;
+  }
+
+  toggleVoucherTypeFields();
+  modal.classList.remove('hidden');
+  if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
+  setTimeout(() => {
+    if (codeInput) codeInput.focus();
+  }, 100);
+}
+
+function saveAdminVoucherForm(e) {
+  if (e) e.preventDefault();
+  playSfx('click');
+
+  const origCode = (document.getElementById('voucher-form-original-code')?.value || '').trim().toUpperCase();
+  const rawCode = (document.getElementById('voucher-form-code')?.value || '').trim().toUpperCase();
+  const name = (document.getElementById('voucher-form-name')?.value || '').trim();
+  const isFixed = document.getElementById('voucher-type-fixed')?.checked;
+  const type = isFixed ? 'fixed' : 'percent';
+  const percent = Number(document.getElementById('voucher-form-percent')?.value) || 0;
+  const fixedAmt = Number(document.getElementById('voucher-form-fixed')?.value) || 0;
+  const maxDisc = Number(document.getElementById('voucher-form-max-discount')?.value) || 0;
+  const minPurchase = Number(document.getElementById('voucher-form-min-purchase')?.value) || 0;
+  const quota = Number(document.getElementById('voucher-form-quota')?.value) || 0;
+  const isForever = document.getElementById('voucher-form-forever')?.checked;
+  const expiryDate = isForever ? '' : (document.getElementById('voucher-form-expiry-date')?.value || '');
+  const desc = (document.getElementById('voucher-form-desc')?.value || '').trim();
+  const isActive = document.getElementById('voucher-form-is-active')?.checked !== false;
+
+  const code = rawCode.replace(/[^A-Z0-9_-]/g, '');
+  if (!code) {
+    showToast('Kode voucher harus diisi dengan huruf/angka valid!', 'warning');
+    return;
+  }
+
+  if (type === 'percent' && (percent <= 0 || percent > 100)) {
+    showToast('Persentase diskon harus di antara 1% - 100%!', 'warning');
+    return;
+  }
+
+  if (type === 'fixed' && fixedAmt <= 0) {
+    showToast('Nominal potongan diskon harus lebih besar dari Rp 0!', 'warning');
+    return;
+  }
+
+  if (!state.config) state.config = {};
+  if (!Array.isArray(state.config.vouchers)) state.config.vouchers = [];
+
+  const existingIndex = state.config.vouchers.findIndex(v => v && v.code === code);
+  if (existingIndex !== -1 && (!origCode || origCode !== code)) {
+    showToast(`Kode voucher "${code}" sudah digunakan. Gunakan kode lain!`, 'warning');
+    return;
+  }
+
+  let existingUsedCount = 0;
+  if (origCode) {
+    const origVoucher = state.config.vouchers.find(v => v && v.code === origCode);
+    if (origVoucher) existingUsedCount = Number(origVoucher.usedCount) || 0;
+  }
+
+  const voucherObj = {
+    code: code,
+    name: name || code,
+    type: type,
+    discountPercent: type === 'percent' ? percent : 0,
+    discountAmount: type === 'fixed' ? fixedAmt : 0,
+    minPurchase: minPurchase,
+    maxDiscount: type === 'percent' ? maxDisc : 0,
+    expiryDate: expiryDate,
+    quota: quota,
+    usedCount: existingUsedCount,
+    isActive: isActive,
+    description: desc
+  };
+
+  if (origCode) {
+    const idx = state.config.vouchers.findIndex(v => v && v.code === origCode);
+    if (idx !== -1) {
+      state.config.vouchers[idx] = voucherObj;
+    } else {
+      state.config.vouchers.push(voucherObj);
+    }
+  } else {
+    state.config.vouchers.push(voucherObj);
+  }
+
+  saveConfig();
+  syncConfigToSupabase();
+  renderAdminVouchersList();
+  renderTopHudVoucher();
+  renderBerandaVouchers();
+  closeModals();
+  playSfx('success');
+  showToast(`Voucher "${code}" berhasil disimpan!`, 'success');
+}
+
+function toggleAdminVoucherStatus(code) {
+  playSfx('click');
+  if (!state.config || !Array.isArray(state.config.vouchers)) return;
+  const voucher = state.config.vouchers.find(v => v && v.code === code);
+  if (!voucher) return;
+
+  voucher.isActive = voucher.isActive === false ? true : false;
+  saveConfig();
+  syncConfigToSupabase();
+  renderAdminVouchersList();
+  renderTopHudVoucher();
+  renderBerandaVouchers();
+  showToast(voucher.isActive ? `Voucher ${code} diaktifkan di Beranda.` : `Voucher ${code} dinonaktifkan.`, 'info');
+}
+
+function deleteAdminVoucher(code) {
+  if (!confirm(`Apakah Anda yakin ingin menghapus voucher "${code}"?`)) return;
+  playSfx('click');
+  if (!state.config || !Array.isArray(state.config.vouchers)) return;
+
+  state.config.vouchers = state.config.vouchers.filter(v => v && v.code !== code);
+  if (state.appliedVoucher && state.appliedVoucher.code === code) {
+    state.appliedVoucher = null;
+    renderCheckoutSummary();
+  }
+
+  saveConfig();
+  syncConfigToSupabase();
+  renderAdminVouchersList();
+  renderTopHudVoucher();
+  renderBerandaVouchers();
+  showToast(`Voucher "${code}" berhasil dihapus.`, 'info');
+}
+
+function copyVoucherCode(code) {
+  playSfx('click');
+  if (!code) return;
+  const voucher = (state.config && state.config.vouchers || []).find(v => v && v.code === code);
+  const textDesc = voucher ? (voucher.type === 'fixed' ? formatRupiah(voucher.discountAmount) : `${voucher.discountPercent}%`) : '';
+  
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).then(() => {
+      playSfx('success');
+      showToast(`Kupon ${code} berhasil disalin! Dapatkan diskon ${textDesc} saat checkout.`, 'success');
+    }).catch(() => {
+      fallbackCopy(code, `Kupon ${code} berhasil disalin!`);
+    });
+  } else {
+    fallbackCopy(code, `Kupon ${code} berhasil disalin!`);
+  }
+}
+
+function renderTopHudVoucher() {
+  const wrap = document.getElementById('top-hud-voucher-wrap');
+  const container = document.getElementById('top-hud-voucher-badges');
+  if (!wrap || !container) return;
+
+  const raw = (state.config && state.config.vouchers) || [];
+  const activeVouchers = raw.filter(v => v && v.code && v.code !== '__SYSTEM_CONFIG__' && v.isActive !== false && !isVoucherExpired(v));
+
+  if (activeVouchers.length === 0) {
+    wrap.classList.add('hidden');
+    container.innerHTML = '';
+    return;
+  }
+
+  wrap.classList.remove('hidden');
+  container.innerHTML = activeVouchers.map(v => {
+    const isFixed = v.type === 'fixed';
+    const discLabel = isFixed ? `-${formatRupiahShort(v.discountAmount || 0)}` : `-${v.discountPercent || 0}%`;
+    const tip = `${v.name || v.code}: Potongan ${discLabel}${v.minPurchase ? ' (Min. ' + formatRupiah(v.minPurchase) + ')' : ''}. Klik untuk salin!`;
+    return `
+      <button 
+        type="button"
+        onclick="copyVoucherCode('${escapeHtml(v.code)}')" 
+        class="text-sky-300 font-mono font-bold bg-sky-950/90 hover:bg-sky-900 px-2 py-0.5 rounded border border-sky-500/30 hover:border-sky-400 transition-all cursor-pointer flex items-center gap-1 shadow-sm active:scale-95" 
+        title="${tip}"
+      >
+        <span>${escapeHtml(v.code)} (${discLabel})</span>
+        <i data-lucide="copy" class="w-3 h-3 text-sky-400 opacity-80"></i>
+      </button>
+    `;
+  }).join('');
+
+  if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
+}
+
+function renderBerandaVouchers() {
+  const container = document.getElementById('beranda-vouchers-container');
+  const list = document.getElementById('beranda-vouchers-list');
+  if (!container || !list) return;
+
+  const raw = (state.config && state.config.vouchers) || [];
+  const activeVouchers = raw.filter(v => v && v.code && v.code !== '__SYSTEM_CONFIG__' && v.isActive !== false && !isVoucherExpired(v));
+
+  if (activeVouchers.length === 0) {
+    container.classList.add('hidden');
+    list.innerHTML = '';
+    return;
+  }
+
+  container.classList.remove('hidden');
+  list.innerHTML = activeVouchers.map(v => {
+    const isFixed = v.type === 'fixed';
+    const discBadge = isFixed 
+      ? `Hemat ${formatRupiah(v.discountAmount || 0)}` 
+      : `Diskon ${v.discountPercent || 0}%`;
+    const minText = v.minPurchase && Number(v.minPurchase) > 0 
+      ? `Min. ${formatRupiahShort(v.minPurchase)}` 
+      : 'Tanpa Min';
+    
+    return `
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/90 dark:bg-slate-950/90 border border-emerald-500/40 text-xs shadow-md">
+        <div class="flex flex-col text-left">
+          <div class="flex items-center gap-1.5">
+            <span class="font-mono font-black text-emerald-400 tracking-wider">${escapeHtml(v.code)}</span>
+            <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">${discBadge}</span>
+          </div>
+          <span class="text-[10px] text-slate-400">${minText}${v.maxDiscount ? ' • Maks ' + formatRupiahShort(v.maxDiscount) : ''}</span>
+        </div>
+        <button 
+          type="button" 
+          onclick="copyVoucherCode('${escapeHtml(v.code)}')" 
+          class="ml-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1 cursor-pointer transition-all active:scale-95 shadow-sm force-white"
+          title="Salin kode kupon ${escapeHtml(v.code)}"
+        >
+          <i data-lucide="copy" class="w-3 h-3"></i> Salin
+        </button>
+      </div>
+    `;
+  }).join('');
+
+  if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
 }
 
 if (document.readyState === 'loading') {

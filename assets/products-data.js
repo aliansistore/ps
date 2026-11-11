@@ -644,8 +644,34 @@ const INITIAL_CONFIG = {
     { bank: "DANA / OVO / GOPAY", number: "0812-3456-7890", name: "ALIANSI STORE" }
   ],
   vouchers: [
-    { code: "ALIANSIBARU", discountPercent: 10, minPurchase: 100000, maxDiscount: 30000 },
-    { code: "HENHEMAT", discountPercent: 15, minPurchase: 200000, maxDiscount: 50000 }
+    {
+      code: "ALIANSIBARU",
+      name: "Diskon Pelanggan Baru",
+      type: "percent",
+      discountPercent: 10,
+      discountAmount: 0,
+      minPurchase: 100000,
+      maxDiscount: 30000,
+      expiryDate: "",
+      quota: 0,
+      usedCount: 0,
+      isActive: true,
+      description: "Diskon 10% untuk transaksi perdana min. belanja Rp 100.000 (Maks. potongan Rp 30.000)"
+    },
+    {
+      code: "HENHEMAT",
+      name: "Spesial Game HEN",
+      type: "percent",
+      discountPercent: 15,
+      discountAmount: 0,
+      minPurchase: 200000,
+      maxDiscount: 50000,
+      expiryDate: "",
+      quota: 0,
+      usedCount: 0,
+      isActive: true,
+      description: "Diskon 15% untuk pembelian game min. belanja Rp 200.000 (Maks. potongan Rp 50.000)"
+    }
   ]
 };
 
