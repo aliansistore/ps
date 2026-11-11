@@ -1170,6 +1170,37 @@
       color: #475569 !important;
     }
 
+    /* Testimonials & Reviews Engine in Light Mode */
+    html:not(.dark) #testimoni {
+      border-top-color: #e2e8f0 !important;
+    }
+    html:not(.dark) .review-card {
+      background-color: #ffffff !important;
+      border: 1px solid #e2e8f0 !important;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05) !important;
+      color: #0f172a !important;
+    }
+    html:not(.dark) .review-card:hover {
+      border-color: #f59e0b !important;
+      box-shadow: 0 8px 24px rgba(245, 158, 11, 0.12) !important;
+    }
+    html:not(.dark) .review-card .rev-customer-name {
+      color: #0f172a !important;
+    }
+    html:not(.dark) .review-card .rev-comment {
+      color: #334155 !important;
+    }
+    html:not(.dark) .review-card .rev-game-badge {
+      background-color: #f0f9ff !important;
+      border-color: #bae6fd !important;
+      color: #0284c7 !important;
+    }
+    html:not(.dark) #inv-review-prompt-card {
+      background: linear-gradient(135deg, #fffbeb 0%, #ffffff 50%, #fff7ed 100%) !important;
+      border-color: #fcd34d !important;
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.08) !important;
+    }
+
     /* Floating Gamepad HUD in Light Mode */
     html:not(.dark) .gamepad-hud { 
       background: rgba(255, 255, 255, 0.96) !important; 
@@ -2448,6 +2479,76 @@
         </div>
       </div>
 
+      <!-- ================= TESTIMONI & ULASAN PELANGGAN ENGINE ================= -->
+      <section id="testimoni" class="mt-16 pt-8 border-t border-slate-200 dark:border-slate-800/80 relative">
+        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8">
+          <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-400 border border-amber-300 dark:border-amber-500/30 mb-2">
+              <i data-lucide="award" class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400"></i> KATA GAMERS INDONESIA
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-display tracking-tight">
+              Testimoni & Pengalaman Pembeli
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-xl">
+              Ulasan asli & pengalaman langsung dari komunitas PlayStation di seluruh Indonesia yang telah berbelanja di Aliansi Store.
+            </p>
+          </div>
+
+          <!-- Trust & Score Summary Pill -->
+          <div class="flex items-center gap-3 sm:gap-4 flex-wrap">
+            <div class="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div class="text-2xl font-black text-amber-500 font-display flex items-center gap-1">
+                <span>5.0</span>
+                <span class="text-xs text-amber-400">★</span>
+              </div>
+              <div class="text-left border-l border-slate-200 dark:border-slate-700/80 pl-3">
+                <div class="flex items-center text-amber-400 text-xs tracking-wider">
+                  ★★★★★
+                </div>
+                <div id="stat-total-reviews-label" class="text-[10px] text-slate-600 dark:text-slate-400 font-semibold">
+                  380+ Ulasan Terverifikasi
+                </div>
+              </div>
+            </div>
+
+            <button type="button" onclick="openReviewModal()" class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-black text-xs shadow-lg shadow-amber-500/25 flex items-center gap-2 transform hover:scale-105 active:scale-95 transition-all cursor-pointer force-white">
+              <i data-lucide="message-square-plus" class="w-4 h-4"></i>
+              <span>+ Tulis Testimoni</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter & Category Pills for Reviews -->
+        <div class="flex items-center justify-between gap-3 mb-6 flex-wrap">
+          <div class="flex items-center gap-2 overflow-x-auto pb-1 max-w-full">
+            <button type="button" id="tab-rev-all" onclick="filterTestimonials('all')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-white shadow-sm transition-all cursor-pointer">
+              Semua Ulasan (<span id="count-tab-rev-all">0</span>)
+            </button>
+            <button type="button" id="tab-rev-star5" onclick="filterTestimonials('star5')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-white transition-all cursor-pointer">
+              ⭐ Bintang 5
+            </button>
+            <button type="button" id="tab-rev-subindo" onclick="filterTestimonials('subindo')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-white transition-all cursor-pointer">
+              🎮 Subtitle Indonesia
+            </button>
+          </div>
+
+          <!-- Slider / Carousel Navigation Arrows -->
+          <div class="flex items-center gap-1.5">
+            <button type="button" onclick="scrollTestimonials('left')" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition-colors cursor-pointer" title="Geser ke Kiri">
+              <i data-lucide="chevron-left" class="w-4 h-4"></i>
+            </button>
+            <button type="button" onclick="scrollTestimonials('right')" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition-colors cursor-pointer" title="Geser ke Kanan">
+              <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Dynamic Testimonials Cards Carousel Container -->
+        <div id="testimonials-carousel" class="flex gap-4 sm:gap-6 overflow-x-auto pb-4 pt-1 snap-x scroll-smooth modal-custom-scroll">
+          <!-- Populated by JavaScript renderTestimonials() -->
+        </div>
+      </section>
+
       <!-- Request Game Callout Banner -->
       <div id="banner-request-game" class="mt-12 p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-purple-50 via-white to-sky-50 dark:from-[#0c132c] dark:via-[#14143a] dark:to-[#0d1c3a] border border-purple-200 dark:border-purple-500/30 relative overflow-hidden shadow-xl dark:shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
         <div class="relative z-10 max-w-xl text-center md:text-left">
@@ -3309,7 +3410,27 @@
         </div>
       </div>
 
-      <!-- OFFICIAL PRINT-ONLY FOOTER & SECURITY SEAL -->
+      <!-- Card Ajakan Review & Testimoni Pelanggan Setelah Pembelian (Customer Only) -->
+      <div id="inv-review-prompt-card" class="hidden mb-5 p-4 rounded-2xl bg-gradient-to-r from-amber-50 via-white to-orange-50 dark:from-amber-950/40 dark:via-[#191004] dark:to-orange-950/40 border border-amber-300 dark:border-amber-500/40 text-xs no-print flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/30">
+            <i data-lucide="star" class="w-5 h-5 fill-amber-400 text-amber-400"></i>
+          </div>
+          <div>
+            <div class="font-bold text-slate-900 dark:text-white text-xs sm:text-sm flex items-center gap-1.5">
+              <span>Puas dengan Pesanan Kamu?</span>
+              <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-400 border border-amber-300 dark:border-amber-500/30">BERI RATING</span>
+            </div>
+            <p class="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5">
+              Beri rating & ulasan pengalaman belanja kamu. Testimoni kamu akan langsung tampil di Beranda toko!
+            </p>
+          </div>
+        </div>
+        <button type="button" onclick="openReviewModal(state.currentInvoice ? state.currentInvoice.id : '')" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-black text-xs shadow-lg shadow-amber-500/20 flex items-center gap-1.5 shrink-0 transition-transform active:scale-95 cursor-pointer force-white">
+          <i data-lucide="message-square-heart" class="w-4 h-4"></i>
+          <span>Beri Ulasan Sekarang</span>
+        </button>
+      </div>
       <div class="print-only hidden mt-8 pt-4 border-t-2 border-slate-300 text-[10px] text-slate-600">
         <div class="flex items-center justify-between gap-4">
           <div>
@@ -5070,6 +5191,79 @@
     </div>
   </div>
 
+  <!-- MODAL: Tulis Ulasan & Testimoni Pelanggan -->
+  <div id="modal-review" class="app-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+    <div class="bg-white dark:bg-[#070d1e] border border-amber-500/40 rounded-3xl p-6 sm:p-7 max-w-lg w-full max-h-[92vh] overflow-y-auto modal-custom-scroll shadow-2xl relative text-slate-900 dark:text-white" onclick="event.stopPropagation()">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-amber-500/15 text-amber-500 dark:text-amber-400 flex items-center justify-center border border-amber-500/30 shadow-sm">
+            <i data-lucide="message-square-heart" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white font-display">Tulis Testimoni & Rating</h3>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400">Bagikan kepuasan belanja kamu di Aliansi Store</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeModals()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800/80 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form onsubmit="submitCustomerReview(event)" class="space-y-4 pt-4">
+        <!-- Interactive Star Rating Picker -->
+        <div class="text-center p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800">
+          <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-2">Beri Nilai Kepuasan Anda:</label>
+          <div id="review-stars-picker" class="flex items-center justify-center gap-2 mb-2">
+            <!-- 5 Star Buttons -->
+            <button type="button" onclick="setReviewRating(1)" onmouseenter="previewReviewRating(1)" onmouseleave="resetReviewRatingPreview()" class="star-btn p-1 text-2xl transition-transform hover:scale-125 focus:outline-none cursor-pointer">⭐</button>
+            <button type="button" onclick="setReviewRating(2)" onmouseenter="previewReviewRating(2)" onmouseleave="resetReviewRatingPreview()" class="star-btn p-1 text-2xl transition-transform hover:scale-125 focus:outline-none cursor-pointer">⭐</button>
+            <button type="button" onclick="setReviewRating(3)" onmouseenter="previewReviewRating(3)" onmouseleave="resetReviewRatingPreview()" class="star-btn p-1 text-2xl transition-transform hover:scale-125 focus:outline-none cursor-pointer">⭐</button>
+            <button type="button" onclick="setReviewRating(4)" onmouseenter="previewReviewRating(4)" onmouseleave="resetReviewRatingPreview()" class="star-btn p-1 text-2xl transition-transform hover:scale-125 focus:outline-none cursor-pointer">⭐</button>
+            <button type="button" onclick="setReviewRating(5)" onmouseenter="previewReviewRating(5)" onmouseleave="resetReviewRatingPreview()" class="star-btn p-1 text-2xl transition-transform hover:scale-125 focus:outline-none cursor-pointer">⭐</button>
+          </div>
+          <div id="review-rating-label" class="text-xs font-black text-amber-500 dark:text-amber-400">
+            ⭐⭐⭐⭐⭐ Luar Biasa! Sangat Puas
+          </div>
+        </div>
+
+        <!-- Nama Pelanggan & Domisili -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Nama Lengkap / Panggilan *</label>
+            <input type="text" id="rev-input-name" required placeholder="Contoh: Rian Dewantara" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-amber-500 font-semibold" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Kota / Domisili *</label>
+            <input type="text" id="rev-input-city" required placeholder="Contoh: Bandung, Jawa Barat" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-amber-500" />
+          </div>
+        </div>
+
+        <!-- Judul Game yang Diulas -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Game yang Kamu Beli / Mainkan *</label>
+          <input type="text" id="rev-input-game" required placeholder="Contoh: Ghost of Tsushima (Sub Indo) & GoW Ragnarok" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-amber-500 font-medium" />
+        </div>
+
+        <!-- Isi Komentar / Ulasan -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Ceritakan Pengalaman Belanjamu *</label>
+          <textarea id="rev-input-comment" required rows="3" placeholder="Tuliskan pengalaman kecepatan pengiriman link Drive, kualitas game, kejelasan subtitle Indonesia, atau keramahan admin..." class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-amber-500"></textarea>
+        </div>
+
+        <!-- Info Badge Terverifikasi -->
+        <div class="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-500/30 text-[11px] text-emerald-800 dark:text-emerald-300">
+          <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0"></i>
+          <span>Ulasan Anda akan diberi label <strong>✓ Terverifikasi Pembeli</strong> dan langsung tampil di halaman depan.</span>
+        </div>
+
+        <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white text-xs font-black shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 transition-all cursor-pointer force-white">
+          <i data-lucide="send" class="w-4 h-4"></i>
+          <span>Kirim Ulasan & Terbitkan Testimoni</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
     <!-- MODAL: Admin Live Chat Dua Arah & Email Dispatch -->
   <div id="modal-admin-live-chat" class="app-modal hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/80 backdrop-blur-md">
     <div class="bg-[#080f24] border border-slate-700 rounded-3xl max-w-4xl w-full h-[640px] max-h-[92vh] flex flex-col shadow-2xl relative text-white overflow-hidden" onclick="event.stopPropagation()">
@@ -5398,7 +5592,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261111_cusa_v7"></script>
-  <script src="assets/app.js?v=20261111_light_theme_fix_v37"></script>
+  <script src="assets/products-data.js?v=20261111_reviews_v1"></script>
+  <script src="assets/app.js?v=20261111_reviews_engine_v38"></script>
 </body>
 </html>

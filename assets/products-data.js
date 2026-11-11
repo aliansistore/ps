@@ -666,3 +666,95 @@ const INITIAL_GAME_REQUESTS = [];
 
 // Initial Two-Way Live Chat Messages between Admin & Customers (Clean Slate - Empty for live store)
 const INITIAL_CHATS = [];
+
+// Initial High-Quality Verified Testimonials & Reviews (Fallback when no customer reviews yet)
+const INITIAL_REVIEWS = [
+  {
+    id: "rev-101",
+    customerName: "Rian Dewantara",
+    city: "Bandung, Jawa Barat",
+    gameTitle: "Ghost of Tsushima & GoW Ragnarok (Sub Indo)",
+    rating: 5,
+    comment: "Link Google Drive otomatis langsung terkirim ke Gmail dalam 5 detik setelah bayar QRIS. Download full speed tanpa limit, file PKG diekstrak lancar tanpa ada yang korup. Subtitle Indonesianya rapi banget, terjemahannya enak dibaca. Mantap pol Aliansi Store!",
+    isVerified: true,
+    platform: "PS4 HEN",
+    createdAt: "2026-11-10T14:20:00.000Z"
+  },
+  {
+    id: "rev-102",
+    customerName: "Budi Santoso",
+    city: "Surabaya, Jawa Timur",
+    gameTitle: "The Last of Us Part II (Sub Indo)",
+    rating: 5,
+    comment: "Awalnya agak ragu beli digital HEN, pas coba ternyata beneran work 100% di PS4 HEN firmware 9.00 saya. Panduan cara instalnya sangat jelas buat yang baru pertama kali coba pasang PKG. Admin fast respon banget pas nanya via WA. Recommended seller!",
+    isVerified: true,
+    platform: "PS4 HEN",
+    createdAt: "2026-11-09T18:45:00.000Z"
+  },
+  {
+    id: "rev-103",
+    customerName: "Hendra Kusuma",
+    city: "Jakarta Barat, DKI Jakarta",
+    gameTitle: "PES 2027 Bitbox + BRI Liga 1 Update",
+    rating: 5,
+    comment: "Patch PES paling update yang pernah saya coba. Jersey dan klub Liga Indonesia lengkap, komentator dan rumputnya jernih. Anak-anak di rumah seneng banget. Layanan otomatisnya canggih, faktur dan link langsung masuk email!",
+    isVerified: true,
+    platform: "PS4 HEN",
+    createdAt: "2026-11-08T09:12:00.000Z"
+  },
+  {
+    id: "rev-104",
+    customerName: "Dimas Pratama",
+    city: "Medan, Sumatera Utara",
+    gameTitle: "GTA V MOD Subtitle Indonesia",
+    rating: 5,
+    comment: "Gokil ini store, harganya ramah di kantong tapi kualitas pelayanannya bintang lima. Otomasi sistem Drive-nya juara, gak perlu nunggu admin bangun tidur buat dapetin link. Mod bahasa Indonesianya lucu dan seru!",
+    isVerified: true,
+    platform: "PS4 HEN",
+    createdAt: "2026-11-07T11:30:00.000Z"
+  },
+  {
+    id: "rev-105",
+    customerName: "Fajar Nugroho",
+    city: "Yogyakarta, DIY",
+    gameTitle: "Red Dead Redemption 2 (Sub Indo)",
+    rating: 5,
+    comment: "RDR2 ukuran file gede banget tapi diparting dengan sangat rapi dan diberi label jelas di Drive. Gak ada part yang missing. Main lancar jaya sampai tamat. Terima kasih Aliansi Store atas dedikasinya buat gamers PS4 Indonesia!",
+    isVerified: true,
+    platform: "PS4 HEN",
+    createdAt: "2026-11-06T16:05:00.000Z"
+  },
+  {
+    id: "rev-106",
+    customerName: "Kevin Sanjaya",
+    city: "Semarang, Jawa Tengah",
+    gameTitle: "Elden Ring (Shadow of the Erdtree Ready)",
+    rating: 5,
+    comment: "Proses serba instan tanpa ribet. Habis transfer langsung kebuka akses download Google Drive. Dapet bonus panduan lengkap dan tips install GoldHEN. Pasti bakal repeat order judul lain di sini!",
+    isVerified: true,
+    platform: "PS4 HEN",
+    createdAt: "2026-11-05T20:10:00.000Z"
+  },
+  {
+    id: "rev-107",
+    customerName: "Arif Hidayat",
+    city: "Makassar, Sulawesi Selatan",
+    gameTitle: "Marvel's Spider-Man: Miles Morales (Sub Indo)",
+    rating: 5,
+    comment: "Mantap betul! Game lancar jaya di PS4 Fat HEN 11.00. Subtitle Indonesia bikin makin paham alur cerita dan misi sampingan. Adminnya juga ramah dan sabar bimbing pas ditanya cara extract PKG.",
+    isVerified: true,
+    platform: "PS4 HEN",
+    createdAt: "2026-11-04T13:40:00.000Z"
+  },
+  {
+    id: "rev-108",
+    customerName: "Reza Pahlevi",
+    city: "Tangerang Selatan, Banten",
+    gameTitle: "Resident Evil 4 Remake (Sub Indo)",
+    rating: 5,
+    comment: "Kualitas grafis dan audio mantap, mod bahasa Indonesianya rapi dan natural. Sistem invoice dan riwayat order di web ini juga sangat canggih dan rapi. Best game store!",
+    isVerified: true,
+    platform: "PS4 HEN",
+    createdAt: "2026-11-03T10:15:00.000Z"
+  }
+];

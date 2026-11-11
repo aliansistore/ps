@@ -12,7 +12,8 @@ const APP_STORAGE_KEYS = {
   THEME: 'aliansi_theme',
   USERS_DB: 'aliansi_store_users_v3',
   GAME_REQUESTS: 'aliansi_store_game_requests_v1',
-  CHATS: 'aliansi_store_chats_v1'
+  CHATS: 'aliansi_store_chats_v1',
+  REVIEWS: 'aliansi_store_reviews_v1'
 };
 
 // Global Safe HTML Escape Utility
@@ -167,7 +168,11 @@ const state = {
   chatMessages: [],
   activeAdminChatEmail: null,
   activeAdminChatContext: null,
-  isCustomerChatOpen: false
+  isCustomerChatOpen: false,
+  reviews: [],
+  activeReviewFilter: 'all',
+  reviewRatingInput: 5,
+  activeReviewOrderId: null
 };
 
 // ================= SUPABASE CLOUD DATABASE ADAPTER =================
@@ -441,6 +446,7 @@ function initApp() {
   renderProducts();
   updateCartBadge();
   initSocialProofStream();
+  renderTestimonials();
   updateNavAuthUI();
   updateStoreContactUI();
   lucide.createIcons();
@@ -738,6 +744,26 @@ function loadStoredData() {
     state.gameRequests = typeof INITIAL_GAME_REQUESTS !== 'undefined' ? [...INITIAL_GAME_REQUESTS] : [];
     saveGameRequests();
   }
+
+  // Customer Testimonials & Reviews
+  const storedReviews = localStorage.getItem(APP_STORAGE_KEYS.REVIEWS);
+  if (storedReviews) {
+    try {
+      const parsedRev = JSON.parse(storedReviews);
+      state.reviews = Array.isArray(parsedRev) && parsedRev.length > 0 ? parsedRev : (typeof INITIAL_REVIEWS !== 'undefined' ? [...INITIAL_REVIEWS] : []);
+    } catch (e) {
+      state.reviews = typeof INITIAL_REVIEWS !== 'undefined' ? [...INITIAL_REVIEWS] : [];
+    }
+  } else {
+    state.reviews = typeof INITIAL_REVIEWS !== 'undefined' ? [...INITIAL_REVIEWS] : [];
+    saveReviews();
+  }
+}
+
+function saveReviews() {
+  try {
+    localStorage.setItem(APP_STORAGE_KEYS.REVIEWS, JSON.stringify(state.reviews));
+  } catch (e) {}
 }
 
 function saveUsers() {
@@ -2978,9 +3004,52 @@ function renderInvoiceDetails(order) {
     if (!order.fulfillment || !order.fulfillment.emails_dispatched) {
       dispatchOrderCompletionEmails(order);
     }
+
+    // Post-Purchase Customer Review Prompt Card
+    const reviewPromptCard = document.getElementById('inv-review-prompt-card');
+    if (reviewPromptCard) {
+      reviewPromptCard.classList.remove('hidden');
+      const alreadyReviewed = (state.reviews || []).some(r => r.orderId === order.id);
+      if (alreadyReviewed) {
+        reviewPromptCard.innerHTML = `
+          <div class="flex items-center justify-between gap-3 flex-wrap w-full">
+            <div class="flex items-center gap-2.5 text-emerald-600 dark:text-emerald-400 font-bold">
+              <i data-lucide="check-circle-2" class="w-5 h-5 shrink-0"></i>
+              <span>Terima kasih! Anda telah memberikan ulasan untuk pesanan ini. Ulasan Anda telah aktif di Beranda. ⭐⭐⭐⭐⭐</span>
+            </div>
+            <button type="button" onclick="closeModals(); window.location.hash = 'testimoni';" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+              Lihat di Beranda
+            </button>
+          </div>
+        `;
+      } else {
+        reviewPromptCard.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/30">
+              <i data-lucide="star" class="w-5 h-5 fill-amber-400 text-amber-400"></i>
+            </div>
+            <div>
+              <div class="font-bold text-slate-900 dark:text-white text-xs sm:text-sm flex items-center gap-1.5">
+                <span>Puas dengan Pesanan Kamu?</span>
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-400 border border-amber-300 dark:border-amber-500/30">BERI RATING</span>
+              </div>
+              <p class="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5">
+                Beri rating & ulasan untuk pesanan ini. Testimoni kamu akan langsung tampil di Beranda toko!
+              </p>
+            </div>
+          </div>
+          <button type="button" onclick="openReviewModal('${order.id}')" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-black text-xs shadow-lg shadow-amber-500/20 flex items-center gap-1.5 shrink-0 transition-transform active:scale-95 cursor-pointer force-white">
+            <i data-lucide="message-square-heart" class="w-4 h-4"></i>
+            <span>Beri Ulasan Sekarang</span>
+          </button>
+        `;
+      }
+    }
   } else {
     fulfillmentBox.classList.add('hidden');
     if (dispatchCard) dispatchCard.classList.add('hidden');
+    const reviewPromptCard = document.getElementById('inv-review-prompt-card');
+    if (reviewPromptCard) reviewPromptCard.classList.add('hidden');
   }
 
   // WhatsApp CS Link
@@ -10385,6 +10454,357 @@ Website: ${currentUrl.origin}${currentUrl.pathname}`;
   if (state.isCustomerChatOpen) {
     renderCustomerChatMessages();
     playSfx('chat');
+  }
+}
+
+
+// ==========================================================================
+// TESTIMONIAL ENGINE & CUSTOMER REVIEWS
+// ==========================================================================
+
+function getInitials(name) {
+  if (!name) return 'GA';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function getAvatarGradient(index) {
+  const gradients = [
+    'bg-gradient-to-tr from-purple-600 to-indigo-600',
+    'bg-gradient-to-tr from-sky-600 to-blue-600',
+    'bg-gradient-to-tr from-emerald-600 to-teal-600',
+    'bg-gradient-to-tr from-amber-600 to-orange-600',
+    'bg-gradient-to-tr from-rose-600 to-pink-600',
+    'bg-gradient-to-tr from-cyan-600 to-sky-600'
+  ];
+  return gradients[index % gradients.length];
+}
+
+function formatDateAgo(dateStr) {
+  if (!dateStr) return 'Baru saja';
+  try {
+    const diffMs = Date.now() - new Date(dateStr).getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 5) return 'Baru saja';
+    if (diffMins < 60) return `${diffMins} mnt lalu`;
+    if (diffHours < 24) return `${diffHours} jam lalu`;
+    if (diffDays === 1) return 'Kemarin';
+    if (diffDays < 7) return `${diffDays} hari lalu`;
+    const diffWeeks = Math.floor(diffDays / 7);
+    return `${diffWeeks} minggu lalu`;
+  } catch (e) {
+    return 'Baru saja';
+  }
+}
+
+function renderTestimonials() {
+  const container = document.getElementById('testimonials-carousel');
+  if (!container) return;
+
+  let reviewsList = (state.reviews && state.reviews.length > 0)
+    ? state.reviews
+    : (typeof INITIAL_REVIEWS !== 'undefined' ? [...INITIAL_REVIEWS] : []);
+
+  // Compute stats
+  const totalCount = reviewsList.length;
+  const countTabAll = document.getElementById('count-tab-rev-all');
+  if (countTabAll) countTabAll.textContent = totalCount;
+
+  const statReviewsLabel = document.getElementById('stat-total-reviews-label');
+  if (statReviewsLabel) {
+    statReviewsLabel.textContent = `${totalCount + 380}+ Ulasan Terverifikasi`;
+  }
+
+  // Filter
+  const filter = state.activeReviewFilter || 'all';
+  let filtered = [...reviewsList];
+
+  if (filter === 'star5') {
+    filtered = filtered.filter(r => r.rating === 5);
+  } else if (filter === 'subindo') {
+    filtered = filtered.filter(r => 
+      (r.gameTitle || '').toLowerCase().includes('sub indo') ||
+      (r.platform || '').toLowerCase().includes('hen')
+    );
+  }
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="w-full text-center py-10 text-xs text-slate-400">
+        <i data-lucide="message-square-off" class="w-8 h-8 mx-auto mb-2 opacity-40"></i>
+        <div>Belum ada ulasan untuk filter ini.</div>
+      </div>
+    `;
+    lucide.createIcons();
+    return;
+  }
+
+  container.innerHTML = filtered.map((rev, idx) => {
+    const initials = getInitials(rev.customerName);
+    const avatarBg = getAvatarGradient(idx);
+    const starsHtml = '★'.repeat(rev.rating) + '☆'.repeat(5 - rev.rating);
+    const timeAgo = formatDateAgo(rev.createdAt);
+
+    return `
+      <div class="review-card w-[310px] sm:w-[350px] shrink-0 p-5 rounded-3xl bg-[#080f24] border border-slate-800 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/50 group shadow-lg">
+        <div>
+          <!-- Header: Avatar + Customer Name + Verified Badge -->
+          <div class="flex items-center justify-between gap-3 mb-3">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="w-10 h-10 rounded-2xl ${avatarBg} text-white font-black text-xs flex items-center justify-center shrink-0 shadow-md">
+                ${initials}
+              </div>
+              <div class="min-w-0">
+                <div class="rev-customer-name font-black text-white text-xs sm:text-sm truncate font-display">${escapeHtml(rev.customerName)}</div>
+                <div class="text-[11px] text-slate-400 truncate flex items-center gap-1">
+                  <i data-lucide="map-pin" class="w-3 h-3 text-slate-500 shrink-0"></i>
+                  <span>${escapeHtml(rev.city || 'Indonesia')}</span>
+                </div>
+              </div>
+            </div>
+            <span class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold shrink-0 flex items-center gap-1">
+              <i data-lucide="shield-check" class="w-3 h-3 text-emerald-400"></i> Terverifikasi
+            </span>
+          </div>
+
+          <!-- Stars & Date -->
+          <div class="flex items-center justify-between gap-2 mb-2.5">
+            <div class="flex items-center gap-0.5 text-amber-400 text-xs tracking-wider font-bold">
+              <span>${starsHtml}</span>
+              <span class="ml-1 text-[11px] text-amber-500 font-mono">(${rev.rating}.0)</span>
+            </div>
+            <span class="text-[10px] text-slate-400 font-mono">${timeAgo}</span>
+          </div>
+
+          <!-- Game Title Tag -->
+          <div class="mb-3">
+            <span class="rev-game-badge inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-bold bg-sky-950/70 text-sky-300 border border-sky-500/30 max-w-full truncate">
+              <i data-lucide="gamepad-2" class="w-3 h-3 text-sky-400 shrink-0"></i>
+              <span class="truncate">${escapeHtml(rev.gameTitle || 'Game PlayStation')}</span>
+            </span>
+          </div>
+
+          <!-- Review Comment -->
+          <p class="rev-comment text-xs text-slate-300 leading-relaxed italic line-clamp-4">
+            "${escapeHtml(rev.comment)}"
+          </p>
+        </div>
+
+        <!-- Card Footer -->
+        <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400">
+          <span class="flex items-center gap-1 text-emerald-400 font-semibold"><i data-lucide="check" class="w-3 h-3"></i> Google Drive Instan</span>
+          <span class="font-mono text-slate-400 font-bold">${rev.platform || 'PS4 HEN'}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  lucide.createIcons();
+}
+
+function filterTestimonials(filter) {
+  state.activeReviewFilter = filter;
+  playSfx('click');
+
+  ['all', 'star5', 'subindo'].forEach(f => {
+    const btn = document.getElementById(`tab-rev-${f}`);
+    if (btn) {
+      if (f === filter) {
+        btn.className = 'px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 text-white shadow-sm transition-all cursor-pointer';
+      } else {
+        btn.className = 'px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-white transition-all cursor-pointer';
+      }
+    }
+  });
+
+  renderTestimonials();
+}
+
+function scrollTestimonials(direction) {
+  playSfx('click');
+  const container = document.getElementById('testimonials-carousel');
+  if (!container) return;
+  const amount = direction === 'left' ? -360 : 360;
+  container.scrollBy({ left: amount, behavior: 'smooth' });
+}
+
+// Review Modal Logic
+let currentSelectedRating = 5;
+let currentReviewOrderId = null;
+
+const RATING_DESCRIPTIONS = {
+  5: '⭐⭐⭐⭐⭐ Luar Biasa! Sangat Puas',
+  4: '⭐⭐⭐⭐ Sangat Bagus & Memuaskan',
+  3: '⭐⭐⭐ Cukup Baik',
+  2: '⭐⭐ Kurang Memuaskan',
+  1: '⭐ Sangat Kecewa'
+};
+
+function setReviewRating(rating) {
+  currentSelectedRating = Math.max(1, Math.min(5, rating));
+  playSfx('click');
+  updateStarButtonsUI(currentSelectedRating);
+}
+
+function previewReviewRating(rating) {
+  updateStarButtonsUI(rating);
+}
+
+function resetReviewRatingPreview() {
+  updateStarButtonsUI(currentSelectedRating);
+}
+
+function updateStarButtonsUI(rating) {
+  const container = document.getElementById('review-stars-picker');
+  if (!container) return;
+  const buttons = container.querySelectorAll('.star-btn');
+  buttons.forEach((btn, index) => {
+    if (index < rating) {
+      btn.style.opacity = '1';
+      btn.style.filter = 'grayscale(0%)';
+      btn.style.transform = 'scale(1.15)';
+    } else {
+      btn.style.opacity = '0.35';
+      btn.style.filter = 'grayscale(100%)';
+      btn.style.transform = 'scale(1)';
+    }
+  });
+
+  const label = document.getElementById('review-rating-label');
+  if (label) {
+    label.textContent = RATING_DESCRIPTIONS[rating] || '⭐⭐⭐⭐⭐ Sangat Puas';
+  }
+}
+
+function openReviewModal(orderId = '') {
+  playSfx('click');
+  currentReviewOrderId = orderId || null;
+  currentSelectedRating = 5;
+
+  const modal = document.getElementById('modal-review');
+  if (!modal) return;
+
+  // Pre-fill inputs
+  const nameInput = document.getElementById('rev-input-name');
+  const gameInput = document.getElementById('rev-input-game');
+  const cityInput = document.getElementById('rev-input-city');
+  const commentInput = document.getElementById('rev-input-comment');
+
+  if (commentInput) commentInput.value = '';
+
+  let matchedOrder = null;
+  if (orderId) {
+    matchedOrder = (state.orders || []).find(o => o && o.id && o.id.toUpperCase() === String(orderId).toUpperCase());
+  } else if (state.currentInvoice) {
+    matchedOrder = state.currentInvoice;
+    currentReviewOrderId = matchedOrder.id;
+  }
+
+  if (matchedOrder) {
+    if (nameInput) nameInput.value = matchedOrder.customerName || '';
+    if (gameInput && matchedOrder.items && matchedOrder.items.length > 0) {
+      gameInput.value = matchedOrder.items.map(i => i.title).join(', ');
+    }
+  } else if (state.currentUser) {
+    if (nameInput) nameInput.value = state.currentUser.name || '';
+  }
+
+  if (cityInput && !cityInput.value) {
+    cityInput.value = '';
+  }
+
+  updateStarButtonsUI(5);
+  modal.classList.remove('hidden');
+  lucide.createIcons();
+}
+
+function submitCustomerReview(event) {
+  if (event) event.preventDefault();
+
+  const nameInput = document.getElementById('rev-input-name');
+  const cityInput = document.getElementById('rev-input-city');
+  const gameInput = document.getElementById('rev-input-game');
+  const commentInput = document.getElementById('rev-input-comment');
+
+  const name = nameInput ? nameInput.value.trim() : '';
+  const city = cityInput ? cityInput.value.trim() : 'Indonesia';
+  const game = gameInput ? gameInput.value.trim() : 'Game PS4 HEN';
+  const comment = commentInput ? commentInput.value.trim() : '';
+  const rating = currentSelectedRating || 5;
+
+  if (!name || !comment) {
+    showToast('Mohon lengkapi nama dan ulasan Anda.', 'error');
+    return;
+  }
+
+  const newReview = {
+    id: 'rev-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+    orderId: currentReviewOrderId || null,
+    customerName: name,
+    city: city || 'Indonesia',
+    gameTitle: game,
+    rating: rating,
+    comment: comment,
+    isVerified: true,
+    platform: 'PS4 HEN',
+    createdAt: new Date().toISOString()
+  };
+
+  if (!Array.isArray(state.reviews)) {
+    state.reviews = [];
+  }
+
+  // Prepend to show user's review at the very top of the carousel
+  state.reviews.unshift(newReview);
+  saveReviews();
+
+  // Attempt sync to Supabase if connected
+  if (supabaseClient) {
+    try {
+      supabaseClient.from('reviews').insert([{
+        id: newReview.id,
+        order_id: newReview.orderId,
+        customer_name: newReview.customerName,
+        city: newReview.city,
+        game_title: newReview.gameTitle,
+        rating: newReview.rating,
+        comment: newReview.comment,
+        is_verified: true,
+        created_at: newReview.createdAt
+      }]).then(() => {}).catch(() => {});
+    } catch (e) {}
+  }
+
+  closeModals();
+  playSfx('success');
+  if (typeof confetti === 'function') {
+    confetti({ particleCount: 70, spread: 80, origin: { y: 0.6 } });
+  }
+
+  showToast('Terima kasih! Ulasan & rating Anda berhasil diterbitkan di Beranda toko.', 'success', 'Ulasan Terkirim');
+  
+  // Re-render testimonials engine immediately
+  renderTestimonials();
+
+  // If review card was in invoice, update it
+  const invReviewCard = document.getElementById('inv-review-prompt-card');
+  if (invReviewCard) {
+    invReviewCard.innerHTML = `
+      <div class="flex items-center justify-between gap-3 flex-wrap w-full">
+        <div class="flex items-center gap-2.5 text-emerald-600 dark:text-emerald-400 font-bold">
+          <i data-lucide="check-circle-2" class="w-5 h-5 shrink-0"></i>
+          <span>Terima kasih! Anda telah memberikan ulasan untuk pesanan ini. Ulasan Anda telah aktif di Beranda. ⭐⭐⭐⭐⭐</span>
+        </div>
+        <button type="button" onclick="closeModals(); window.location.hash = 'testimoni';" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+          Lihat di Beranda
+        </button>
+      </div>
+    `;
+    lucide.createIcons();
   }
 }
 
