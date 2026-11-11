@@ -1895,9 +1895,13 @@ function renderProducts() {
       if (feedbackCount) feedbackCount.textContent = `${items.length} game`;
     }
     if (clearBtn) clearBtn.classList.remove('hidden');
+    const mainClear = document.getElementById('main-search-clear');
+    if (mainClear) mainClear.classList.remove('hidden');
   } else {
     if (feedbackBar) feedbackBar.classList.add('hidden');
     if (clearBtn) clearBtn.classList.add('hidden');
+    const mainClear = document.getElementById('main-search-clear');
+    if (mainClear) mainClear.classList.add('hidden');
   }
 
   if (items.length === 0) {
@@ -10023,7 +10027,146 @@ function submitEditProduct() {
 }
 
 
-// Search Helpers
+// Search Helpers & Live Dropdown System
+function executeHeaderSearch(e) {
+  if (e) {
+    if (typeof e.preventDefault === 'function') e.preventDefault();
+    if (typeof e.stopPropagation === 'function') e.stopPropagation();
+  }
+  playSfx('click');
+
+  const mainInput = document.getElementById('main-search-input');
+  const catalogInput = document.getElementById('catalog-search-input');
+  const query = (mainInput ? mainInput.value : (catalogInput ? catalogInput.value : '')).trim();
+
+  // Hide live dropdown
+  const dropdown = document.getElementById('main-search-dropdown');
+  if (dropdown) dropdown.classList.add('hidden');
+
+  // Sync state & inputs
+  state.searchQuery = query;
+  if (mainInput && mainInput.value !== query) mainInput.value = query;
+  if (catalogInput && catalogInput.value !== query) catalogInput.value = query;
+
+  renderProducts();
+
+  // Smooth scroll to catalog section so user immediately sees results
+  const catalogEl = document.getElementById('katalog');
+  if (catalogEl) {
+    catalogEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // Update clear buttons
+  const mainClear = document.getElementById('main-search-clear');
+  const catalogClear = document.getElementById('catalog-search-clear');
+  if (mainClear) {
+    if (query) mainClear.classList.remove('hidden');
+    else mainClear.classList.add('hidden');
+  }
+  if (catalogClear) {
+    if (query) catalogClear.classList.remove('hidden');
+    else catalogClear.classList.add('hidden');
+  }
+
+  // Dismiss focus so mobile keyboard closes cleanly
+  if (mainInput && document.activeElement === mainInput) {
+    mainInput.blur();
+  }
+  if (catalogInput && document.activeElement === catalogInput) {
+    catalogInput.blur();
+  }
+}
+
+function renderMainSearchDropdown(val) {
+  const dropdown = document.getElementById('main-search-dropdown');
+  const list = document.getElementById('main-search-dropdown-list');
+  const countEl = document.getElementById('main-search-dropdown-count');
+  const clearBtn = document.getElementById('main-search-clear');
+  if (!dropdown || !list) return;
+
+  const query = (val || '').trim().toLowerCase();
+  if (clearBtn) {
+    if (query) clearBtn.classList.remove('hidden');
+    else clearBtn.classList.add('hidden');
+  }
+
+  if (!query) {
+    dropdown.classList.add('hidden');
+    list.innerHTML = '';
+    return;
+  }
+
+  // Filter matching products
+  const matches = (state.products || []).filter(p => {
+    const titleMatch = (p.title || '').toLowerCase().includes(query);
+    const catMatch = (p.category || '').toLowerCase().includes(query);
+    const cusaMatch = (p.cusa || '').toLowerCase().includes(query);
+    const descMatch = (p.description || '').toLowerCase().includes(query);
+    const platformMatch = Array.isArray(p.platform) && p.platform.some(pl => pl.toLowerCase().includes(query));
+    return titleMatch || catMatch || cusaMatch || descMatch || platformMatch;
+  });
+
+  if (matches.length === 0) {
+    dropdown.classList.remove('hidden');
+    list.innerHTML = `
+      <div class="p-4 text-center text-xs text-slate-400">
+        <i data-lucide="help-circle" class="w-6 h-6 mx-auto mb-1.5 text-slate-500"></i>
+        Tidak ada game yang cocok dengan "<span class="text-sky-400 font-bold">${escapeHtml(val.trim())}</span>"
+      </div>
+    `;
+    if (countEl) countEl.textContent = '0 game ditemukan';
+    if (window.lucide) lucide.createIcons();
+    return;
+  }
+
+  const previewItems = matches.slice(0, 5);
+  list.innerHTML = previewItems.map(p => {
+    const poster = getProductPoster(p);
+    const price = p.prices ? (p.prices.primary || p.prices.original || 0) : 0;
+    const isHen = isHenProduct(p);
+    return `
+      <div 
+        onclick="openProductFromSearch('${p.id}')"
+        class="flex items-center gap-3 p-2.5 hover:bg-slate-800/80 cursor-pointer transition-colors group/item"
+      >
+        <img 
+          src="${poster}" 
+          alt="${escapeHtml(p.title)}" 
+          class="w-10 h-14 object-cover rounded-lg bg-slate-900 border border-slate-700/60 shrink-0 group-hover/item:scale-105 transition-transform" 
+          onerror="this.src='assets/covers/service-1tb.jpg'"
+        />
+        <div class="flex-1 min-w-0">
+          <div class="text-xs font-bold text-white group-hover/item:text-sky-400 transition-colors truncate">
+            ${escapeHtml(p.title)}
+          </div>
+          <div class="flex items-center gap-2 mt-1 text-[10px] text-slate-400">
+            <span class="px-1.5 py-0.2 rounded bg-slate-800 font-mono text-[9px] text-sky-300 font-bold">${isHen ? 'PS4 HEN' : (Array.isArray(p.platform) ? p.platform[0] : 'PS4')}</span>
+            ${p.cusa ? `<span class="font-mono text-cyan-400 font-bold tracking-tight">${escapeHtml(p.cusa)}</span>` : ''}
+            <span class="truncate">${getCategoryLabel(p.category)}</span>
+          </div>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="text-xs font-black text-sky-400 font-display">${formatRupiah(price)}</div>
+          ${p.prices && p.prices.original && p.prices.original > price ? `
+            <div class="text-[9px] text-slate-500 line-through">${formatRupiah(p.prices.original)}</div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  if (countEl) countEl.textContent = `${matches.length} game ditemukan`;
+  dropdown.classList.remove('hidden');
+  if (window.lucide) lucide.createIcons();
+}
+
+function openProductFromSearch(productId) {
+  playSfx('click');
+  const dropdown = document.getElementById('main-search-dropdown');
+  if (dropdown) dropdown.classList.add('hidden');
+  openProductDetail(productId);
+}
+
 function clearCatalogSearch() {
   playSfx('click');
   state.searchQuery = '';
@@ -10031,13 +10174,16 @@ function clearCatalogSearch() {
   const mainInput = document.getElementById('main-search-input');
   if (catalogInput) {
     catalogInput.value = '';
-    catalogInput.removeAttribute('readonly');
     catalogInput.focus();
   }
   if (mainInput) {
     mainInput.value = '';
-    mainInput.removeAttribute('readonly');
   }
+  const mainClear = document.getElementById('main-search-clear');
+  const dropdown = document.getElementById('main-search-dropdown');
+  if (mainClear) mainClear.classList.add('hidden');
+  if (dropdown) dropdown.classList.add('hidden');
+
   const feedbackBar = document.getElementById('catalog-search-feedback');
   const clearBtn = document.getElementById('catalog-search-clear');
   if (feedbackBar) feedbackBar.classList.add('hidden');
@@ -10051,14 +10197,12 @@ function focusCatalogSearch() {
   if (catalogEl) {
     catalogEl.scrollIntoView({ behavior: 'smooth' });
   }
-  const input = document.getElementById('catalog-search-input') || document.getElementById('main-search-input');
+  const input = document.getElementById('main-search-input') || document.getElementById('catalog-search-input');
   if (input) {
-    input.removeAttribute('readonly');
     setTimeout(() => {
-      input.removeAttribute('readonly');
       input.focus();
       input.select();
-    }, 250);
+    }, 150);
   }
 }
 
@@ -10084,12 +10228,6 @@ function setupEventListeners() {
   // Live Instant Search Inputs (Catalog and Top Header sync)
   const catalogSearchInput = document.getElementById('catalog-search-input');
   const mainSearchInput = document.getElementById('main-search-input');
-
-  const unlockSearchInput = (el) => {
-    if (el && el.hasAttribute('readonly')) {
-      el.removeAttribute('readonly');
-    }
-  };
 
   // Explicitly ensure both search inputs start 100% empty on page load
   state.searchQuery = '';
@@ -10121,19 +10259,48 @@ function setupEventListeners() {
   };
 
   if (catalogSearchInput) {
-    catalogSearchInput.addEventListener('focus', () => unlockSearchInput(catalogSearchInput));
-    catalogSearchInput.addEventListener('pointerdown', () => unlockSearchInput(catalogSearchInput));
-    catalogSearchInput.addEventListener('touchstart', () => unlockSearchInput(catalogSearchInput));
     catalogSearchInput.addEventListener('input', (e) => handleLiveSearch(e.target.value));
     catalogSearchInput.addEventListener('change', (e) => handleLiveSearch(e.target.value));
+    catalogSearchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        executeHeaderSearch(e);
+      }
+    });
   }
   if (mainSearchInput) {
-    mainSearchInput.addEventListener('focus', () => unlockSearchInput(mainSearchInput));
-    mainSearchInput.addEventListener('pointerdown', () => unlockSearchInput(mainSearchInput));
-    mainSearchInput.addEventListener('touchstart', () => unlockSearchInput(mainSearchInput));
-    mainSearchInput.addEventListener('input', (e) => handleLiveSearch(e.target.value));
-    mainSearchInput.addEventListener('change', (e) => handleLiveSearch(e.target.value));
+    mainSearchInput.addEventListener('input', (e) => {
+      handleLiveSearch(e.target.value);
+      renderMainSearchDropdown(e.target.value);
+    });
+    mainSearchInput.addEventListener('change', (e) => {
+      handleLiveSearch(e.target.value);
+      renderMainSearchDropdown(e.target.value);
+    });
+    mainSearchInput.addEventListener('focus', (e) => {
+      if (e.target.value && e.target.value.trim()) {
+        renderMainSearchDropdown(e.target.value);
+      }
+    });
+    mainSearchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        executeHeaderSearch(e);
+      } else if (e.key === 'Escape') {
+        const dropdown = document.getElementById('main-search-dropdown');
+        if (dropdown) dropdown.classList.add('hidden');
+      }
+    });
   }
+
+  // Outside click to close search dropdown
+  window.addEventListener('click', (e) => {
+    const searchForm = document.getElementById('main-search-form');
+    const dropdown = document.getElementById('main-search-dropdown');
+    if (dropdown && !dropdown.classList.contains('hidden')) {
+      if (searchForm && !searchForm.contains(e.target)) {
+        dropdown.classList.add('hidden');
+      }
+    }
+  });
 
   // Bulletproof anti-autofill watchdog: continuously cleanses credentials from inputs and state
   const purgeAdminAutofill = () => {
