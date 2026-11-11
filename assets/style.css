@@ -1604,11 +1604,7 @@ html:not(.dark) .logo-light-theme { display: inline-block !important; }
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-}
-.ticker-wrapper:hover .ticker-inner,
-.ticker-inner:hover {
-  animation-play-state: paused !important;
-  cursor: pointer;
+  cursor: default;
 }
 
 @keyframes tickerSlide {

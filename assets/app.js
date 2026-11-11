@@ -1767,20 +1767,6 @@ function initSocialProofStream() {
   const durationSec = Math.max(130, Math.round(finalStream.length * 13.0));
   tickerContainer.style.animationDuration = `${durationSec}s`;
 
-  // Pause smoothly on touch for mobile/touchscreen devices
-  const wrapper = tickerContainer.closest('.ticker-wrapper');
-  if (wrapper && !wrapper.dataset.touchBound) {
-    wrapper.dataset.touchBound = 'true';
-    wrapper.addEventListener('touchstart', () => {
-      tickerContainer.style.animationPlayState = 'paused';
-    }, { passive: true });
-    wrapper.addEventListener('touchend', () => {
-      setTimeout(() => {
-        tickerContainer.style.animationPlayState = 'running';
-      }, 1200);
-    }, { passive: true });
-  }
-
   lucide.createIcons();
 }
 
