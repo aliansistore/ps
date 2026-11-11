@@ -46,7 +46,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <!-- Custom Next-Gen Stylesheet (with cache buster query) -->
-  <link rel="stylesheet" href="assets/style.css?v=20261111_continuous_ticker_v68" />
+  <link rel="stylesheet" href="assets/style.css?v=20261112_voucher_lightmode_v69" />
 
   <!-- Critical Inline Styles to Guarantee Immediate High-Contrast Rendering (Dark & Light Mode) -->
   <style>
@@ -343,6 +343,125 @@
     }
     html:not(.dark) .ticker-wrapper #live-social-ticker span.text-slate-500 {
       color: #64748b !important;
+    }
+    html:not(.dark) .ticker-wrapper #live-social-ticker span.font-mono {
+      background-color: #f1f5f9 !important;
+      border-color: #cbd5e1 !important;
+      color: #334155 !important;
+      font-weight: 700 !important;
+    }
+
+    /* Beranda Vouchers Strip in Light Mode */
+    html:not(.dark) #beranda-vouchers-container > div {
+      background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 50%, #ffffff 100%) !important;
+      border-color: #86efac !important;
+      box-shadow: 0 4px 18px rgba(16, 185, 129, 0.08) !important;
+    }
+    html:not(.dark) #beranda-vouchers-container .text-xs,
+    html:not(.dark) #beranda-vouchers-container .text-sm,
+    html:not(.dark) #beranda-vouchers-container span.font-black {
+      color: #0f172a !important;
+    }
+    html:not(.dark) #beranda-vouchers-container p {
+      color: #334155 !important;
+    }
+    html:not(.dark) #beranda-vouchers-container .bg-emerald-500\/15 {
+      background-color: #d1fae5 !important;
+      border-color: #86efac !important;
+      color: #059669 !important;
+    }
+    html:not(.dark) #beranda-vouchers-container .bg-emerald-500\/20 {
+      background-color: #d1fae5 !important;
+      border-color: #86efac !important;
+      color: #065f46 !important;
+    }
+    html:not(.dark) #beranda-vouchers-list > div {
+      background-color: #ffffff !important;
+      border-color: #86efac !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+    }
+    html:not(.dark) #beranda-vouchers-list .font-mono {
+      color: #065f46 !important;
+      font-weight: 900 !important;
+    }
+    html:not(.dark) #beranda-vouchers-list span.text-slate-400,
+    html:not(.dark) #beranda-vouchers-list span.text-slate-600 {
+      color: #334155 !important;
+      font-weight: 700 !important;
+    }
+    html:not(.dark) #beranda-vouchers-list span.bg-emerald-500\/20,
+    html:not(.dark) #beranda-vouchers-list span.bg-emerald-100 {
+      background-color: #d1fae5 !important;
+      border-color: #6ee7b7 !important;
+      color: #065f46 !important;
+      font-weight: 800 !important;
+    }
+    html:not(.dark) #beranda-vouchers-list button {
+      background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
+      color: #ffffff !important;
+      box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3) !important;
+    }
+
+    /* Top HUD Voucher Badges in Light Mode */
+    html:not(.dark) #top-hud-voucher-badges button {
+      background-color: #ecfdf5 !important;
+      border-color: #86efac !important;
+      color: #065f46 !important;
+    }
+    html:not(.dark) #top-hud-voucher-badges button span {
+      color: #047857 !important;
+      font-weight: 800 !important;
+    }
+    html:not(.dark) #top-hud-voucher-badges button i,
+    html:not(.dark) #top-hud-voucher-badges button svg {
+      color: #059669 !important;
+    }
+    html:not(.dark) #top-hud-voucher-badges button:hover {
+      background-color: #d1fae5 !important;
+      border-color: #22c55e !important;
+      color: #065f46 !important;
+    }
+
+    /* Checkout Voucher Pills in Light Mode */
+    html:not(.dark) #checkout-voucher-pills button {
+      background-color: #f0fdf4 !important;
+      border-color: #86efac !important;
+      color: #065f46 !important;
+    }
+    html:not(.dark) #checkout-voucher-pills button:hover {
+      background-color: #dcfce7 !important;
+      border-color: #22c55e !important;
+      color: #047857 !important;
+    }
+    html:not(.dark) #checkout-voucher-applied-info {
+      background-color: #ecfdf5 !important;
+      border-color: #6ee7b7 !important;
+      color: #065f46 !important;
+    }
+    html:not(.dark) #checkout-voucher-applied-text {
+      color: #047857 !important;
+      font-weight: 700 !important;
+    }
+
+    /* Admin Voucher section in Light Mode */
+    html:not(.dark) #admin-vouchers-count-badge {
+      background-color: #d1fae5 !important;
+      border-color: #a7f3d0 !important;
+      color: #065f46 !important;
+    }
+    html:not(.dark) #admin-dashboard-view .w-10.h-10.bg-emerald-500\/10 {
+      background-color: #d1fae5 !important;
+      border-color: #a7f3d0 !important;
+      color: #065f46 !important;
+    }
+    html:not(.dark) #admin-dashboard-view .w-10.h-10.bg-emerald-500\/10 svg,
+    html:not(.dark) #admin-dashboard-view .w-10.h-10.bg-emerald-500\/10 i {
+      color: #065f46 !important;
+    }
+    html:not(.dark) #admin-vouchers-list > div {
+      background-color: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
     }
 
     /* Primary vs Secondary Comparison Cards in Light Mode */
@@ -6627,7 +6746,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261111_smart_reviews_ticker_v53"></script>
-  <script src="assets/app.js?v=20261111_continuous_ticker_v68"></script>
+  <script src="assets/products-data.js?v=20261112_voucher_lightmode_v69"></script>
+  <script src="assets/app.js?v=20261112_voucher_lightmode_v69"></script>
 </body>
 </html>

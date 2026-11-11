@@ -402,7 +402,11 @@ function updateAudioIndicator() {
 
 // ================= THEME ENGINE (DARK / LIGHT MODE) =================
 function initTheme() {
-  const saved = localStorage.getItem(APP_STORAGE_KEYS.THEME) || 'dark';
+  const urlParams = new URLSearchParams(window.location.search);
+  const themeParam = urlParams.get('theme');
+  const saved = (themeParam === 'light' || themeParam === 'dark') 
+    ? themeParam 
+    : (localStorage.getItem(APP_STORAGE_KEYS.THEME) || 'dark');
   applyTheme(saved, false);
 }
 
@@ -1838,7 +1842,7 @@ function initSocialProofStream() {
       <span class="text-slate-400 font-normal">(${escapeHtml(item.city)})</span>
       <span class="text-slate-500 font-medium">membeli</span>
       <span class="text-sky-300 font-bold">${escapeHtml(item.game)}</span>
-      <span class="text-[10px] text-slate-500 font-mono ml-1 px-1.5 py-0.5 rounded bg-slate-800/70 border border-slate-700/50">${escapeHtml(item.time)}</span>
+      <span class="text-[10px] text-slate-600 dark:text-slate-400 font-mono ml-1 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800/70 border border-slate-300 dark:border-slate-700/50">${escapeHtml(item.time)}</span>
     </div>
   `).join('');
 
@@ -2839,7 +2843,7 @@ function renderCheckoutSummary() {
           <button 
             type="button" 
             onclick="quickApplyVoucher('${escapeHtml(v.code)}')" 
-            class="px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold ${isEligible ? 'bg-sky-950/80 text-sky-300 border border-sky-500/40 hover:bg-sky-900 cursor-pointer shadow-sm' : 'bg-slate-900/60 text-slate-500 border border-slate-800 cursor-not-allowed opacity-60'} flex items-center gap-1 transition-all"
+            class="px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold ${isEligible ? 'bg-emerald-50 dark:bg-sky-950/80 text-emerald-800 dark:text-sky-300 border border-emerald-300 dark:border-sky-500/40 hover:bg-emerald-100 dark:hover:bg-sky-900 cursor-pointer shadow-sm' : 'bg-slate-100 dark:bg-slate-900/60 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-800 cursor-not-allowed opacity-60'} flex items-center gap-1 transition-all"
             title="${isEligible ? 'Klik untuk pasang kupon ' + v.code : 'Minimal belanja ' + formatRupiah(v.minPurchase)}"
           >
             <i data-lucide="ticket" class="w-3 h-3 text-sky-400"></i>
@@ -12481,11 +12485,11 @@ function renderTopHudVoucher() {
       <button 
         type="button"
         onclick="copyVoucherCode('${escapeHtml(v.code)}')" 
-        class="text-sky-300 font-mono font-bold bg-sky-950/90 hover:bg-sky-900 px-2 py-0.5 rounded border border-sky-500/30 hover:border-sky-400 transition-all cursor-pointer flex items-center gap-1 shadow-sm active:scale-95" 
+        class="text-emerald-700 dark:text-sky-300 font-mono font-bold bg-emerald-50 dark:bg-sky-950/90 hover:bg-emerald-100 dark:hover:bg-sky-900 px-2 py-0.5 rounded border border-emerald-300 dark:border-sky-500/30 hover:border-emerald-400 dark:hover:border-sky-400 transition-all cursor-pointer flex items-center gap-1 shadow-sm active:scale-95" 
         title="${tip}"
       >
         <span>${escapeHtml(v.code)} (${discLabel})</span>
-        <i data-lucide="copy" class="w-3 h-3 text-sky-400 opacity-80"></i>
+        <i data-lucide="copy" class="w-3 h-3 text-emerald-600 dark:text-sky-400 opacity-80"></i>
       </button>
     `;
   }).join('');
@@ -12518,21 +12522,21 @@ function renderBerandaVouchers() {
       : 'Tanpa Min';
     
     return `
-      <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/90 dark:bg-slate-950/90 border border-emerald-500/40 text-xs shadow-md">
+      <div class="voucher-beranda-card flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-white dark:bg-slate-950/90 border border-emerald-300 dark:border-emerald-500/40 text-xs shadow-sm dark:shadow-md transition-all hover:border-emerald-500">
         <div class="flex flex-col text-left">
-          <div class="flex items-center gap-1.5">
-            <span class="font-mono font-black text-emerald-400 tracking-wider">${escapeHtml(v.code)}</span>
-            <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">${discBadge}</span>
+          <div class="flex items-center gap-1.5 mb-0.5">
+            <span class="font-mono font-black text-emerald-700 dark:text-emerald-400 tracking-wider text-xs">${escapeHtml(v.code)}</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-black bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30">${discBadge}</span>
           </div>
-          <span class="text-[10px] text-slate-400">${minText}${v.maxDiscount ? ' • Maks ' + formatRupiahShort(v.maxDiscount) : ''}</span>
+          <span class="text-[11px] text-slate-600 dark:text-slate-400 font-semibold">${minText}${v.maxDiscount ? ' • Maks ' + formatRupiahShort(v.maxDiscount) : ''}</span>
         </div>
         <button 
           type="button" 
           onclick="copyVoucherCode('${escapeHtml(v.code)}')" 
-          class="ml-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1 cursor-pointer transition-all active:scale-95 shadow-sm force-white"
+          class="ml-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1.5 cursor-pointer transition-all active:scale-95 shadow-sm force-white"
           title="Salin kode kupon ${escapeHtml(v.code)}"
         >
-          <i data-lucide="copy" class="w-3 h-3"></i> Salin
+          <i data-lucide="copy" class="w-3.5 h-3.5"></i> Salin
         </button>
       </div>
     `;
