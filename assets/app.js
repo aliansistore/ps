@@ -11847,4 +11847,32 @@ function saveAdminFaq(event) {
   renderFaqList();
 }
 
-function toggleAdminFaqStatus
+function toggleAdminFaqStatus(faqId) {
+  playSfx('click');
+  const item = (state.faqs || []).find(f => f.id === faqId);
+  if (!item) return;
+
+  item.isActive = item.isActive === false ? true : false;
+  saveFaqs();
+  renderAdminFaqList();
+  renderFaqList();
+  showToast(item.isActive ? 'FAQ diaktifkan di Beranda.' : 'FAQ disembunyikan dari Beranda.', 'info');
+}
+
+function deleteAdminFaq(faqId) {
+  if (!confirm('Apakah Anda yakin ingin menghapus pertanyaan FAQ ini?')) return;
+  playSfx('click');
+  state.faqs = (state.faqs || []).filter(f => f.id !== faqId);
+  saveFaqs();
+  renderAdminFaqList();
+  renderFaqList();
+  showToast('FAQ berhasil dihapus.', 'info');
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    initApp();
+  });
+} else {
+  initApp();
+}
