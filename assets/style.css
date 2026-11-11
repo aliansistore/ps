@@ -1589,20 +1589,21 @@ html:not(.dark) .logo-light-theme { display: inline-block !important; }
   overflow: hidden;
   white-space: nowrap;
   position: relative;
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 48px, black calc(100% - 48px), transparent 100%);
-  mask-image: linear-gradient(to right, transparent 0%, black 48px, black calc(100% - 48px), transparent 100%);
+  contain: paint;
 }
 
 .ticker-inner {
   display: inline-flex;
-  animation: tickerSlide 320s linear infinite;
+  animation: tickerSlide 95s linear infinite;
   will-change: transform;
   transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  perspective: 1000px;
+  contain: layout style;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 .ticker-wrapper:hover .ticker-inner,
 .ticker-inner:hover {

@@ -1698,8 +1698,18 @@ function initSocialProofStream() {
   const shuffledCities = [...cities].sort(() => 0.5 - Math.random());
   const shuffledGames = [...catalogGames].sort(() => 0.5 - Math.random());
 
+  // Clean game titles for ticker readability
+  const cleanTickerTitle = (title) => {
+    if (!title) return 'Game PlayStation';
+    return title
+      .replace(/\[.*?\]/g, '')
+      .replace(/\(Full Subtitle Indonesia\)/gi, '(Sub Indo)')
+      .replace(/\(Subtitle Indonesia\)/gi, '(Sub Indo)')
+      .trim();
+  };
+
   const dummyStream = [];
-  const dummyCount = Math.min(26, shuffledNames.length);
+  const dummyCount = 9;
   for (let i = 0; i < dummyCount; i++) {
     const fName = shuffledNames[i % shuffledNames.length];
     const initial = lastInitials[i % lastInitials.length];
@@ -1709,7 +1719,7 @@ function initSocialProofStream() {
     dummyStream.push({
       name: `${fName} ${initial}`,
       city: city,
-      game: game,
+      game: cleanTickerTitle(game),
       time: time,
       isReal: false
     });
@@ -1722,33 +1732,54 @@ function initSocialProofStream() {
 
   // If real orders exist, place the latest real order at the front!
   if (realPurchases.length > 0) {
-    finalStream.push(realPurchases[rIdx++]);
+    const firstReal = { ...realPurchases[rIdx++] };
+    firstReal.game = cleanTickerTitle(firstReal.game);
+    finalStream.push(firstReal);
   }
 
   while (dIdx < dummyStream.length || rIdx < realPurchases.length) {
-    // Add 2-3 dummy purchases
-    for (let k = 0; k < 3 && dIdx < dummyStream.length; k++) {
+    // Add 2 dummy purchases
+    for (let k = 0; k < 2 && dIdx < dummyStream.length; k++) {
       finalStream.push(dummyStream[dIdx++]);
     }
     // Interleave next real purchase
     if (rIdx < realPurchases.length) {
-      finalStream.push(realPurchases[rIdx++]);
+      const nextReal = { ...realPurchases[rIdx++] };
+      nextReal.game = cleanTickerTitle(nextReal.game);
+      finalStream.push(nextReal);
     }
   }
 
-  // 4. Render Items & Duplicate for Infinite CSS Marquee Loop (All Uniform & Seamless)
+  // 4. Render Items & Duplicate for Infinite CSS Marquee Loop (GPU Texture Optimized < 8192px)
   const fullLoop = [...finalStream, ...finalStream];
   tickerContainer.innerHTML = fullLoop.map(item => `
-    <div class="ticker-item inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-slate-900/60 border border-slate-800/80 text-xs sm:text-[13px] text-slate-300 mr-5 shrink-0">
-      <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-neon"></span>
-      <strong class="text-white">${escapeHtml(item.name)}</strong> <span class="text-slate-400 font-normal">(${escapeHtml(item.city)})</span> membeli <span class="text-sky-300 font-semibold">${escapeHtml(item.game)}</span>
-      <span class="text-[10px] sm:text-xs text-slate-500 font-mono ml-1">${escapeHtml(item.time)}</span>
+    <div class="ticker-item inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/70 border border-slate-800 text-xs text-slate-300 mr-7 shrink-0 transition-colors hover:border-sky-500/50 hover:bg-slate-800/90 select-none">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)] shrink-0"></span>
+      <strong class="text-white font-bold tracking-tight">${escapeHtml(item.name)}</strong>
+      <span class="text-slate-400 font-normal">(${escapeHtml(item.city)})</span>
+      <span class="text-slate-500 font-medium">membeli</span>
+      <span class="text-sky-300 font-bold">${escapeHtml(item.game)}</span>
+      <span class="text-[10px] text-slate-500 font-mono ml-1 px-1.5 py-0.5 rounded bg-slate-800/70 border border-slate-700/50">${escapeHtml(item.time)}</span>
     </div>
   `).join('');
 
-  // 5. Gentle, readable marquee speed (~6.0s per unique purchase item so visitors can read comfortably)
-  const durationSec = Math.max(150, Math.round(finalStream.length * 6.0));
+  // 5. Calm, steady, 60fps hardware-composited speed (~8.5s per item = ~32px/sec)
+  const durationSec = Math.max(80, Math.round(finalStream.length * 8.5));
   tickerContainer.style.animationDuration = `${durationSec}s`;
+
+  // Pause smoothly on touch for mobile/touchscreen devices
+  const wrapper = tickerContainer.closest('.ticker-wrapper');
+  if (wrapper && !wrapper.dataset.touchBound) {
+    wrapper.dataset.touchBound = 'true';
+    wrapper.addEventListener('touchstart', () => {
+      tickerContainer.style.animationPlayState = 'paused';
+    }, { passive: true });
+    wrapper.addEventListener('touchend', () => {
+      setTimeout(() => {
+        tickerContainer.style.animationPlayState = 'running';
+      }, 1200);
+    }, { passive: true });
+  }
 
   lucide.createIcons();
 }
@@ -11816,33 +11847,4 @@ function saveAdminFaq(event) {
   renderFaqList();
 }
 
-function toggleAdminFaqStatus(faqId) {
-  playSfx('click');
-  const item = (state.faqs || []).find(f => f.id === faqId);
-  if (!item) return;
-
-  item.isActive = item.isActive === false ? true : false;
-  saveFaqs();
-  renderAdminFaqList();
-  renderFaqList();
-  showToast(item.isActive ? 'FAQ diaktifkan di Beranda.' : 'FAQ disembunyikan dari Beranda.', 'info');
-}
-
-function deleteAdminFaq(faqId) {
-  if (!confirm('Apakah Anda yakin ingin menghapus pertanyaan FAQ ini?')) return;
-  playSfx('click');
-  state.faqs = (state.faqs || []).filter(f => f.id !== faqId);
-  saveFaqs();
-  renderAdminFaqList();
-  renderFaqList();
-  showToast('FAQ berhasil dihapus.', 'info');
-}
-
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    initApp();
-  });
-} else {
-  initApp();
-}
+function toggleAdminFaqStatus

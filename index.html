@@ -46,7 +46,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <!-- Custom Next-Gen Stylesheet (with cache buster query) -->
-  <link rel="stylesheet" href="assets/style.css?v=20261111_smooth_ticker_v64" />
+  <link rel="stylesheet" href="assets/style.css?v=20261111_smooth_ticker_v65" />
 
   <!-- Critical Inline Styles to Guarantee Immediate High-Contrast Rendering (Dark & Light Mode) -->
   <style>
@@ -319,6 +319,12 @@
     html:not(.dark) .ticker-wrapper {
       background-color: #ffffff !important;
       border-color: #e2e8f0 !important;
+    }
+    html:not(.dark) .ticker-fade-left {
+      background: linear-gradient(to right, #ffffff, transparent) !important;
+    }
+    html:not(.dark) .ticker-fade-right {
+      background: linear-gradient(to left, #ffffff, transparent) !important;
     }
     html:not(.dark) .ticker-wrapper #live-social-ticker > div {
       background-color: #f8fafc !important;
@@ -2737,7 +2743,9 @@
     </section>
 
     <!-- Live Social Proof Ticker (Recent Purchases Marquee) -->
-    <div class="bg-[#050916] border-b border-slate-800/80 py-2.5 ticker-wrapper">
+    <div class="relative bg-[#050916] border-b border-slate-800/80 py-2.5 ticker-wrapper overflow-hidden select-none">
+      <div class="pointer-events-none absolute left-0 top-0 bottom-0 w-12 sm:w-24 bg-gradient-to-r from-[#050916] to-transparent z-10 ticker-fade-left"></div>
+      <div class="pointer-events-none absolute right-0 top-0 bottom-0 w-12 sm:w-24 bg-gradient-to-l from-[#050916] to-transparent z-10 ticker-fade-right"></div>
       <div id="live-social-ticker" class="ticker-inner"></div>
     </div>
 
@@ -6318,6 +6326,6 @@
 
   <!-- Application Scripts (with cache-buster query) -->
   <script src="assets/products-data.js?v=20261111_smart_reviews_ticker_v53"></script>
-  <script src="assets/app.js?v=20261111_search_enter_click_v63"></script>
+  <script src="assets/app.js?v=20261111_smooth_ticker_v65"></script>
 </body>
 </html>
