@@ -131,16 +131,41 @@ html:not(.dark) .nav-capsule {
   border: 1px solid #cbd5e1 !important;
   box-shadow: 0 10px 30px -10px rgba(0, 112, 209, 0.12), 0 4px 12px rgba(0,0,0,0.04) !important;
 }
-html:not(.dark) .nav-capsule a,
+html:not(.dark) .nav-capsule a:not(.brand-logo-link):not([href="#store-view"]),
 html:not(.dark) .nav-capsule button:not(.cyber-button) {
   color: #0f172a !important;
   background-color: #f1f5f9 !important;
   border-color: #cbd5e1 !important;
 }
-html:not(.dark) .nav-capsule a:hover,
+html:not(.dark) .nav-capsule a:not(.brand-logo-link):not([href="#store-view"]):hover,
 html:not(.dark) .nav-capsule button:not(.cyber-button):hover {
   background-color: #e2e8f0 !important;
   color: #0070d1 !important;
+}
+
+/* Seamless Brand Logo in Navbar (No "tempelan" box) */
+.nav-capsule a.brand-logo-link,
+.nav-capsule a[href="#store-view"],
+html:not(.dark) .nav-capsule a.brand-logo-link,
+html:not(.dark) .nav-capsule a[href="#store-view"],
+html.dark .nav-capsule a.brand-logo-link,
+html.dark .nav-capsule a[href="#store-view"] {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  text-decoration: none !important;
+}
+.nav-capsule a.brand-logo-link:hover,
+.nav-capsule a[href="#store-view"]:hover,
+html:not(.dark) .nav-capsule a.brand-logo-link:hover,
+html:not(.dark) .nav-capsule a[href="#store-view"]:hover {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
 }
 html:not(.dark) .nav-capsule input#main-search-input {
   background-color: #f8fafc !important;

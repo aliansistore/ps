@@ -46,7 +46,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <!-- Custom Next-Gen Stylesheet (with cache buster query) -->
-  <link rel="stylesheet" href="assets/style.css?v=20261111_high_contrast_faq_v3" />
+  <link rel="stylesheet" href="assets/style.css?v=20261111_seamless_brand_logo_v4" />
 
   <!-- Critical Inline Styles to Guarantee Immediate High-Contrast Rendering (Dark & Light Mode) -->
   <style>
@@ -119,17 +119,42 @@
       border: 1px solid #cbd5e1 !important; 
       box-shadow: 0 10px 30px -10px rgba(0, 112, 209, 0.12), 0 4px 12px rgba(0,0,0,0.04) !important; 
     }
-    html:not(.dark) .nav-capsule a,
+    html:not(.dark) .nav-capsule a:not(.brand-logo-link):not([href="#store-view"]),
     html:not(.dark) .nav-capsule button:not(.cyber-button) { 
       color: #0f172a !important; 
       background-color: #f1f5f9 !important;
       background-image: none !important;
       border-color: #cbd5e1 !important;
     }
-    html:not(.dark) .nav-capsule a:hover,
+    html:not(.dark) .nav-capsule a:not(.brand-logo-link):not([href="#store-view"]):hover,
     html:not(.dark) .nav-capsule button:not(.cyber-button):hover {
       background-color: #e2e8f0 !important;
       color: #0070d1 !important;
+    }
+
+    /* Seamless Brand Logo in Navbar (No "tempelan" grey background) */
+    .nav-capsule a.brand-logo-link,
+    .nav-capsule a[href="#store-view"],
+    html:not(.dark) .nav-capsule a.brand-logo-link,
+    html:not(.dark) .nav-capsule a[href="#store-view"],
+    html.dark .nav-capsule a.brand-logo-link,
+    html.dark .nav-capsule a[href="#store-view"] {
+      background: transparent !important;
+      background-color: transparent !important;
+      background-image: none !important;
+      border: none !important;
+      border-color: transparent !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+      text-decoration: none !important;
+    }
+    .nav-capsule a.brand-logo-link:hover,
+    .nav-capsule a[href="#store-view"]:hover,
+    html:not(.dark) .nav-capsule a.brand-logo-link:hover,
+    html:not(.dark) .nav-capsule a[href="#store-view"]:hover {
+      background: transparent !important;
+      background-color: transparent !important;
+      box-shadow: none !important;
     }
     html:not(.dark) .nav-capsule input#main-search-input {
       background-color: #f8fafc !important;
@@ -2015,7 +2040,7 @@
       <div class="max-w-7xl mx-auto nav-capsule px-3 sm:px-6 h-18 sm:h-22 min-h-[4.5rem] sm:min-h-[5.5rem] flex items-center justify-between gap-2 sm:gap-4 shadow-2xl">
         
         <!-- Brand Logo & PlayStation Shapes Badge -->
-        <a href="#store-view" onclick="playSfx('click')" class="flex items-center gap-2 sm:gap-3 shrink-0 group">
+        <a href="#store-view" onclick="playSfx('click')" class="brand-logo-link flex items-center gap-2 sm:gap-3 shrink-0 group bg-transparent border-0 shadow-none p-0 outline-none">
           <div class="brand-logo-pill">
             <img 
               src="assets/logo-light.png?v=20261108_restore_images_v16" 
