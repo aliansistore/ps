@@ -537,8 +537,27 @@ function loadStoredData() {
   state.isAudioMuted = localStorage.getItem(APP_STORAGE_KEYS.AUDIO_MUTED) === 'true';
   updateAudioIndicator();
 
-  // Load Products from Local Storage
-  const storedProducts = localStorage.getItem(APP_STORAGE_KEYS.PRODUCTS);
+  // Load Products from Local Storage with backwards-compatible migration
+  let storedProducts = localStorage.getItem(APP_STORAGE_KEYS.PRODUCTS);
+  if (!storedProducts) {
+    // Check older storage keys to guarantee user product modifications are NEVER lost across updates
+    const legacyKeys = ['aliansi_store_products_v4', 'aliansi_store_products_v3', 'aliansi_store_products_v2', 'aliansi_store_products_v1', 'aliansi_store_products'];
+    for (const lk of legacyKeys) {
+      const oldData = localStorage.getItem(lk);
+      if (oldData) {
+        try {
+          const parsedOld = JSON.parse(oldData);
+          if (Array.isArray(parsedOld) && parsedOld.length > 0) {
+            storedProducts = oldData;
+            localStorage.setItem(APP_STORAGE_KEYS.PRODUCTS, oldData);
+            console.info(`Migrated products data from legacy key "${lk}" to current storage key.`);
+            break;
+          }
+        } catch (e) {}
+      }
+    }
+  }
+
   if (storedProducts) {
     try {
       const parsed = JSON.parse(storedProducts);
@@ -560,30 +579,31 @@ function loadStoredData() {
     INITIAL_PRODUCTS.forEach(ip => {
       const existing = state.products.find(p => p.id === ip.id);
       if (!existing) {
+        // Game baru ditambahkan ke katalog
         state.products.push({ ...ip });
       } else {
-        // Fallback for missing driveLink or covers if empty
+        // NON-DESTRUCTIVE FALLBACK ONLY: Isi field yang benar-benar kosong,
+        // DILARANG KERAS menimpa harga, judul, deskripsi, ukuran, atau data yang sudah di-update user!
         if (ip.driveLink && !existing.driveLink) {
           existing.driveLink = ip.driveLink;
         }
         if (ip.cusa && !existing.cusa) {
           existing.cusa = ip.cusa;
         }
-        // Auto-upgrade local cache if existing has stale baseline dummy prices (<= 25.000)
-        const existingPrimary = (existing.prices && existing.prices.primary) || 0;
-        if (existingPrimary <= 25000 && ip.prices && ip.prices.primary > 25000) {
-          existing.prices = { ...ip.prices };
-          if (ip.driveLink) existing.driveLink = ip.driveLink;
-          existing.updatedAt = ip.updatedAt || '2026-11-09T05:30:00.000Z';
-        } else if (ip.updatedAt) {
-          const localTime = existing.updatedAt ? new Date(existing.updatedAt).getTime() : 0;
-          const initialTime = new Date(ip.updatedAt).getTime();
-          if (initialTime > localTime) {
-            existing.prices = { ...ip.prices };
-            if (ip.driveLink) existing.driveLink = ip.driveLink;
-            existing.updatedAt = ip.updatedAt;
-          }
+        if (ip.size && !existing.size) {
+          existing.size = ip.size;
         }
+        if (!existing.images) {
+          existing.images = { ...ip.images };
+        } else {
+          if (ip.images && ip.images.poster && !existing.images.poster) existing.images.poster = ip.images.poster;
+          if (ip.images && ip.images.backdrop && !existing.images.backdrop) existing.images.backdrop = ip.images.backdrop;
+          if (ip.images && ip.images.cover && !existing.images.cover) existing.images.cover = ip.images.cover;
+        }
+        if (!existing.prices || typeof existing.prices.primary === 'undefined') {
+          existing.prices = { ...ip.prices };
+        }
+        // JAMINAN MUTLAK: Jangan pernah menimpa existing.prices dari INITIAL_PRODUCTS
       }
     });
   }
@@ -967,6 +987,7 @@ async function syncFromSupabase() {
         features: Array.isArray(p.features) ? p.features : [],
         driveLink: p.drive_link || (p.images && p.images.driveLink) || '',
         cusa: p.cusa || (p.images && p.images.cusa) || '',
+        marketplaces: p.marketplaces || (p.images && p.images.marketplaces) || undefined,
         inStock: p.in_stock !== false,
         updatedAt: p.updated_at || null
       }));
@@ -984,13 +1005,8 @@ async function syncFromSupabase() {
           const localTime = localProd.updatedAt ? new Date(localProd.updatedAt).getTime() : 0;
           const cloudTime = cp.updatedAt ? new Date(cp.updatedAt).getTime() : 0;
 
-          // Protection: never let stale dummy cloud prices (<= 25000) overwrite valid local prices (> 25000)
-          const cloudPrice = (cp.prices && cp.prices.primary) || 0;
-          const localPrice = (localProd.prices && localProd.prices.primary) || 0;
-          const isCloudStaleDummy = cloudPrice <= 25000 && localPrice > 25000;
-
-          if (!isCloudStaleDummy && (cloudTime >= localTime || !localProd.updatedAt)) {
-            // Preserve custom or uploaded images from local if cloud only has defaults or empty
+          if (cloudTime > localTime) {
+            // Cloud has newer timestamp; perform a smart non-destructive merge:
             const localImgs = localProd.images || {};
             const cloudImgs = cp.images || {};
             const finalImages = { ...cloudImgs };
@@ -1014,13 +1030,27 @@ async function syncFromSupabase() {
               finalImages.backdrop = localImgs.backdrop;
             }
 
-            mergedProducts[localIdx] = {
-              ...cp,
-              images: finalImages,
-              driveLink: cp.driveLink || localProd.driveLink || ''
-            };
+            const merged = { ...cp };
+            merged.images = finalImages;
+            merged.cusa = cp.cusa || (cp.images && cp.images.cusa) || localProd.cusa || '';
+            merged.driveLink = cp.driveLink || (cp.images && cp.images.driveLink) || localProd.driveLink || '';
+            if ((!cp.size || cp.size === '50 GB') && localProd.size && localProd.size !== '50 GB') {
+              merged.size = localProd.size;
+            } else {
+              merged.size = cp.size || localProd.size || '';
+            }
+            merged.marketplaces = cp.marketplaces || (cp.images && cp.images.marketplaces) || localProd.marketplaces || undefined;
+            if (!merged.marketplaces) delete merged.marketplaces;
+            if (localProd.features && Array.isArray(localProd.features) && localProd.features.length > (cp.features?.length || 0)) {
+              merged.features = localProd.features;
+            }
+            if (localProd.prices && localProd.prices.primary && (!cp.prices || !cp.prices.primary)) {
+              merged.prices = { ...localProd.prices };
+            }
+
+            mergedProducts[localIdx] = merged;
           } else {
-            // Local change is newer or cloud has stale dummy price; keep local and heal cloud!
+            // Local change is newer or same: keep local data and heal/sync cloud!
             syncProductToSupabase(localProd);
           }
         }
@@ -1242,6 +1272,9 @@ async function syncProductToSupabase(p) {
     }
     if (p.cusa) {
       cloudImages.cusa = p.cusa;
+    }
+    if (p.marketplaces) {
+      cloudImages.marketplaces = p.marketplaces;
     }
 
     const payload = {

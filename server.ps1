@@ -153,7 +153,13 @@ try {
                 $reqBodyStr = $reader.ReadToEnd()
                 if ($reqBodyStr -and $reqBodyStr.Length -gt 10) {
                     $cachePath = Join-Path $baseDir "assets\products-cache.json"
-                    [System.IO.File]::WriteAllText($cachePath, $reqBodyStr, [System.Text.Encoding]::UTF8)
+                    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+                    [System.IO.File]::WriteAllText($cachePath, $reqBodyStr, $utf8NoBom)
+
+                    # Also persist to assets\products-data.js to protect all user updates in git baseline
+                    $dataJsPath = Join-Path $baseDir "assets\products-data.js"
+                    $jsContent = "// ALIANSI STORE - Official Products Catalog Database`r`n// Spesialis: Game PS4 HEN, Subtitle Indonesia & Softfile Digital Google Drive`r`n`r`nconst INITIAL_PRODUCTS = " + $reqBodyStr + ";`r`n"
+                    [System.IO.File]::WriteAllText($dataJsPath, $jsContent, $utf8NoBom)
                 }
                 $response.ContentType = "application/json; charset=utf-8"
                 $response.AddHeader("Access-Control-Allow-Origin", "*")
