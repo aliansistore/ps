@@ -12542,9 +12542,6 @@ function renderAdminVouchersList() {
   if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
 }
 
-  if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
-}
-
 function toggleVoucherTypeFields() {
   const isFixed = document.getElementById('voucher-type-fixed')?.checked;
   const percentWrap = document.getElementById('voucher-field-percent-wrap');
