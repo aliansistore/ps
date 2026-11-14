@@ -160,6 +160,7 @@ const state = {
   selectedPayment: 'qris',
   checkoutType: 'guest',
   adminFilter: 'all',
+  adminProductStatusFilter: 'all',
   currentInvoice: null,
   orderToFulfill: null,
   gameRequests: [],
@@ -989,6 +990,7 @@ async function syncFromSupabase() {
         cusa: p.cusa || (p.images && p.images.cusa) || '',
         marketplaces: p.marketplaces || (p.images && p.images.marketplaces) || undefined,
         inStock: p.in_stock !== false,
+        isActive: (p.images && typeof p.images.isActive === 'boolean') ? p.images.isActive : (p.in_stock !== false),
         updatedAt: p.updated_at || null
       }));
 
@@ -1276,6 +1278,9 @@ async function syncProductToSupabase(p) {
     if (p.marketplaces) {
       cloudImages.marketplaces = p.marketplaces;
     }
+    if (p.isActive !== undefined) {
+      cloudImages.isActive = p.isActive;
+    }
 
     const payload = {
       id: p.id,
@@ -1299,7 +1304,7 @@ async function syncProductToSupabase(p) {
       prices: p.prices,
       description: p.description || '',
       features: p.features || [],
-      in_stock: p.inStock !== false,
+      in_stock: (p.isActive !== false && p.inStock !== false),
       updated_at: new Date().toISOString()
     };
 
@@ -1555,7 +1560,7 @@ function fallbackCopy(text, successMsg) {
 
 // ================= SPOTLIGHT HERO (PS5 CONSOLE UI STYLE) =================
 function getSpotlightGames() {
-  return state.products.filter(p => p.isSpotlight || p.badge).slice(0, 4);
+  return (state.products || []).filter(p => (p.isSpotlight || p.badge) && p.isActive !== false && p.inStock !== false).slice(0, 4);
 }
 
 function initSpotlightHero() {
@@ -1888,7 +1893,8 @@ function initSocialProofStream() {
 
 // ================= CATALOG FILTER & CARD RENDERING =================
 function getFilteredProducts() {
-  let list = [...state.products];
+  // Hanya tampilkan game yang AKTIF di etalase toko untuk pelanggan
+  let list = (state.products || []).filter(p => p.isActive !== false && p.inStock !== false);
 
   // Category & Platform Filter (PlayStation Official Genres)
   if (state.activeFilter === 'subindo') {
@@ -7688,12 +7694,16 @@ function renderAdminStats() {
   const totalRev = state.orders.reduce((sum, o) => o.paymentStatus === 'PAID' ? sum + o.total : sum, 0);
   const totalOrders = state.orders.length;
   const pendingFulfill = state.orders.filter(o => o.status === 'PROCESSING' || (o.paymentStatus === 'PAID' && o.status !== 'COMPLETED')).length;
-  const totalGames = state.products.length;
+  const totalGames = (state.products || []).length;
+  const activeGames = (state.products || []).filter(p => p.isActive !== false && p.inStock !== false).length;
+  const inactiveGames = totalGames - activeGames;
 
   document.getElementById('stat-total-revenue').textContent = formatRupiah(totalRev);
   document.getElementById('stat-total-orders').textContent = totalOrders;
   document.getElementById('stat-pending-fulfill').textContent = pendingFulfill;
   document.getElementById('stat-total-products').textContent = totalGames;
+  const statProdBreakdown = document.getElementById('stat-products-breakdown');
+  if (statProdBreakdown) statProdBreakdown.textContent = `${activeGames} Aktif • ${inactiveGames} Nonaktif`;
 
   const totalRequests = (state.gameRequests || []).length;
   const pendingRequests = (state.gameRequests || []).filter(r => r.status === 'PENDING').length;
@@ -8043,15 +8053,69 @@ function submitOrderFulfillment() {
   );
 }
 
-// Admin Products CRUD
+// Admin Products CRUD & Status Management (Aktif / Nonaktif)
+function setAdminProductStatusFilter(filter) {
+  playSfx('click');
+  state.adminProductStatusFilter = filter || 'all';
+  renderAdminProductsTable();
+}
+
+function updateAdminProductFilterPills(totalCount, activeCount, inactiveCount) {
+  const currentFilter = state.adminProductStatusFilter || 'all';
+  
+  const elAll = document.getElementById('admin-filter-pill-all');
+  const elActive = document.getElementById('admin-filter-pill-active');
+  const elInactive = document.getElementById('admin-filter-pill-inactive');
+
+  const countAll = document.getElementById('admin-count-all');
+  const countActive = document.getElementById('admin-count-active');
+  const countInactive = document.getElementById('admin-count-inactive');
+
+  if (countAll) countAll.textContent = `(${totalCount})`;
+  if (countActive) countActive.textContent = `(${activeCount})`;
+  if (countInactive) countInactive.textContent = `(${inactiveCount})`;
+
+  const activeClasses = 'bg-sky-600 text-white shadow-sm';
+  const activeGreenClasses = 'bg-emerald-600 text-white shadow-sm';
+  const activeRedClasses = 'bg-rose-600 text-white shadow-sm';
+  const inactiveClasses = 'text-slate-400 hover:text-white';
+
+  if (elAll) {
+    elAll.className = `px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${currentFilter === 'all' ? activeClasses : inactiveClasses}`;
+  }
+  if (elActive) {
+    elActive.className = `px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${currentFilter === 'active' ? activeGreenClasses : 'text-slate-400 hover:text-emerald-400'}`;
+  }
+  if (elInactive) {
+    elInactive.className = `px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${currentFilter === 'inactive' ? activeRedClasses : 'text-slate-400 hover:text-rose-400'}`;
+  }
+}
+
 function renderAdminProductsTable() {
   const container = document.getElementById('admin-products-table-body');
   if (!container) return;
 
+  const allProducts = state.products || [];
+  const totalCount = allProducts.length;
+  const activeCount = allProducts.filter(p => p.isActive !== false && p.inStock !== false).length;
+  const inactiveCount = totalCount - activeCount;
+
+  updateAdminProductFilterPills(totalCount, activeCount, inactiveCount);
+
   const searchInput = document.getElementById('admin-product-search-input');
   const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
-  let list = state.products || [];
+  let list = [...allProducts];
+
+  // Filter Status (Semua / Aktif / Nonaktif)
+  const statusFilter = state.adminProductStatusFilter || 'all';
+  if (statusFilter === 'active') {
+    list = list.filter(p => p.isActive !== false && p.inStock !== false);
+  } else if (statusFilter === 'inactive') {
+    list = list.filter(p => p.isActive === false || p.inStock === false);
+  }
+
+  // Filter Search Query
   if (query) {
     list = list.filter(p => 
       (p.title || '').toLowerCase().includes(query) ||
@@ -8063,77 +8127,144 @@ function renderAdminProductsTable() {
   }
 
   if (list.length === 0) {
-    container.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-xs text-slate-500">Tidak ada game di katalog admin yang cocok dengan "${query}".</td></tr>`;
+    const filterDesc = statusFilter === 'active' ? 'yang aktif' : (statusFilter === 'inactive' ? 'yang nonaktif' : '');
+    container.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-xs text-slate-500">Tidak ada game ${filterDesc} di katalog admin yang cocok dengan pencarian.</td></tr>`;
     return;
   }
 
-  container.innerHTML = list.map(p => `
-    <tr class="border-b border-slate-200 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800/40 text-xs text-slate-700 dark:text-slate-300">
-      <td class="py-2.5 px-3">
-        <div class="flex items-center gap-2.5">
-          <img src="${getProductPoster(p)}" class="w-8 h-10 object-cover rounded-lg bg-slate-100 dark:bg-slate-800" onerror="this.onerror=null; this.src='assets/covers/service-1tb.jpg'" alt="" />
-          <div>
-            <div class="font-bold text-slate-900 dark:text-white flex items-center gap-1.5 flex-wrap">
-              <span>${p.title}</span>
-              ${p.cusa ? `
-                <span class="inline-flex items-center gap-1 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-sky-100 dark:bg-sky-950/80 text-sky-800 dark:text-sky-400 border border-sky-300 dark:border-sky-500/30" title="Kode CUSA Game ID">
-                  <i data-lucide="disc" class="w-2.5 h-2.5"></i> ${p.cusa}
-                </span>
+  container.innerHTML = list.map(p => {
+    const isActive = p.isActive !== false && p.inStock !== false;
+    return `
+      <tr class="border-b border-slate-200 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800/40 text-xs text-slate-700 dark:text-slate-300 transition-colors ${!isActive ? 'opacity-75 bg-slate-900/20' : ''}">
+        <td class="py-2.5 px-3">
+          <div class="flex items-center gap-2.5">
+            <div class="relative shrink-0">
+              <img src="${getProductPoster(p)}" class="w-8 h-10 object-cover rounded-lg bg-slate-100 dark:bg-slate-800 shadow-sm" onerror="this.onerror=null; this.src='assets/covers/service-1tb.jpg'" alt="" />
+              ${!isActive ? `
+                <div class="absolute inset-0 bg-slate-950/70 rounded-lg flex items-center justify-center" title="Game Nonaktif">
+                  <i data-lucide="eye-off" class="w-3.5 h-3.5 text-slate-400"></i>
+                </div>
               ` : ''}
-              ${p.driveLink ? `
-                <a href="${p.driveLink}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30 hover:bg-emerald-200 dark:hover:bg-emerald-900/80 transition-colors" title="Google Drive Link Siap - Klik untuk tes link">
-                  <i data-lucide="folder-check" class="w-2.5 h-2.5"></i> Drive Siap
-                </a>
-              ` : `
-                <span class="inline-flex items-center gap-1 text-[9px] font-medium px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-500 border border-slate-300 dark:border-slate-700" title="Belum ada link Google Drive">
-                  <i data-lucide="folder-x" class="w-2.5 h-2.5"></i> No Drive
-                </span>
-              `}
             </div>
-            <div class="text-[10px] text-slate-500 dark:text-slate-400 font-mono">${p.platform.join(', ')} • <span class="text-sky-600 dark:text-sky-400 font-bold">${getCategoryLabel(p.category)}</span></div>
+            <div>
+              <div class="font-bold text-slate-900 dark:text-white flex items-center gap-1.5 flex-wrap">
+                <span class="${!isActive ? 'text-slate-400' : ''}">${p.title}</span>
+                ${!isActive ? `
+                  <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-rose-500/10 text-rose-500 border border-rose-500/20">Nonaktif</span>
+                ` : ''}
+                ${p.cusa ? `
+                  <span class="inline-flex items-center gap-1 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-sky-100 dark:bg-sky-950/80 text-sky-800 dark:text-sky-400 border border-sky-300 dark:border-sky-500/30" title="Kode CUSA Game ID">
+                    <i data-lucide="disc" class="w-2.5 h-2.5"></i> ${p.cusa}
+                  </span>
+                ` : ''}
+                ${p.driveLink ? `
+                  <a href="${p.driveLink}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30 hover:bg-emerald-200 dark:hover:bg-emerald-900/80 transition-colors" title="Google Drive Link Siap - Klik untuk tes link">
+                    <i data-lucide="folder-check" class="w-2.5 h-2.5"></i> Drive Siap
+                  </a>
+                ` : `
+                  <span class="inline-flex items-center gap-1 text-[9px] font-medium px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-500 border border-slate-300 dark:border-slate-700" title="Belum ada link Google Drive">
+                    <i data-lucide="folder-x" class="w-2.5 h-2.5"></i> No Drive
+                  </span>
+                `}
+              </div>
+              <div class="text-[10px] text-slate-500 dark:text-slate-400 font-mono">${Array.isArray(p.platform) ? p.platform.join(', ') : 'PS4'} • <span class="text-sky-600 dark:text-sky-400 font-bold">${getCategoryLabel(p.category)}</span></div>
+            </div>
           </div>
-        </div>
-      </td>
-      <td class="py-2.5 px-3 font-semibold text-slate-400 font-display">
-        ${p.prices.original && p.prices.original > p.prices.primary ? `<span class="line-through">${formatRupiah(p.prices.original)}</span>` : '<span class="text-slate-600">-</span>'}
-      </td>
-      <td class="py-2.5 px-3 font-extrabold text-sky-400 font-display">
-        <div class="flex items-center gap-1.5">
-          <span>${formatRupiah(p.prices.primary)}</span>
-          ${getDiscountPercent(p.prices.original, p.prices.primary) > 0 ? `<span class="px-1.5 py-0.5 rounded-md text-[9px] font-black bg-rose-600 text-white">-${getDiscountPercent(p.prices.original, p.prices.primary)}%</span>` : ''}
-        </div>
-      </td>
-      <td class="py-2.5 px-3">
-        <button onclick="toggleProductStock('${p.id}')" class="px-2.5 py-1 rounded-full text-[10px] font-bold ${p.inStock !== false ? 'bg-emerald-950 text-emerald-400 border border-emerald-500/30' : 'bg-rose-950 text-rose-400 border border-rose-500/30'}">
-          ${p.inStock !== false ? 'Ready Stok' : 'Habis'}
-        </button>
-      </td>
-      <td class="py-2.5 px-3 text-right">
-        <div class="flex items-center justify-end gap-1.5">
-          <button onclick="openEditProductModal('${p.id}')" class="p-1 rounded text-sky-400 hover:text-sky-300" title="Edit Game">
-            <i data-lucide="edit-3" class="w-4 h-4"></i>
+        </td>
+        <td class="py-2.5 px-3 font-semibold text-slate-400 font-display">
+          ${p.prices.original && p.prices.original > p.prices.primary ? `<span class="line-through">${formatRupiah(p.prices.original)}</span>` : '<span class="text-slate-600">-</span>'}
+        </td>
+        <td class="py-2.5 px-3 font-extrabold text-sky-400 font-display">
+          <div class="flex items-center gap-1.5">
+            <span>${formatRupiah(p.prices.primary)}</span>
+            ${getDiscountPercent(p.prices.original, p.prices.primary) > 0 ? `<span class="px-1.5 py-0.5 rounded-md text-[9px] font-black bg-rose-600 text-white">-${getDiscountPercent(p.prices.original, p.prices.primary)}%</span>` : ''}
+          </div>
+        </td>
+        <td class="py-2.5 px-3">
+          <button 
+            type="button"
+            onclick="toggleProductStatus('${p.id}')" 
+            class="group/toggle inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all cursor-pointer ${isActive ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/40 hover:bg-emerald-200 dark:hover:bg-emerald-900/60 shadow-sm' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-slate-700 shadow-sm'}"
+            title="${isActive ? 'Status: AKTIF (Tampil di etalase toko) • Klik untuk Nonaktifkan' : 'Status: NONAKTIF (Disembunyikan dari toko) • Klik untuk Aktifkan'}"
+          >
+            <span class="w-2 h-2 rounded-full ${isActive ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]' : 'bg-rose-500'}"></span>
+            <span>${isActive ? 'Aktif' : 'Nonaktif'}</span>
+            <i data-lucide="${isActive ? 'eye' : 'eye-off'}" class="w-3 h-3 ml-0.5 opacity-70 group-hover/toggle:opacity-100"></i>
           </button>
-          <button onclick="deleteProduct('${p.id}')" class="p-1 rounded text-rose-400 hover:text-rose-300" title="Hapus Game">
-            <i data-lucide="trash" class="w-4 h-4"></i>
-          </button>
-        </div>
-      </td>
-    </tr>
-  `).join('');
+        </td>
+        <td class="py-2.5 px-3 text-right">
+          <div class="flex items-center justify-end gap-1.5">
+            <button onclick="openEditProductModal('${p.id}')" class="p-1 rounded text-sky-400 hover:text-sky-300" title="Edit Game">
+              <i data-lucide="edit-3" class="w-4 h-4"></i>
+            </button>
+            <button onclick="deleteProduct('${p.id}')" class="p-1 rounded text-rose-400 hover:text-rose-300" title="Hapus Game">
+              <i data-lucide="trash" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
 
-  lucide.createIcons();
+  if (window.lucide && typeof lucide.createIcons === 'function') {
+    lucide.createIcons();
+  }
 }
 
-function toggleProductStock(productId) {
+function toggleProductStatus(productId) {
   playSfx('click');
   const p = state.products.find(item => item.id === productId);
   if (!p) return;
-  p.inStock = p.inStock === false ? true : false;
+
+  const currentStatus = p.isActive !== false && p.inStock !== false;
+  const nextStatus = !currentStatus;
+
+  p.isActive = nextStatus;
+  p.inStock = nextStatus;
+  p.updatedAt = new Date().toISOString();
+
   saveProducts();
   syncProductToSupabase(p);
+
   renderAdminProductsTable();
   renderProducts();
-  showToast(`Stok "${p.title}" diperbarui`, 'info');
+  initSpotlightHero();
+  renderAdminStats();
+
+  showToast(
+    nextStatus 
+      ? `Game "${p.title}" berhasil DIAKTIFKAN & tampil di etalase toko!` 
+      : `Game "${p.title}" DINONAKTIFKAN (disembunyikan dari etalase toko)`, 
+    nextStatus ? 'success' : 'info'
+  );
+}
+
+function toggleProductStock(productId) {
+  toggleProductStatus(productId);
+}
+
+function toggleStatusCheckboxUI(type) {
+  const cb = document.getElementById(`${type}-game-is-active`);
+  const badge = document.getElementById(`${type}-game-status-badge`);
+  const dot = document.getElementById(`${type}-game-status-dot`);
+  const desc = document.getElementById(`${type}-game-status-desc`);
+  if (!cb) return;
+
+  const isChecked = cb.checked;
+  if (badge) {
+    badge.textContent = isChecked ? 'Aktif' : 'Nonaktif';
+    badge.className = isChecked ? 'ml-2.5 text-xs font-extrabold text-emerald-400' : 'ml-2.5 text-xs font-extrabold text-rose-400';
+  }
+  if (dot) {
+    dot.className = isChecked 
+      ? 'w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' 
+      : 'w-3 h-3 rounded-full bg-rose-500';
+  }
+  if (desc) {
+    desc.textContent = isChecked 
+      ? 'Game aktif & tampil di katalog etalase toko' 
+      : 'Game dinonaktifkan (disembunyikan dari etalase toko)';
+  }
 }
 
 function deleteProduct(productId) {
@@ -10126,6 +10257,13 @@ function openEditProductModal(productId) {
   const modal = document.getElementById('modal-admin-edit-product');
   if (!modal) return;
 
+  // Status Publikasi Game (Aktif / Nonaktif)
+  const editIsActiveEl = document.getElementById('edit-game-is-active');
+  if (editIsActiveEl) {
+    editIsActiveEl.checked = (p.isActive !== false && p.inStock !== false);
+    toggleStatusCheckboxUI('edit');
+  }
+
   document.getElementById('edit-game-title').value = p.title;
   const editCusaEl = document.getElementById('edit-game-cusa');
   if (editCusaEl) editCusaEl.value = p.cusa || '';
@@ -10261,6 +10399,17 @@ function submitEditProduct() {
   p.images.cover = p.images.poster;
   p.images.backdrop = backdrop || p.images.backdrop || '';
   p.description = document.getElementById('edit-game-desc').value.trim();
+
+  // Status Publikasi Game (Aktif / Nonaktif)
+  const editIsActiveEl = document.getElementById('edit-game-is-active');
+  if (editIsActiveEl) {
+    const isAct = !!editIsActiveEl.checked;
+    p.isActive = isAct;
+    p.inStock = isAct;
+    if (!p.images) p.images = {};
+    p.images.isActive = isAct;
+  }
+
   p.isHen = isHenProduct(p);
   if (p.isHen) {
     p.prices.secondary = p.prices.primary;
@@ -10346,8 +10495,9 @@ function renderMainSearchDropdown(val) {
     return;
   }
 
-  // Filter matching products
+  // Filter matching products (hanya tampilkan game AKTIF di pencarian live pelanggan)
   const matches = (state.products || []).filter(p => {
+    if (p.isActive === false || p.inStock === false) return false;
     const titleMatch = (p.title || '').toLowerCase().includes(query);
     const catMatch = (p.category || '').toLowerCase().includes(query);
     const cusaMatch = (p.cusa || '').toLowerCase().includes(query);

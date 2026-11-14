@@ -464,6 +464,12 @@
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
     }
 
+    /* Admin Product Status Filter Pills in Light Mode */
+    html:not(.dark) #admin-product-status-pills {
+      background-color: #f1f5f9 !important;
+      border-color: #cbd5e1 !important;
+    }
+
     /* Primary vs Secondary Comparison Cards in Light Mode */
     html:not(.dark) .matrix-card { 
       background: #ffffff !important; 
@@ -3585,7 +3591,7 @@
             <i data-lucide="gamepad-2" class="w-4 h-4 text-purple-400"></i>
           </div>
           <div id="stat-total-products" class="text-xl sm:text-2xl font-black text-white font-display">0</div>
-          <div class="text-[10px] text-slate-600 dark:text-slate-500 font-medium mt-1">Game di katalog</div>
+          <div id="stat-products-breakdown" class="text-[10px] text-slate-600 dark:text-slate-400 font-medium mt-1">0 Aktif • 0 Nonaktif</div>
         </div>
 
         <div class="p-5 rounded-2xl bg-[#081024] border border-purple-500/40 relative overflow-hidden">
@@ -3655,11 +3661,27 @@
               <i data-lucide="layers" class="w-5 h-5 text-purple-400"></i>
               <span>Katalog Game ALIANSI STORE</span>
             </h3>
-            <p class="text-xs text-slate-400">Tambah game baru, ubah harga, atau nonaktifkan stok.</p>
+            <p class="text-xs text-slate-400">Kelola publikasi game, ubah harga, atau aktifkan & nonaktifkan dari etalase toko.</p>
           </div>
 
           <div class="flex items-center gap-2.5 flex-wrap">
-            <div class="relative w-full sm:w-60">
+            <!-- Filter Status Game (Semua / Aktif / Nonaktif) -->
+            <div id="admin-product-status-pills" class="flex items-center gap-1 bg-slate-900/90 dark:bg-slate-900/90 p-1 rounded-xl border border-slate-700/80 text-xs shadow-inner">
+              <button type="button" onclick="setAdminProductStatusFilter('all')" id="admin-filter-pill-all" class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all bg-sky-600 text-white shadow-sm flex items-center gap-1">
+                <span>Semua</span>
+                <span id="admin-count-all" class="text-[10px] opacity-80">(14)</span>
+              </button>
+              <button type="button" onclick="setAdminProductStatusFilter('active')" id="admin-filter-pill-active" class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-emerald-400 flex items-center gap-1">
+                <span>Aktif</span>
+                <span id="admin-count-active" class="text-[10px] text-emerald-400 opacity-90">(14)</span>
+              </button>
+              <button type="button" onclick="setAdminProductStatusFilter('inactive')" id="admin-filter-pill-inactive" class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-rose-400 flex items-center gap-1">
+                <span>Nonaktif</span>
+                <span id="admin-count-inactive" class="text-[10px] text-rose-400 opacity-90">(0)</span>
+              </button>
+            </div>
+
+            <div class="relative w-full sm:w-52">
               <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
               <input 
                 type="search" 
@@ -3678,12 +3700,12 @@
                 data-1p-ignore="true"
                 data-form-type="other"
                 oninput="renderAdminProductsTable()" 
-                placeholder="Cari game di admin..." 
+                placeholder="Cari game..." 
                 class="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-400 focus:border-sky-500 outline-none"
               />
             </div>
-            <button onclick="openAddProductModal()" class="px-4 py-2 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white shadow-md shadow-sky-600/30 flex items-center gap-1.5 shrink-0">
-              <i data-lucide="plus" class="w-4 h-4"></i> Tambah Game Baru
+            <button onclick="openAddProductModal()" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white shadow-md shadow-sky-600/30 flex items-center gap-1.5 shrink-0">
+              <i data-lucide="plus" class="w-4 h-4"></i> Tambah Game
             </button>
           </div>
         </div>
@@ -3695,7 +3717,7 @@
                 <th class="py-3 px-3">Judul & Platform</th>
                 <th class="py-3 px-3">Harga (Rp)</th>
                 <th class="py-3 px-3">Harga Diskon (Rp)</th>
-                <th class="py-3 px-3">Status Stok</th>
+                <th class="py-3 px-3">Status Publikasi</th>
                 <th class="py-3 px-3 text-right">Tindakan</th>
               </tr>
             </thead>
@@ -4700,6 +4722,22 @@
       <h3 class="text-lg font-black text-white font-display mb-1">Tambah Game Baru ke Katalog</h3>
       <p class="text-xs text-slate-400 mb-5">Lengkapi data game untuk dipublikasikan di ALIANSI STORE</p>
       <div class="space-y-3 mb-6">
+        <!-- Status Publikasi Game (Aktif / Nonaktif) -->
+        <div class="p-3 rounded-2xl bg-slate-900/90 border border-slate-700/80 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div id="new-game-status-dot" class="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+            <div>
+              <span class="text-xs font-bold text-white block">Status Publikasi Game</span>
+              <span id="new-game-status-desc" class="text-[10px] text-slate-400 block">Game aktif & tampil di katalog etalase toko</span>
+            </div>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="new-game-is-active" class="sr-only peer" checked onchange="toggleStatusCheckboxUI('new')" />
+            <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+            <span id="new-game-status-badge" class="ml-2.5 text-xs font-extrabold text-emerald-400">Aktif</span>
+          </label>
+        </div>
+
         <div>
           <label class="block text-xs font-bold text-slate-300 mb-1">Judul Game <span class="text-rose-400">*</span></label>
           <input type="text" id="new-game-title" placeholder="Contoh: Resident Evil 4 Remake" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" />
@@ -4945,6 +4983,22 @@
       <h3 class="text-lg font-black text-white font-display mb-1">Edit Game</h3>
       <p class="text-xs text-slate-400 mb-5">Ubah data game di katalog ALIANSI STORE</p>
       <div class="space-y-3 mb-6">
+        <!-- Status Publikasi Game (Aktif / Nonaktif) -->
+        <div class="p-3 rounded-2xl bg-slate-900/90 border border-slate-700/80 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div id="edit-game-status-dot" class="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+            <div>
+              <span class="text-xs font-bold text-white block">Status Publikasi Game</span>
+              <span id="edit-game-status-desc" class="text-[10px] text-slate-400 block">Game aktif & tampil di katalog etalase toko</span>
+            </div>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="edit-game-is-active" class="sr-only peer" checked onchange="toggleStatusCheckboxUI('edit')" />
+            <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+            <span id="edit-game-status-badge" class="ml-2.5 text-xs font-extrabold text-emerald-400">Aktif</span>
+          </label>
+        </div>
+
         <div>
           <label class="block text-xs font-bold text-slate-300 mb-1">Judul Game</label>
           <input type="text" id="edit-game-title" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" />
@@ -6746,7 +6800,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261114_product_protection_v70"></script>
-  <script src="assets/app.js?v=20261114_product_protection_v70"></script>
+  <script src="assets/products-data.js?v=20261114_product_active_toggle_v71"></script>
+  <script src="assets/app.js?v=20261114_product_active_toggle_v71"></script>
 </body>
 </html>
