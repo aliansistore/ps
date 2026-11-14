@@ -12304,8 +12304,8 @@ function toggleAdminVoucherFront(code) {
   renderBerandaVouchers();
   showToast(
     voucher.showOnFront 
-      ? `Voucher "${code}" kini DITAMPILKAN di halaman depan (Beranda & Top Bar).` 
-      : `Voucher "${code}" kini DISEMBUNYIKAN dari depan (tetap aktif jika pembeli memasukkan kode saat checkout).`, 
+      ? `🌐 Voucher "${code}" sekarang DITAMPILKAN di halaman depan toko (Publik).` 
+      : `🔒 Voucher "${code}" sekarang TIDAK TAMPIL di depan (Voucher Rahasia). Hanya Anda yang tahu dan bisa dibagikan khusus ke orang tertentu!`, 
     voucher.showOnFront ? 'success' : 'info'
   );
 }
@@ -12319,20 +12319,25 @@ function toggleVoucherFrontUI() {
 
   const isChecked = cb.checked;
   if (badge) {
-    badge.textContent = isChecked ? 'Tampil di Beranda' : 'Disembunyikan dari Depan';
+    badge.textContent = isChecked ? 'Tampilkan di Depan (Publik)' : 'Tidak Tampil (Voucher Rahasia)';
     badge.className = isChecked 
       ? 'px-1.5 py-0.2 rounded text-[10px] font-extrabold bg-sky-100 dark:bg-sky-500/20 text-sky-800 dark:text-sky-300 border border-sky-300 dark:border-sky-500/30' 
-      : 'px-1.5 py-0.2 rounded text-[10px] font-extrabold bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-400 border border-amber-300 dark:border-amber-500/30';
+      : 'px-1.5 py-0.2 rounded text-[10px] font-extrabold bg-purple-100 dark:bg-purple-500/20 text-purple-800 dark:text-purple-300 border border-purple-300 dark:border-purple-500/30';
   }
   if (dot) {
     dot.className = isChecked 
-      ? 'w-3 h-3 rounded-full bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.5)]' 
-      : 'w-3 h-3 rounded-full bg-amber-500';
+      ? 'w-3.5 h-3.5 rounded-full bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.5)]' 
+      : 'w-3.5 h-3.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]';
   }
   if (desc) {
-    desc.textContent = isChecked 
-      ? 'Banner voucher akan dipajang di Beranda toko & Top Bar agar dilihat pengunjung' 
-      : 'Disembunyikan dari Beranda & Bar Depan (tetap aktif jika pembeli mengetik kode saat checkout)';
+    if (isChecked) {
+      desc.className = 'p-2.5 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800/40 text-[11px] text-sky-800 dark:text-sky-300';
+      desc.innerHTML = `<i data-lucide="globe" class="w-3.5 h-3.5 inline mr-1 text-sky-500"></i><strong>Tampilkan di Depan (Publik):</strong> Kupon dipajang di banner Beranda toko &amp; Bar Promo atas sehingga semua pengunjung toko bisa melihat &amp; menyalin kodenya.`;
+    } else {
+      desc.className = 'p-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/40 text-[11px] text-purple-800 dark:text-purple-300';
+      desc.innerHTML = `<i data-lucide="lock" class="w-3.5 h-3.5 inline mr-1 text-purple-500"></i><strong>Tidak Tampil (Voucher Rahasia):</strong> Kupon <u>tidak dipajang di depan</u>. Hanya Anda yang tahu kodenya dan bisa Anda berikan ke beberapa orang tertentu (pembeli memasukkan kode saat checkout).`;
+    }
+    if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
   }
 }
 
@@ -12345,7 +12350,7 @@ function toggleVoucherActiveUI() {
 
   const isChecked = cb.checked;
   if (badge) {
-    badge.textContent = isChecked ? 'Aktif' : 'Nonaktif';
+    badge.textContent = isChecked ? 'Bisa Digunakan' : 'Dinonaktifkan';
     badge.className = isChecked 
       ? 'px-1.5 py-0.2 rounded text-[10px] font-extrabold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30' 
       : 'px-1.5 py-0.2 rounded text-[10px] font-extrabold bg-rose-100 dark:bg-rose-500/20 text-rose-800 dark:text-rose-400 border border-rose-300 dark:border-rose-500/30';
@@ -12357,8 +12362,8 @@ function toggleVoucherActiveUI() {
   }
   if (desc) {
     desc.textContent = isChecked 
-      ? 'Jika aktif, kode kupon dapat dipakai saat checkout' 
-      : 'Voucher dinonaktifkan (tidak dapat dipakai saat checkout)';
+      ? 'Kode kupon sah & dapat dipakai saat checkout' 
+      : 'Voucher dinonaktifkan total (tidak dapat dipakai saat checkout)';
   }
 }
 
@@ -12399,7 +12404,7 @@ function renderAdminVouchersList() {
   }
 
   if (displayList.length === 0) {
-    const filterDesc = currentFilter === 'front' ? 'yang ditampilkan di depan' : 'yang disembunyikan dari depan';
+    const filterDesc = currentFilter === 'front' ? 'yang ditampilkan di depan (publik)' : 'yang dirahasiakan (tidak tampil)';
     container.innerHTML = `
       <div class="text-center py-8 text-xs text-slate-400">
         <i data-lucide="ticket" class="w-8 h-8 mx-auto mb-2 opacity-40"></i>
@@ -12435,14 +12440,18 @@ function renderAdminVouchersList() {
     if (isExp) {
       statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-400 border border-amber-300 dark:border-amber-500/30">KADALUARSA</span>`;
     } else if (isAct) {
-      statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span> AKTIF</span>`;
+      statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span> BISA DIGUNAKAN</span>`;
     } else {
-      statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700">NONAKTIF</span>`;
+      statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-400 border border-rose-300 dark:border-rose-800/40">DIMATIKAN TOTAL</span>`;
     }
 
     const frontBadge = isShowOnFront
-      ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-100 dark:bg-sky-500/20 text-sky-800 dark:text-sky-300 border border-sky-300 dark:border-sky-500/30 flex items-center gap-1"><i data-lucide="eye" class="w-3 h-3 text-sky-500"></i> TAMPIL DI DEPAN</span>`
-      : `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-400 border border-amber-300 dark:border-amber-500/30 flex items-center gap-1"><i data-lucide="eye-off" class="w-3 h-3 text-amber-500"></i> SEMBUNYI DARI DEPAN</span>`;
+      ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-100 dark:bg-sky-500/20 text-sky-800 dark:text-sky-300 border border-sky-300 dark:border-sky-500/30 flex items-center gap-1"><i data-lucide="globe" class="w-3 h-3 text-sky-500"></i> TAMPIL DI DEPAN (PUBLIK)</span>`
+      : `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 dark:bg-purple-500/20 text-purple-800 dark:text-purple-300 border border-purple-300 dark:border-purple-500/30 flex items-center gap-1"><i data-lucide="lock" class="w-3 h-3 text-purple-500"></i> TIDAK TAMPIL (RAHASIA)</span>`;
+
+    const visibilityNote = isShowOnFront
+      ? `<div class="mt-2.5 p-2 rounded-xl bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800/30 text-[11px] text-sky-800 dark:text-sky-300 flex items-center gap-2"><i data-lucide="globe" class="w-3.5 h-3.5 text-sky-500 shrink-0"></i><div><strong>Voucher Publik:</strong> Dipajang di banner Beranda toko &amp; Top Bar agar dilihat &amp; disalin semua pengunjung.</div></div>`
+      : `<div class="mt-2.5 p-2 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/40 text-[11px] text-purple-800 dark:text-purple-300 flex items-start gap-2"><i data-lucide="lock" class="w-3.5 h-3.5 mt-0.5 text-purple-500 shrink-0"></i><div><strong>Voucher Rahasia:</strong> Voucher ini <u>tidak ditampilkan</u> di halaman depan toko. Hanya Anda yang tahu kodenya dan bisa Anda berikan ke beberapa orang tertentu untuk dimasukkan saat checkout.</div></div>`;
 
     return `
       <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 flex flex-col lg:flex-row lg:items-center justify-between gap-3 text-xs shadow-sm hover:shadow transition-all ${!isAct || isExp ? 'opacity-75' : ''}">
@@ -12456,8 +12465,8 @@ function renderAdminVouchersList() {
             <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isFixed ? 'bg-sky-100 dark:bg-sky-500/20 text-sky-800 dark:text-sky-300 border border-sky-300 dark:border-sky-500/30' : 'bg-purple-100 dark:bg-purple-500/20 text-purple-800 dark:text-purple-300 border border-purple-300 dark:border-purple-500/30'}">
               ${isFixed ? 'Nominal (Rp)' : 'Persen (%)'}
             </span>
-            ${statusBadge}
             ${frontBadge}
+            ${statusBadge}
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-[11px] text-slate-600 dark:text-slate-400 mt-2">
@@ -12480,45 +12489,47 @@ function renderAdminVouchersList() {
           </div>
 
           ${v.description ? `<p class="text-[11px] text-slate-500 dark:text-slate-400 mt-2 italic line-clamp-2">${escapeHtml(v.description)}</p>` : ''}
+          ${visibilityNote}
         </div>
 
         <div class="flex items-center gap-2 shrink-0 self-end lg:self-center pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-200 dark:border-slate-800 w-full lg:w-auto justify-end flex-wrap">
-          <!-- Toggle Tampil di Depan -->
+          <!-- Tombol Utama: Tampilkan / Jangan Tampilkan (Rahasiakan) -->
           <button 
             type="button" 
             onclick="toggleAdminVoucherFront('${escapeHtml(v.code)}')" 
-            class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold ${isShowOnFront ? 'bg-sky-50 dark:bg-sky-950/80 hover:bg-sky-100 dark:hover:bg-sky-900 text-sky-700 dark:text-sky-300 border border-sky-300 dark:border-sky-500/40' : 'bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 hover:text-sky-700 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700'} transition-all cursor-pointer shadow-sm flex items-center gap-1"
-            title="${isShowOnFront ? 'Sembunyikan voucher ini dari Beranda depan' : 'Tampilkan banner voucher ini di Beranda depan'}"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm flex items-center gap-1.5 ${isShowOnFront ? 'bg-purple-50 dark:bg-purple-950/70 hover:bg-purple-100 dark:hover:bg-purple-900 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-800/60' : 'bg-sky-600 hover:bg-sky-500 text-white shadow-sky-600/30 force-white'}"
+            title="${isShowOnFront ? 'Ubah menjadi Voucher Rahasia: sembunyikan dari Beranda depan agar hanya Anda yang tahu dan bisa dibagikan khusus' : 'Tampilkan banner voucher ini di halaman depan website agar dilihat semua pengunjung'}"
           >
-            <i data-lucide="${isShowOnFront ? 'eye-off' : 'eye'}" class="w-3.5 h-3.5 text-sky-500"></i>
-            <span class="hidden sm:inline">${isShowOnFront ? 'Sembunyikan Depan' : 'Tampilkan Depan'}</span>
+            <i data-lucide="${isShowOnFront ? 'lock' : 'globe'}" class="w-3.5 h-3.5"></i>
+            <span>${isShowOnFront ? 'Jangan Tampilkan (Rahasiakan)' : 'Tampilkan di Depan'}</span>
           </button>
 
-          <!-- Toggle Status Aktif / Nonaktif -->
+          <!-- Toggle Status Aktif / Nonaktif Total -->
           <button 
             type="button" 
             onclick="toggleAdminVoucherStatus('${escapeHtml(v.code)}')" 
-            class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold ${isAct ? 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-amber-600 border border-slate-300 dark:border-slate-700' : 'bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/40'} transition-colors cursor-pointer shadow-sm flex items-center gap-1"
-            title="${isAct ? 'Nonaktifkan voucher ini' : 'Aktifkan voucher ini'}"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-bold ${isAct ? 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-rose-600 border border-slate-300 dark:border-slate-700' : 'bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/40'} transition-colors cursor-pointer shadow-sm flex items-center gap-1"
+            title="${isAct ? 'Matikan total voucher ini agar tidak bisa dipakai saat checkout' : 'Aktifkan voucher ini agar dapat digunakan saat checkout'}"
           >
-            <i data-lucide="${isAct ? 'power' : 'check-circle'}" class="w-3.5 h-3.5 ${isAct ? 'text-amber-500' : 'text-emerald-500'}"></i>
-            <span class="hidden sm:inline">${isAct ? 'Nonaktifkan' : 'Aktifkan'}</span>
+            <i data-lucide="${isAct ? 'power' : 'check-circle'}" class="w-3.5 h-3.5 ${isAct ? 'text-slate-400 hover:text-rose-500' : 'text-emerald-500'}"></i>
+            <span class="hidden sm:inline">${isAct ? 'Matikan' : 'Aktifkan'}</span>
           </button>
 
           <!-- Edit Voucher -->
           <button 
             type="button" 
             onclick="openAdminVoucherModal('${escapeHtml(v.code)}')" 
-            class="px-3 py-1.5 rounded-lg text-[11px] font-bold bg-sky-50 dark:bg-sky-950/70 hover:bg-sky-100 dark:hover:bg-sky-900 text-sky-700 dark:text-sky-300 border border-sky-300 dark:border-sky-500/40 transition-colors flex items-center gap-1 cursor-pointer shadow-sm"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 transition-colors flex items-center gap-1 cursor-pointer shadow-sm"
+            title="Edit data kupon"
           >
-            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Edit
+            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
           </button>
 
           <!-- Hapus Voucher -->
           <button 
             type="button" 
             onclick="deleteAdminVoucher('${escapeHtml(v.code)}')" 
-            class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800/50 transition-colors cursor-pointer shadow-sm" 
+            class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800/50 transition-colors cursor-pointer shadow-sm" 
             title="Hapus voucher ini"
           >
             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
@@ -12527,6 +12538,9 @@ function renderAdminVouchersList() {
       </div>
     `;
   }).join('');
+
+  if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
+}
 
   if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
 }
