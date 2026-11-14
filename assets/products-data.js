@@ -656,6 +656,7 @@ const INITIAL_CONFIG = {
       quota: 0,
       usedCount: 0,
       isActive: true,
+      showOnFront: true,
       description: "Diskon 10% untuk transaksi perdana min. belanja Rp 100.000 (Maks. potongan Rp 30.000)"
     },
     {
@@ -670,6 +671,7 @@ const INITIAL_CONFIG = {
       quota: 0,
       usedCount: 0,
       isActive: true,
+      showOnFront: true,
       description: "Diskon 15% untuk pembelian game min. belanja Rp 200.000 (Maks. potongan Rp 50.000)"
     }
   ]

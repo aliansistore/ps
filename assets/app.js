@@ -161,6 +161,7 @@ const state = {
   checkoutType: 'guest',
   adminFilter: 'all',
   adminProductStatusFilter: 'all',
+  adminVoucherFilter: 'all',
   currentInvoice: null,
   orderToFulfill: null,
   gameRequests: [],
@@ -1365,6 +1366,7 @@ function normalizeVoucher(v) {
     quota: Number(v.quota) || 0,
     usedCount: Number(v.usedCount) || 0,
     isActive: v.isActive !== false,
+    showOnFront: v.showOnFront !== false,
     description: v.description || ''
   };
 }
@@ -2856,7 +2858,7 @@ function renderCheckoutSummary() {
   const voucherInput = document.getElementById('voucher-input');
 
   const rawVouchers = (state.config && state.config.vouchers) || [];
-  const activeVouchers = rawVouchers.filter(v => v && v.code && v.code !== '__SYSTEM_CONFIG__' && v.isActive !== false && !isVoucherExpired(v));
+  const activeVouchers = rawVouchers.filter(v => v && v.code && v.code !== '__SYSTEM_CONFIG__' && v.isActive !== false && v.showOnFront !== false && !isVoucherExpired(v));
 
   if (appliedInfoWrap && appliedInfoText) {
     if (state.appliedVoucher) {
@@ -12252,6 +12254,114 @@ function scrollToAdminVouchers() {
   }
 }
 
+function setAdminVoucherFilter(filter) {
+  playSfx('click');
+  state.adminVoucherFilter = filter || 'all';
+  renderAdminVouchersList();
+}
+
+function updateAdminVoucherFilterPills(totalCount, frontCount, hiddenCount) {
+  const currentFilter = state.adminVoucherFilter || 'all';
+  
+  const elAll = document.getElementById('admin-voucher-pill-all');
+  const elFront = document.getElementById('admin-voucher-pill-front');
+  const elHidden = document.getElementById('admin-voucher-pill-hidden');
+
+  const countAll = document.getElementById('admin-voucher-count-all');
+  const countFront = document.getElementById('admin-voucher-count-front');
+  const countHidden = document.getElementById('admin-voucher-count-hidden');
+
+  if (countAll) countAll.textContent = `(${totalCount})`;
+  if (countFront) countFront.textContent = `(${frontCount})`;
+  if (countHidden) countHidden.textContent = `(${hiddenCount})`;
+
+  const activeClasses = 'bg-emerald-600 text-white shadow-sm';
+  const activeSkyClasses = 'bg-sky-600 text-white shadow-sm';
+  const activeAmberClasses = 'bg-amber-600 text-white shadow-sm';
+
+  if (elAll) {
+    elAll.className = `px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${currentFilter === 'all' ? activeClasses : 'text-slate-400 hover:text-white'}`;
+  }
+  if (elFront) {
+    elFront.className = `px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${currentFilter === 'front' ? activeSkyClasses : 'text-slate-400 hover:text-sky-400'}`;
+  }
+  if (elHidden) {
+    elHidden.className = `px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${currentFilter === 'hidden' ? activeAmberClasses : 'text-slate-400 hover:text-amber-400'}`;
+  }
+}
+
+function toggleAdminVoucherFront(code) {
+  playSfx('click');
+  if (!state.config || !Array.isArray(state.config.vouchers)) return;
+  const voucher = state.config.vouchers.find(v => v && v.code === code);
+  if (!voucher) return;
+
+  voucher.showOnFront = voucher.showOnFront === false ? true : false;
+  saveConfig();
+  syncConfigToSupabase();
+  renderAdminVouchersList();
+  renderTopHudVoucher();
+  renderBerandaVouchers();
+  showToast(
+    voucher.showOnFront 
+      ? `Voucher "${code}" kini DITAMPILKAN di halaman depan (Beranda & Top Bar).` 
+      : `Voucher "${code}" kini DISEMBUNYIKAN dari depan (tetap aktif jika pembeli memasukkan kode saat checkout).`, 
+    voucher.showOnFront ? 'success' : 'info'
+  );
+}
+
+function toggleVoucherFrontUI() {
+  const cb = document.getElementById('voucher-form-show-on-front');
+  const badge = document.getElementById('voucher-form-front-badge');
+  const dot = document.getElementById('voucher-form-front-dot');
+  const desc = document.getElementById('voucher-form-front-desc');
+  if (!cb) return;
+
+  const isChecked = cb.checked;
+  if (badge) {
+    badge.textContent = isChecked ? 'Tampil di Beranda' : 'Disembunyikan dari Depan';
+    badge.className = isChecked 
+      ? 'px-1.5 py-0.2 rounded text-[10px] font-extrabold bg-sky-100 dark:bg-sky-500/20 text-sky-800 dark:text-sky-300 border border-sky-300 dark:border-sky-500/30' 
+      : 'px-1.5 py-0.2 rounded text-[10px] font-extrabold bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-400 border border-amber-300 dark:border-amber-500/30';
+  }
+  if (dot) {
+    dot.className = isChecked 
+      ? 'w-3 h-3 rounded-full bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.5)]' 
+      : 'w-3 h-3 rounded-full bg-amber-500';
+  }
+  if (desc) {
+    desc.textContent = isChecked 
+      ? 'Banner voucher akan dipajang di Beranda toko & Top Bar agar dilihat pengunjung' 
+      : 'Disembunyikan dari Beranda & Bar Depan (tetap aktif jika pembeli mengetik kode saat checkout)';
+  }
+}
+
+function toggleVoucherActiveUI() {
+  const cb = document.getElementById('voucher-form-is-active');
+  const badge = document.getElementById('voucher-form-active-badge');
+  const dot = document.getElementById('voucher-form-active-dot');
+  const desc = document.getElementById('voucher-form-active-desc');
+  if (!cb) return;
+
+  const isChecked = cb.checked;
+  if (badge) {
+    badge.textContent = isChecked ? 'Aktif' : 'Nonaktif';
+    badge.className = isChecked 
+      ? 'px-1.5 py-0.2 rounded text-[10px] font-extrabold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30' 
+      : 'px-1.5 py-0.2 rounded text-[10px] font-extrabold bg-rose-100 dark:bg-rose-500/20 text-rose-800 dark:text-rose-400 border border-rose-300 dark:border-rose-500/30';
+  }
+  if (dot) {
+    dot.className = isChecked 
+      ? 'w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' 
+      : 'w-3 h-3 rounded-full bg-rose-500';
+  }
+  if (desc) {
+    desc.textContent = isChecked 
+      ? 'Jika aktif, kode kupon dapat dipakai saat checkout' 
+      : 'Voucher dinonaktifkan (tidak dapat dipakai saat checkout)';
+  }
+}
+
 function renderAdminVouchersList() {
   const container = document.getElementById('admin-vouchers-list');
   const countBadge = document.getElementById('admin-vouchers-count-badge');
@@ -12260,9 +12370,14 @@ function renderAdminVouchersList() {
   const raw = (state.config && state.config.vouchers) || [];
   const vouchers = raw.filter(v => v && v.code && v.code !== '__SYSTEM_CONFIG__');
 
+  const totalCount = vouchers.length;
+  const frontCount = vouchers.filter(v => v.showOnFront !== false).length;
+  const hiddenCount = totalCount - frontCount;
+
   if (countBadge) {
-    countBadge.textContent = `${vouchers.length} Voucher`;
+    countBadge.textContent = `${totalCount} Voucher`;
   }
+  updateAdminVoucherFilterPills(totalCount, frontCount, hiddenCount);
 
   if (vouchers.length === 0) {
     container.innerHTML = `
@@ -12275,8 +12390,29 @@ function renderAdminVouchersList() {
     return;
   }
 
-  container.innerHTML = vouchers.map(v => {
+  const currentFilter = state.adminVoucherFilter || 'all';
+  let displayList = [...vouchers];
+  if (currentFilter === 'front') {
+    displayList = displayList.filter(v => v.showOnFront !== false);
+  } else if (currentFilter === 'hidden') {
+    displayList = displayList.filter(v => v.showOnFront === false);
+  }
+
+  if (displayList.length === 0) {
+    const filterDesc = currentFilter === 'front' ? 'yang ditampilkan di depan' : 'yang disembunyikan dari depan';
+    container.innerHTML = `
+      <div class="text-center py-8 text-xs text-slate-400">
+        <i data-lucide="ticket" class="w-8 h-8 mx-auto mb-2 opacity-40"></i>
+        <div>Tidak ada voucher promo ${filterDesc}.</div>
+      </div>
+    `;
+    if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
+    return;
+  }
+
+  container.innerHTML = displayList.map(v => {
     const isAct = v.isActive !== false;
+    const isShowOnFront = v.showOnFront !== false;
     const isExp = isVoucherExpired(v);
     const isFixed = v.type === 'fixed';
     const discLabel = isFixed 
@@ -12299,10 +12435,14 @@ function renderAdminVouchersList() {
     if (isExp) {
       statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-400 border border-amber-300 dark:border-amber-500/30">KADALUARSA</span>`;
     } else if (isAct) {
-      statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span> AKTIF DI BERANDA</span>`;
+      statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span> AKTIF</span>`;
     } else {
       statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700">NONAKTIF</span>`;
     }
+
+    const frontBadge = isShowOnFront
+      ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-100 dark:bg-sky-500/20 text-sky-800 dark:text-sky-300 border border-sky-300 dark:border-sky-500/30 flex items-center gap-1"><i data-lucide="eye" class="w-3 h-3 text-sky-500"></i> TAMPIL DI DEPAN</span>`
+      : `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-400 border border-amber-300 dark:border-amber-500/30 flex items-center gap-1"><i data-lucide="eye-off" class="w-3 h-3 text-amber-500"></i> SEMBUNYI DARI DEPAN</span>`;
 
     return `
       <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 flex flex-col lg:flex-row lg:items-center justify-between gap-3 text-xs shadow-sm hover:shadow transition-all ${!isAct || isExp ? 'opacity-75' : ''}">
@@ -12317,6 +12457,7 @@ function renderAdminVouchersList() {
               ${isFixed ? 'Nominal (Rp)' : 'Persen (%)'}
             </span>
             ${statusBadge}
+            ${frontBadge}
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-[11px] text-slate-600 dark:text-slate-400 mt-2">
@@ -12341,17 +12482,30 @@ function renderAdminVouchersList() {
           ${v.description ? `<p class="text-[11px] text-slate-500 dark:text-slate-400 mt-2 italic line-clamp-2">${escapeHtml(v.description)}</p>` : ''}
         </div>
 
-        <div class="flex items-center gap-2 shrink-0 self-end lg:self-center pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-200 dark:border-slate-800 w-full lg:w-auto justify-end">
+        <div class="flex items-center gap-2 shrink-0 self-end lg:self-center pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-200 dark:border-slate-800 w-full lg:w-auto justify-end flex-wrap">
+          <!-- Toggle Tampil di Depan -->
+          <button 
+            type="button" 
+            onclick="toggleAdminVoucherFront('${escapeHtml(v.code)}')" 
+            class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold ${isShowOnFront ? 'bg-sky-50 dark:bg-sky-950/80 hover:bg-sky-100 dark:hover:bg-sky-900 text-sky-700 dark:text-sky-300 border border-sky-300 dark:border-sky-500/40' : 'bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 hover:text-sky-700 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700'} transition-all cursor-pointer shadow-sm flex items-center gap-1"
+            title="${isShowOnFront ? 'Sembunyikan voucher ini dari Beranda depan' : 'Tampilkan banner voucher ini di Beranda depan'}"
+          >
+            <i data-lucide="${isShowOnFront ? 'eye-off' : 'eye'}" class="w-3.5 h-3.5 text-sky-500"></i>
+            <span class="hidden sm:inline">${isShowOnFront ? 'Sembunyikan Depan' : 'Tampilkan Depan'}</span>
+          </button>
+
+          <!-- Toggle Status Aktif / Nonaktif -->
           <button 
             type="button" 
             onclick="toggleAdminVoucherStatus('${escapeHtml(v.code)}')" 
             class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold ${isAct ? 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-amber-600 border border-slate-300 dark:border-slate-700' : 'bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/40'} transition-colors cursor-pointer shadow-sm flex items-center gap-1"
             title="${isAct ? 'Nonaktifkan voucher ini' : 'Aktifkan voucher ini'}"
           >
-            <i data-lucide="${isAct ? 'eye-off' : 'eye'}" class="w-3.5 h-3.5"></i>
+            <i data-lucide="${isAct ? 'power' : 'check-circle'}" class="w-3.5 h-3.5 ${isAct ? 'text-amber-500' : 'text-emerald-500'}"></i>
             <span class="hidden sm:inline">${isAct ? 'Nonaktifkan' : 'Aktifkan'}</span>
           </button>
 
+          <!-- Edit Voucher -->
           <button 
             type="button" 
             onclick="openAdminVoucherModal('${escapeHtml(v.code)}')" 
@@ -12360,6 +12514,7 @@ function renderAdminVouchersList() {
             <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Edit
           </button>
 
+          <!-- Hapus Voucher -->
           <button 
             type="button" 
             onclick="deleteAdminVoucher('${escapeHtml(v.code)}')" 
@@ -12437,6 +12592,7 @@ function openAdminVoucherModal(code = null) {
   const foreverCheck = document.getElementById('voucher-form-forever');
   const descInput = document.getElementById('voucher-form-desc');
   const activeCheck = document.getElementById('voucher-form-is-active');
+  const frontCheck = document.getElementById('voucher-form-show-on-front');
 
   if (!modal) return;
 
@@ -12476,6 +12632,7 @@ function openAdminVoucherModal(code = null) {
     }
     if (descInput) descInput.value = v.description || '';
     if (activeCheck) activeCheck.checked = v.isActive !== false;
+    if (frontCheck) frontCheck.checked = v.showOnFront !== false;
   } else {
     if (title) title.textContent = 'Tambah Voucher Promo Baru';
     if (origCodeInput) origCodeInput.value = '';
@@ -12497,9 +12654,12 @@ function openAdminVoucherModal(code = null) {
     if (foreverCheck) foreverCheck.checked = true;
     if (descInput) descInput.value = '';
     if (activeCheck) activeCheck.checked = true;
+    if (frontCheck) frontCheck.checked = true;
   }
 
   toggleVoucherTypeFields();
+  toggleVoucherFrontUI();
+  toggleVoucherActiveUI();
   modal.classList.remove('hidden');
   if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
   setTimeout(() => {
@@ -12525,6 +12685,7 @@ function saveAdminVoucherForm(e) {
   const expiryDate = isForever ? '' : (document.getElementById('voucher-form-expiry-date')?.value || '');
   const desc = (document.getElementById('voucher-form-desc')?.value || '').trim();
   const isActive = document.getElementById('voucher-form-is-active')?.checked !== false;
+  const showOnFront = document.getElementById('voucher-form-show-on-front')?.checked !== false;
 
   const code = rawCode.replace(/[^A-Z0-9_-]/g, '');
   if (!code) {
@@ -12569,6 +12730,7 @@ function saveAdminVoucherForm(e) {
     quota: quota,
     usedCount: existingUsedCount,
     isActive: isActive,
+    showOnFront: showOnFront,
     description: desc
   };
 
@@ -12651,7 +12813,7 @@ function renderTopHudVoucher() {
   if (!wrap || !container) return;
 
   const raw = (state.config && state.config.vouchers) || [];
-  const activeVouchers = raw.filter(v => v && v.code && v.code !== '__SYSTEM_CONFIG__' && v.isActive !== false && !isVoucherExpired(v));
+  const activeVouchers = raw.filter(v => v && v.code && v.code !== '__SYSTEM_CONFIG__' && v.isActive !== false && v.showOnFront !== false && !isVoucherExpired(v));
 
   if (activeVouchers.length === 0) {
     wrap.classList.add('hidden');
@@ -12686,7 +12848,7 @@ function renderBerandaVouchers() {
   if (!container || !list) return;
 
   const raw = (state.config && state.config.vouchers) || [];
-  const activeVouchers = raw.filter(v => v && v.code && v.code !== '__SYSTEM_CONFIG__' && v.isActive !== false && !isVoucherExpired(v));
+  const activeVouchers = raw.filter(v => v && v.code && v.code !== '__SYSTEM_CONFIG__' && v.isActive !== false && v.showOnFront !== false && !isVoucherExpired(v));
 
   if (activeVouchers.length === 0) {
     container.classList.add('hidden');
