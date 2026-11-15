@@ -2,7 +2,7 @@
 // Features: Web Audio SFX Synth, PS5 Console Spotlight, Card Dual-Pricing, Realtime Fulfillment
 
 const APP_STORAGE_KEYS = {
-  PRODUCTS: 'aliansi_store_products_v4',
+  PRODUCTS: 'aliansi_store_products_v5',
   ORDERS: 'aliansi_store_orders_v3',
   CONFIG: 'aliansi_store_config_v3',
   CART: 'aliansi_store_cart_v2',
@@ -539,41 +539,52 @@ function loadStoredData() {
   state.isAudioMuted = localStorage.getItem(APP_STORAGE_KEYS.AUDIO_MUTED) === 'true';
   updateAudioIndicator();
 
-  // Load Products from Local Storage with backwards-compatible migration
-  let storedProducts = localStorage.getItem(APP_STORAGE_KEYS.PRODUCTS);
-  if (!storedProducts) {
-    // Check older storage keys to guarantee user product modifications are NEVER lost across updates
-    const legacyKeys = ['aliansi_store_products_v4', 'aliansi_store_products_v3', 'aliansi_store_products_v2', 'aliansi_store_products_v1', 'aliansi_store_products'];
-    for (const lk of legacyKeys) {
-      const oldData = localStorage.getItem(lk);
-      if (oldData) {
-        try {
-          const parsedOld = JSON.parse(oldData);
-          if (Array.isArray(parsedOld) && parsedOld.length > 0) {
-            storedProducts = oldData;
-            localStorage.setItem(APP_STORAGE_KEYS.PRODUCTS, oldData);
-            console.info(`Migrated products data from legacy key "${lk}" to current storage key.`);
-            break;
-          }
-        } catch (e) {}
-      }
-    }
-  }
+  // Load Products from Local Storage with backwards-compatible migration and integrity verification
+  const CATALOG_INTEGRITY_KEY = 'aliansi_catalog_integrity_version';
+  const CURRENT_CATALOG_VERSION = '20261115_authentic_71cafc5_v80';
+  const storedVersion = localStorage.getItem(CATALOG_INTEGRITY_KEY);
 
-  if (storedProducts) {
-    try {
-      const parsed = JSON.parse(storedProducts);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        state.products = parsed;
-      } else {
+  let storedProducts = localStorage.getItem(APP_STORAGE_KEYS.PRODUCTS);
+
+  if (storedVersion !== CURRENT_CATALOG_VERSION) {
+    // Insiden penimpaan cache: jika versi integritas katalog belum sesuai,
+    // muat 100% data otentik baseline commit 71cafc5 dari INITIAL_PRODUCTS
+    state.products = (typeof INITIAL_PRODUCTS !== 'undefined' && Array.isArray(INITIAL_PRODUCTS))
+      ? JSON.parse(JSON.stringify(INITIAL_PRODUCTS))
+      : [];
+
+    // Jika user sebelumnya pernah menambahkan game kustom baru (ID di luar baseline), pertahankan game tersebut
+    if (storedProducts) {
+      try {
+        const parsed = JSON.parse(storedProducts);
+        if (Array.isArray(parsed)) {
+          parsed.forEach(p => {
+            if (!state.products.some(bp => bp.id === p.id)) {
+              state.products.push(p);
+            }
+          });
+        }
+      } catch (e) {}
+    }
+
+    saveProducts();
+    localStorage.setItem(CATALOG_INTEGRITY_KEY, CURRENT_CATALOG_VERSION);
+  } else {
+    if (storedProducts) {
+      try {
+        const parsed = JSON.parse(storedProducts);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          state.products = parsed;
+        } else {
+          state.products = typeof INITIAL_PRODUCTS !== 'undefined' ? [...INITIAL_PRODUCTS] : [];
+        }
+      } catch (e) {
         state.products = typeof INITIAL_PRODUCTS !== 'undefined' ? [...INITIAL_PRODUCTS] : [];
       }
-    } catch (e) {
+    } else {
       state.products = typeof INITIAL_PRODUCTS !== 'undefined' ? [...INITIAL_PRODUCTS] : [];
+      saveProducts();
     }
-  } else {
-    state.products = typeof INITIAL_PRODUCTS !== 'undefined' ? [...INITIAL_PRODUCTS] : [];
-    saveProducts();
   }
 
   // Ensure default catalog products exist without overwriting custom modifications
@@ -605,10 +616,9 @@ function loadStoredData() {
         if (!existing.prices || typeof existing.prices.primary === 'undefined') {
           existing.prices = { ...ip.prices };
         }
-        // Auto-heal insiden v78: jika harga di local terdistorsi menjadi 10.000 atau 15.000,
-        // pulihkan kembali ke harga otentik user dari INITIAL_PRODUCTS
+        // Auto-heal: jika harga di local terdistorsi (<= 25.000 untuk game HEN), pulihkan kembali ke harga otentik
         const localPrimary = (existing.prices && existing.prices.primary) || 0;
-        if ((localPrimary === 10000 || localPrimary === 15000) && ip.prices && ip.prices.primary > 25000) {
+        if (localPrimary <= 25000 && ip.prices && ip.prices.primary > 25000) {
           existing.prices = { ...ip.prices };
           if (ip.cusa) existing.cusa = ip.cusa;
           existing.updatedAt = '2026-11-15T12:00:00.000Z';
@@ -1044,13 +1054,19 @@ async function syncFromSupabase() {
             const merged = { ...cp };
             merged.images = finalImages;
             // PROTEKSI PERMANEN CUSA & DATA ADMIN:
-            // Pertahankan CUSA lokal jika sudah ada agar tidak pernah tertimpa oleh data cloud
-            merged.cusa = localProd.cusa || cp.cusa || (cp.images && cp.images.cusa) || '';
-            merged.driveLink = localProd.driveLink || cp.driveLink || (cp.images && cp.images.driveLink) || '';
+            // Utamakan CUSA otentik format CUSA-XXXXX dari cloud atau baseline lokal yang valid
+            if (cp.cusa && cp.cusa.startsWith('CUSA-')) {
+              merged.cusa = cp.cusa;
+            } else if (localProd.cusa && localProd.cusa.startsWith('CUSA-')) {
+              merged.cusa = localProd.cusa;
+            } else {
+              merged.cusa = cp.cusa || (cp.images && cp.images.cusa) || localProd.cusa || '';
+            }
+            merged.driveLink = cp.driveLink || localProd.driveLink || (cp.images && cp.images.driveLink) || '';
             if ((!cp.size || cp.size === '50 GB') && localProd.size && localProd.size !== '50 GB') {
               merged.size = localProd.size;
             } else {
-              merged.size = localProd.size || cp.size || '';
+              merged.size = cp.size || localProd.size || '';
             }
             merged.marketplaces = cp.marketplaces || (cp.images && cp.images.marketplaces) || localProd.marketplaces || undefined;
             if (!merged.marketplaces) delete merged.marketplaces;
@@ -1059,12 +1075,14 @@ async function syncFromSupabase() {
             }
 
             // PROTEKSI MUTLAK HARGA:
-            // Jangan pernah menimpa harga jika localProd sudah punya harga otentik yang valid (> 25.000)
+            // Utamakan harga otentik yang valid (> 25.000)
             const localPrimaryPrice = (localProd.prices && localProd.prices.primary) || 0;
             const cloudPrimaryPrice = (cp.prices && cp.prices.primary) || 0;
-            if (localPrimaryPrice > 25000) {
+            if (cloudPrimaryPrice > 25000 && localPrimaryPrice <= 25000) {
+              merged.prices = { ...cp.prices };
+            } else if (localPrimaryPrice > 25000) {
               merged.prices = { ...localProd.prices };
-            } else if (cloudPrimaryPrice > 25000) {
+            } else if (cloudPrimaryPrice > 0) {
               merged.prices = { ...cp.prices };
             } else if (localProd.prices && localProd.prices.primary) {
               merged.prices = { ...localProd.prices };
@@ -1077,8 +1095,11 @@ async function syncFromSupabase() {
               syncProductToSupabase(merged);
             }
           } else {
-            // Local change is newer or same: keep local data and heal/sync cloud!
-            syncProductToSupabase(localProd);
+            // Local change is newer or same: keep local data and heal/sync cloud HANYA jika harga lokal valid!
+            const localPrimaryPrice = (localProd.prices && localProd.prices.primary) || 0;
+            if (localPrimaryPrice > 25000) {
+              syncProductToSupabase(localProd);
+            }
           }
         }
       });
