@@ -410,6 +410,12 @@ function initTheme() {
     ? themeParam 
     : (localStorage.getItem(APP_STORAGE_KEYS.THEME) || 'dark');
   applyTheme(saved, false);
+  // Enable smooth CSS theme transitions only AFTER initial paint so refresh never flashes
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      document.documentElement.classList.add('theme-ready');
+    });
+  });
 }
 
 function applyTheme(theme, showNotification = true) {
@@ -420,12 +426,18 @@ function applyTheme(theme, showNotification = true) {
 
   if (theme === 'light') {
     html.classList.remove('dark');
+    html.classList.add('light');
+    html.style.backgroundColor = '#f8fafc';
+    html.style.colorScheme = 'light';
     themeIcons.forEach(icon => {
       icon.setAttribute('data-lucide', 'moon');
     });
     themeTexts.forEach(t => t.textContent = 'Night Mode');
   } else {
     html.classList.add('dark');
+    html.classList.remove('light');
+    html.style.backgroundColor = '#030712';
+    html.style.colorScheme = 'dark';
     themeIcons.forEach(icon => {
       icon.setAttribute('data-lucide', 'sun');
     });
@@ -433,7 +445,9 @@ function applyTheme(theme, showNotification = true) {
   }
 
   localStorage.setItem(APP_STORAGE_KEYS.THEME, theme);
-  lucide.createIcons();
+  if (window.lucide && typeof lucide.createIcons === 'function') {
+    lucide.createIcons();
+  }
 
   if (showNotification) {
     playSfx('switch');

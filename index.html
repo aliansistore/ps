@@ -1,8 +1,34 @@
 <!DOCTYPE html>
-<html lang="id" class="dark scroll-smooth">
+<html lang="id" class="scroll-smooth">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Zero-Flash Synchronous Theme Preloader (Runs Before First Paint) -->
+  <script>
+    (function() {
+      try {
+        var params = new URLSearchParams(window.location.search);
+        var themeParam = params.get('theme');
+        var savedTheme = (themeParam === 'light' || themeParam === 'dark')
+          ? themeParam
+          : (localStorage.getItem('aliansi_theme') || 'dark');
+        var root = document.documentElement;
+        if (savedTheme === 'light') {
+          root.classList.remove('dark');
+          root.classList.add('light');
+          root.style.backgroundColor = '#f8fafc';
+          root.style.colorScheme = 'light';
+        } else {
+          root.classList.add('dark');
+          root.classList.remove('light');
+          root.style.backgroundColor = '#030712';
+          root.style.colorScheme = 'dark';
+        }
+      } catch (e) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
@@ -50,8 +76,8 @@
 
   <!-- Critical Inline Styles to Guarantee Immediate High-Contrast Rendering (Dark & Light Mode) -->
   <style>
-    /* Smooth theme transitions */
-    html, body, .nav-capsule, .game-card-nextgen, .matrix-card, .matrix-card-featured, .glass-panel, .glass-panel-glow {
+    /* Smooth theme transitions ONLY after initial paint (prevents Night->Light flash on refresh) */
+    html.theme-ready, html.theme-ready body, html.theme-ready .nav-capsule, html.theme-ready .game-card-nextgen, html.theme-ready .matrix-card, html.theme-ready .matrix-card-featured, html.theme-ready .glass-panel, html.theme-ready .glass-panel-glow {
       transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
     }
 
@@ -6926,7 +6952,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261115_pes_cusa18468_v83"></script>
-  <script src="assets/app.js?v=20261115_pes_cusa18468_v83"></script>
+  <script src="assets/products-data.js?v=20261116_zero_flash_theme_v84"></script>
+  <script src="assets/app.js?v=20261116_zero_flash_theme_v84"></script>
 </body>
 </html>
