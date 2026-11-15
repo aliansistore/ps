@@ -604,7 +604,7 @@ const INITIAL_PRODUCTS = [
     id: "game-pes-2027-bitbox",
     title: "PES 2027 Bitbox Summer Update",
     slug: "pes-2027-bitbox-summer-update-ps4-hen",
-    cusa: "CUSA18740",
+    cusa: "CUSA18468",
     platform: ["PS4 HEN"],
     category: "sports",
     type: "digital",
@@ -619,7 +619,7 @@ const INITIAL_PRODUCTS = [
     publisher: "Konami / Bitbox Patch Team",
     tagline: "Patch Musim Panas Terbaru: Jersey 2026/2027, Bursa Transfer Eropa, BRI Liga 1 & Timnas",
     images: {
-      cusa: "CUSA18740",
+      cusa: "CUSA18468",
       poster: "assets/covers/pes-2027.jpg",
       backdrop: "assets/backdrops/pes-2027.jpg",
       cover: "assets/covers/pes-2027.jpg",
@@ -633,7 +633,7 @@ const INITIAL_PRODUCTS = [
       secondary: 20000,
       original: 25000
     },
-    description: "Hadirkan atmosfer stadion sepak bola dunia dan kebanggaan Tanah Air di konsol PS4 HEN Anda bersama eFootball PES 2027 Bitbox Summer Update! Dibangun di atas mesin gameplay eFootball PES 2021 Season Update (CUSA18740) yang paling dicintai para gamer maupun pengusaha rental PS4, patch Bitbox terbaru ini membawa pembaruan menyeluruh bursa transfer pemain musim 2026/2027 di seluruh liga top Eropa.\n\nRasakan sensasi membela Timnas Indonesia Garuda dengan wajah pemain naturalisasi & lokal yang sangat realistis (Real Face HD), berkompetisi di ajang BRI Liga 1 Indonesia lengkap dengan chant suporter, hingga menikmati jersey klub Eropa terbaru, sepatu bola, papan skor televisi resmi, serta rumput stadion bertekstur tajam. Kontrol operan, dribel, dan tendangan yang responsif menjamin keseruan mabar bersama teman berjam-jam tanpa bosan.\n\nSeluruh file Base Game dan Update Patch Bitbox Summer 2027 telah tersedia lengkap di folder Google Drive resmi ALIANSI STORE disertai panduan cara pasang yang sangat mudah untuk semua firmware PS4 HEN (5.05 - 11.00). Pesan sekarang dan rasakan pengalaman sepak bola paling update dengan garansi resmi!",
+    description: "Hadirkan atmosfer stadion sepak bola dunia dan kebanggaan Tanah Air di konsol PS4 HEN Anda bersama eFootball PES 2027 Bitbox Summer Update! Dibangun di atas mesin gameplay eFootball PES 2021 Season Update (CUSA18468) yang paling dicintai para gamer maupun pengusaha rental PS4, patch Bitbox terbaru ini membawa pembaruan menyeluruh bursa transfer pemain musim 2026/2027 di seluruh liga top Eropa.\n\nRasakan sensasi membela Timnas Indonesia Garuda dengan wajah pemain naturalisasi & lokal yang sangat realistis (Real Face HD), berkompetisi di ajang BRI Liga 1 Indonesia lengkap dengan chant suporter, hingga menikmati jersey klub Eropa terbaru, sepatu bola, papan skor televisi resmi, serta rumput stadion bertekstur tajam. Kontrol operan, dribel, dan tendangan yang responsif menjamin keseruan mabar bersama teman berjam-jam tanpa bosan.\n\nSeluruh file Base Game dan Update Patch Bitbox Summer 2027 telah tersedia lengkap di folder Google Drive resmi ALIANSI STORE disertai panduan cara pasang yang sangat mudah untuk semua firmware PS4 HEN (5.05 - 11.00). Pesan sekarang dan rasakan pengalaman sepak bola paling update dengan garansi resmi!",
     features: [
       "Update Transfer Pemain Musim Panas 2026/2027 Lengkap",
       "BRI Liga 1 Indonesia & Timnas Garuda Full Face Realistis",
@@ -644,7 +644,7 @@ const INITIAL_PRODUCTS = [
     driveLink: "https://drive.google.com/drive/folders/1m5KFwedXfdEoIN6BCr4hT07wRN6MkYnO?usp=drive_link",
     inStock: true,
     isActive: true,
-    updatedAt: "2026-11-15T15:00:00.000Z"
+    updatedAt: "2026-11-15T15:05:00.000Z"
   }
 ];
 

@@ -557,9 +557,9 @@ function loadStoredData() {
     saveProducts();
   }
 
-  // One-time catalog sync v82 (CUSA GDrive + Harga Adzi Digital Service diskon Rp 5.000 + Platform PS4 HEN + Deskripsi AI)
+  // One-time catalog sync v83 (CUSA GDrive + PES 2027 CUSA18468 + Harga Adzi Digital Service diskon Rp 5.000 + Platform PS4 HEN + Deskripsi AI)
   // Setelah berjalan 1x, flag terkunci selamanya agar perubahan manual user di masa depan TIDAK PERNAH tertimpa!
-  const ADZI_CATALOG_SYNC_KEY = 'aliansi_adzi_catalog_sync_v82';
+  const ADZI_CATALOG_SYNC_KEY = 'aliansi_adzi_catalog_sync_v83';
   if (localStorage.getItem(ADZI_CATALOG_SYNC_KEY) !== 'true' && typeof INITIAL_PRODUCTS !== 'undefined' && Array.isArray(INITIAL_PRODUCTS)) {
     const prevProducts = Array.isArray(state.products) ? state.products : [];
     const syncedCatalog = INITIAL_PRODUCTS.map(ip => {
@@ -9755,7 +9755,7 @@ function suggestCusaCode(title) {
     { keys: ['fc 25', 'ea sports fc 25'], cusa: 'CUSA47522' },
     { keys: ['fc 24', 'ea sports fc 24'], cusa: 'CUSA40326' },
     { keys: ['fifa 23'], cusa: 'CUSA31879' },
-    { keys: ['pes 2027', 'pes 2021', 'efootball pes'], cusa: 'CUSA18740' },
+    { keys: ['pes 2027', 'pes 2021', 'efootball pes'], cusa: 'CUSA18468' },
     { keys: ['red dead redemption 2', 'rdr 2', 'rdr2'], cusa: 'CUSA08519' },
     { keys: ['red dead redemption'], cusa: 'CUSA36843' },
     { keys: ['gta v', 'gta 5', 'grand theft auto v', 'grand theft auto 5'], cusa: 'CUSA00419' },
