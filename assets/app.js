@@ -605,6 +605,14 @@ function loadStoredData() {
         if (!existing.prices || typeof existing.prices.primary === 'undefined') {
           existing.prices = { ...ip.prices };
         }
+        // Auto-heal insiden v78: jika harga di local terdistorsi menjadi 10.000 atau 15.000,
+        // pulihkan kembali ke harga otentik user dari INITIAL_PRODUCTS
+        const localPrimary = (existing.prices && existing.prices.primary) || 0;
+        if ((localPrimary === 10000 || localPrimary === 15000) && ip.prices && ip.prices.primary > 25000) {
+          existing.prices = { ...ip.prices };
+          if (ip.cusa) existing.cusa = ip.cusa;
+          existing.updatedAt = '2026-11-15T12:00:00.000Z';
+        }
         // JAMINAN MUTLAK: Jangan pernah menimpa existing.prices dari INITIAL_PRODUCTS
       }
     });
@@ -1035,23 +1043,39 @@ async function syncFromSupabase() {
 
             const merged = { ...cp };
             merged.images = finalImages;
-            merged.cusa = cp.cusa || (cp.images && cp.images.cusa) || localProd.cusa || '';
-            merged.driveLink = cp.driveLink || (cp.images && cp.images.driveLink) || localProd.driveLink || '';
+            // PROTEKSI PERMANEN CUSA & DATA ADMIN:
+            // Pertahankan CUSA lokal jika sudah ada agar tidak pernah tertimpa oleh data cloud
+            merged.cusa = localProd.cusa || cp.cusa || (cp.images && cp.images.cusa) || '';
+            merged.driveLink = localProd.driveLink || cp.driveLink || (cp.images && cp.images.driveLink) || '';
             if ((!cp.size || cp.size === '50 GB') && localProd.size && localProd.size !== '50 GB') {
               merged.size = localProd.size;
             } else {
-              merged.size = cp.size || localProd.size || '';
+              merged.size = localProd.size || cp.size || '';
             }
             merged.marketplaces = cp.marketplaces || (cp.images && cp.images.marketplaces) || localProd.marketplaces || undefined;
             if (!merged.marketplaces) delete merged.marketplaces;
             if (localProd.features && Array.isArray(localProd.features) && localProd.features.length > (cp.features?.length || 0)) {
               merged.features = localProd.features;
             }
-            if (localProd.prices && localProd.prices.primary && (!cp.prices || !cp.prices.primary)) {
+
+            // PROTEKSI MUTLAK HARGA:
+            // Jangan pernah menimpa harga jika localProd sudah punya harga otentik yang valid (> 25.000)
+            const localPrimaryPrice = (localProd.prices && localProd.prices.primary) || 0;
+            const cloudPrimaryPrice = (cp.prices && cp.prices.primary) || 0;
+            if (localPrimaryPrice > 25000) {
+              merged.prices = { ...localProd.prices };
+            } else if (cloudPrimaryPrice > 25000) {
+              merged.prices = { ...cp.prices };
+            } else if (localProd.prices && localProd.prices.primary) {
               merged.prices = { ...localProd.prices };
             }
 
             mergedProducts[localIdx] = merged;
+
+            // Jika cloud memiliki harga/CUSA yang stale atau berbeda dari harga lokal yang valid, heal cloud segera!
+            if (localPrimaryPrice > 25000 && cloudPrimaryPrice <= 25000) {
+              syncProductToSupabase(merged);
+            }
           } else {
             // Local change is newer or same: keep local data and heal/sync cloud!
             syncProductToSupabase(localProd);

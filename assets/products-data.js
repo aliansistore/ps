@@ -29,9 +29,9 @@ const INITIAL_PRODUCTS = [
       ]
     },
     prices: {
-      primary: 10000,
-      secondary: 10000,
-      original: 15000
+      primary: 120000,
+      secondary: 120000,
+      original: 479000
     },
     description: "Mainkan mahakarya petualangan co-op 2 pemain paling seru 'It Takes Two' dengan Full Subtitle Bahasa Indonesia. Sangat cocok dimainkan berdua bersama pasangan atau teman dengan jalan cerita komedi emosional yang kini 100% mudah dipahami!",
     features: [
@@ -72,9 +72,9 @@ const INITIAL_PRODUCTS = [
       ]
     },
     prices: {
-      primary: 15000,
-      secondary: 15000,
-      original: 20000
+      primary: 250000,
+      secondary: 250000,
+      original: 879000
     },
     description: "Mahakarya aksi petualangan mitologi Nordik paling fenomenal. Kratos dan Atreus bertualang ke setiap sembilan alam untuk mencari jawaban saat pasukan Asgard bersiap menghadapi pertempuran besar Ragnarok. Full Subtitle Indonesia teks dialog dan narasi rapi.",
     features: [
@@ -114,9 +114,9 @@ const INITIAL_PRODUCTS = [
       ]
     },
     prices: {
-      primary: 15000,
-      secondary: 15000,
-      original: 20000
+      primary: 195000,
+      secondary: 195000,
+      original: 729000
     },
     description: "Rasakan keindahan pulau Tsushima era feodal Jepang dalam kisah Jin Sakai yang berkorban mempertahankan tanah kelahirannya dari invasi Mongol. Lengkap dengan Subtitle Indonesia rapi dan ekspansi Iki Island.",
     features: [
@@ -157,9 +157,9 @@ const INITIAL_PRODUCTS = [
       ]
     },
     prices: {
-      primary: 15000,
-      secondary: 15000,
-      original: 20000
+      primary: 180000,
+      secondary: 180000,
+      original: 579000
     },
     description: "Lanjutan perjalanan emosional Ellie melintasi Seattle pasca-pandemi dalam misi membalas dendam. Diterjemahkan secara mendalam ke dalam Bahasa Indonesia sehingga setiap nuansa dilema moral terasa begitu nyata.",
     features: [
@@ -200,9 +200,9 @@ const INITIAL_PRODUCTS = [
       ]
     },
     prices: {
-      primary: 15000,
-      secondary: 15000,
-      original: 20000
+      primary: 140000,
+      secondary: 140000,
+      original: 429000
     },
     description: "Jelajahi Los Santos bersama Michael, Franklin, dan Trevor dalam bahasa Indonesia! Dilengkapi dengan Mod kearifan lokal, kendaraan khas Indonesia, dan terjemahan misi cerita lengkap tanpa sensor.",
     features: [
@@ -242,9 +242,9 @@ const INITIAL_PRODUCTS = [
       ]
     },
     prices: {
-      primary: 15000,
-      secondary: 15000,
-      original: 20000
+      primary: 135000,
+      secondary: 135000,
+      original: 499000
     },
     description: "Rasakan pertarungan brutal Fatality dan sinematik spektakuler Mortal Kombat 11 Ultimate dengan alur cerita ber-Subtitle Indonesia. Termasuk ekspansi cerita Aftermath dan semua karakter tamu seperti Joker, Terminator, Rambo, dan Spawn.",
     features: [
@@ -284,9 +284,9 @@ const INITIAL_PRODUCTS = [
       ]
     },
     prices: {
-      primary: 15000,
-      secondary: 15000,
-      original: 20000
+      primary: 210000,
+      secondary: 210000,
+      original: 799000
     },
     description: "Rasakan hidup di dunia sihir Harry Potter! Jelajahi Hogwarts, Hogsmeade, Hutan Terlarang, dan kuasai mantra sihir kuno dalam alur cerita RPG mendalam yang kini sepenuhnya berbahasa Indonesia.",
     features: [
@@ -326,9 +326,9 @@ const INITIAL_PRODUCTS = [
       ]
     },
     prices: {
-      primary: 15000,
-      secondary: 15000,
-      original: 20000
+      primary: 110000,
+      secondary: 110000,
+      original: 329000
     },
     description: "Petualangan sinematik kelas dunia Nathan Drake melintasi pulau Madagaskar mencari koloni bajak laut Libertalia. Penuh canda, aksi menegangkan, dan emosi keluarga yang disajikan dengan Subtitle Indonesia sempurna.",
     features: [
@@ -368,9 +368,9 @@ const INITIAL_PRODUCTS = [
       ]
     },
     prices: {
-      primary: 10000,
-      secondary: 10000,
-      original: 15000
+      primary: 90000,
+      secondary: 90000,
+      original: 349000
     },
     description: "Kendalikan seekor kucing oranye tersesat di dalam kota futuristik misterius yang hanya dihuni oleh robot. Ditemani drone kecil B-12, pecahkan teka-teki lingkungan dan temukan jalan pulang dalam Subtitle Indonesia.",
     features: [
@@ -410,9 +410,9 @@ const INITIAL_PRODUCTS = [
       ]
     },
     prices: {
-      primary: 15000,
-      secondary: 15000,
-      original: 20000
+      primary: 150000,
+      secondary: 150000,
+      original: 679000
     },
     description: "Dari prajurit bayaran buangan menjadi pahlawan legendaris Yunani. Hadapi Perang Peloponnesos, monster mitologi Medusa & Minotaur, serta konspirasi Cult of Kosmos dengan Full Subtitle Bahasa Indonesia.",
     features: [
@@ -452,9 +452,9 @@ const INITIAL_PRODUCTS = [
       ]
     },
     prices: {
-      primary: 15000,
-      secondary: 15000,
-      original: 20000
+      primary: 175000,
+      secondary: 175000,
+      original: 649000
     },
     description: "Game RPG turn-based orisinal kreasi Eiichiro Oda. Kendalikan Luffy, Zoro, Nami, Sanji, dan seluruh kru Mugiwara menjelajahi pulau misterius serta kilas balik nostalgia Alabasta & Dressrosa dalam Bahasa Indonesia.",
     features: [
@@ -494,9 +494,9 @@ const INITIAL_PRODUCTS = [
       ]
     },
     prices: {
-      primary: 10000,
-      secondary: 10000,
-      original: 15000
+      primary: 95000,
+      secondary: 95000,
+      original: 299000
     },
     description: "Gunakan smartphone Anda sebagai senjata terhebat untuk mengendalikan sistem ctOS di kota Chicago. Retas lampu merah, kamera pengawas, dan saluran listrik untuk membalas dendam keluarga dengan Subtitle Indonesia lengkap.",
     features: [
@@ -536,9 +536,9 @@ const INITIAL_PRODUCTS = [
       ]
     },
     prices: {
-      primary: 15000,
-      secondary: 15000,
-      original: 20000
+      primary: 160000,
+      secondary: 160000,
+      original: 579000
     },
     description: "Rasakan sensasi berayun jaring laba-laba paling dinamis sebagai Peter Parker melintasi gedung pencakar langit New York City. Hadapi Doc Ock, Mister Negative, dan penjahat Sinister Six dalam Full Subtitle Bahasa Indonesia.",
     features: [
@@ -578,9 +578,9 @@ const INITIAL_PRODUCTS = [
       ]
     },
     prices: {
-      primary: 15000,
-      secondary: 15000,
-      original: 20000
+      primary: 135000,
+      secondary: 135000,
+      original: 399000
     },
     description: "Edisi paling dicari untuk rental dan pecinta game bola PS4! Patch Bitbox Summer Edition membawa pembaruan bursa transfer terkini musim 2026/2027, wajah asli pemain muda, jersey anyar, serta BRI Liga 1 dan Timnas Indonesia lengkap.",
     features: [
