@@ -6,8 +6,8 @@ const INITIAL_PRODUCTS = [
     id: "game-it-takes-two-subindo",
     title: "It Takes Two (Full Subtitle Indonesia)",
     slug: "it-takes-two-sub-indo-ps4-hen",
-    cusa: "CUSA-16982",
-    platform: ["PS4 HEN", "PS4", "PS5"],
+    cusa: "CUSA16742",
+    platform: ["PS4 HEN"],
     category: "family",
     type: "digital",
     badge: "👫 GAME OF THE YEAR",
@@ -21,19 +21,21 @@ const INITIAL_PRODUCTS = [
     publisher: "Electronic Arts / Hazelight Studios",
     tagline: "Petualangan Co-op Terbaik Pemenang Game of the Year dengan Subtitle Indonesia Rapi",
     images: {
+      cusa: "CUSA16742",
       poster: "assets/covers/it-takes-two.jpg",
       backdrop: "assets/backdrops/it-takes-two.jpg",
       cover: "assets/covers/it-takes-two.jpg",
+      driveLink: "https://drive.google.com/drive/folders/1Pw4Fe24O0LAAsV6Affwp_Ef4C0isK6JQ?usp=drive_link",
       screenshots: [
         "assets/backdrops/it-takes-two.jpg"
       ]
     },
     prices: {
-      primary: 120000,
-      secondary: 120000,
-      original: 479000
+      primary: 10000,
+      secondary: 10000,
+      original: 15000
     },
-    description: "Mainkan mahakarya petualangan co-op 2 pemain paling seru 'It Takes Two' dengan Full Subtitle Bahasa Indonesia. Sangat cocok dimainkan berdua bersama pasangan atau teman dengan jalan cerita komedi emosional yang kini 100% mudah dipahami!",
+    description: "Hadirkan keseruan tiada duanya di ruang keluarga Anda bersama It Takes Two (Full Subtitle Indonesia) khusus untuk konsol PS4 HEN! Ikuti petualangan ajaib pasangan suami-istri Cody dan May yang tiba-tiba berubah menjadi boneka kecil akibat mantra misterius air mata putri mereka, Rose. Ditemani buku cinta nyentrik Dr. Hakim, Anda dan pasangan bermain wajib bekerja sama melewati berbagai rintangan kreatif di sekitar rumah mereka.\n\nSetiap level menghadirkan mekanik gameplay unik yang selalu berganti—mulai dari pertempuran melawan tupai militer di pohon raksasa, menjelajahi bola salju ajaib, hingga mengendalikan waktu dan gravitasi dalam layar split-screen yang mulus. Seluruh percakapan humoris, perdebatan emosional Cody & May, serta instruksi teka-teki telah diterjemahkan ke dalam Full Subtitle Bahasa Indonesia yang akurat dan nyaman dibaca.\n\nSebagai peraih penghargaan bergengsi Game of the Year (GOTY) 2021 karya Hazelight Studios, game ini menjadi pilihan nomor satu untuk dimainkan berdua bersama pasangan, sahabat, maupun keluarga. File PKG CUSA16742 di ALIANSI STORE telah teruji 100% stabil di semua firmware PS4 HEN (5.05 hingga 11.00) dengan akses unduhan Google Drive berkecepatan penuh dan panduan instalasi lengkap.",
     features: [
       "100% Subtitle Indonesia (Dialog Cody, May, & Dr. Hakim)",
       "Mendukung Split-screen 2 Pemain Offline & Online",
@@ -41,16 +43,17 @@ const INITIAL_PRODUCTS = [
       "Termasuk Panduan Pasang File PKG Mudah",
       "Garansi Game Lancar Bebas Bug"
     ],
-    driveLink: "https://drive.google.com/drive/folders/1Pw4Fe24O0LAAsV6Affwp_Ef4C0isK6JQ?usp=sharing",
+    driveLink: "https://drive.google.com/drive/folders/1Pw4Fe24O0LAAsV6Affwp_Ef4C0isK6JQ?usp=drive_link",
     inStock: true,
-    updatedAt: "2026-11-09T05:30:00.000Z"
+    isActive: true,
+    updatedAt: "2026-11-15T15:00:00.000Z"
   },
   {
     id: "game-gow-ragnarok-subindo",
     title: "God of War Ragnarök (Full Subtitle Indonesia)",
     slug: "god-of-war-ragnarok-sub-indo",
-    cusa: "CUSA-34384",
-    platform: ["PS4 HEN", "PS5", "PS4"],
+    cusa: "CUSA34386",
+    platform: ["PS4 HEN"],
     category: "action",
     type: "digital",
     badge: "🏆 MASTERPIECE SUB INDO",
@@ -64,19 +67,21 @@ const INITIAL_PRODUCTS = [
     publisher: "PlayStation Studios / Santa Monica",
     tagline: "Perjalanan Terakhir Kratos & Atreus Menghadapi Takdir 9 Alam dalam Bahasa Indonesia",
     images: {
+      cusa: "CUSA34386",
       poster: "assets/covers/gow-ragnarok.jpg",
       backdrop: "assets/backdrops/gow-ragnarok.jpg",
       cover: "assets/covers/gow-ragnarok.jpg",
+      driveLink: "https://drive.google.com/drive/folders/1Z_sKyYSUbLNxbHphQlQnbCe-mpNDL5uI?usp=drive_link",
       screenshots: [
         "assets/backdrops/gow-ragnarok.jpg"
       ]
     },
     prices: {
-      primary: 250000,
-      secondary: 250000,
-      original: 879000
+      primary: 15000,
+      secondary: 15000,
+      original: 20000
     },
-    description: "Mahakarya aksi petualangan mitologi Nordik paling fenomenal. Kratos dan Atreus bertualang ke setiap sembilan alam untuk mencari jawaban saat pasukan Asgard bersiap menghadapi pertempuran besar Ragnarok. Full Subtitle Indonesia teks dialog dan narasi rapi.",
+    description: "Bersiaplah menghadapi puncak peperangan mitologi Nordik dalam mahakarya God of War Ragnarök (Full Subtitle Indonesia) di konsol PS4 HEN Anda! Ketika musim dingin abadi Fimbulwinter membekukan Sembilan Alam, Kratos dan putranya yang beranjak remaja, Atreus, harus menjelajahi setiap sudut dunia dari Svartalfheim hingga Asgard demi mencari jawaban atas ramalan Loki serta mencegah kehancuran total Ragnarök.\n\nRasakan kebrutalan aksi pertarungan jarak dekat yang ikonik menggunakan kapak es Leviathan Axe, pedang berapi Blades of Chaos, serta senjata baru Draupnir Spear dalam berhadapan dengan dewa-dewa legendaris seperti Thor dan Odin. Berkat dukungan Full Subtitle Bahasa Indonesia pada seluruh dialog utama, percakapan Mimir, hingga kisah sampingan, setiap konflik batin antara ayah dan anak terasa jauh lebih emosional dan menggetarkan hati.\n\nEdisi CUSA34386 dari ALIANSI STORE ini sudah mencakup paket Update Patch 5.01 Subtitle Indonesia terbaru yang telah dioptimalkan untuk performa maksimal di PS4 HEN semua versi firmware. Dapatkan akses instan link Google Drive resmi beserta panduan instalasi lengkap dan garansi permainan lancar tanpa kendala.",
     features: [
       "Full Subtitle Bahasa Indonesia Semua Dialog Utama & Side Quest",
       "Kompatibel Semua Firmware PS4 HEN (5.05 - 11.00)",
@@ -84,15 +89,17 @@ const INITIAL_PRODUCTS = [
       "Support Audio Dubbing Inggris Asli dengan Sub Indo Selaras",
       "File Game PKG Lengkap + Panduan Install Anti Gagal"
     ],
-    driveLink: "https://drive.google.com/drive/folders/18C_gowragnarok_subindo_ps4pkg",
-    inStock: true
+    driveLink: "https://drive.google.com/drive/folders/1Z_sKyYSUbLNxbHphQlQnbCe-mpNDL5uI?usp=drive_link",
+    inStock: true,
+    isActive: true,
+    updatedAt: "2026-11-15T15:00:00.000Z"
   },
   {
     id: "game-ghost-tsushima-subindo",
     title: "Ghost of Tsushima: Director's Cut (Full Subtitle Indonesia)",
     slug: "ghost-of-tsushima-sub-indo",
-    cusa: "CUSA-11456",
-    platform: ["PS4 HEN", "PS5", "PS4"],
+    cusa: "CUSA13323",
+    platform: ["PS4 HEN"],
     category: "action",
     type: "digital",
     badge: "⚔️ SAMURAI EPIC",
@@ -106,19 +113,21 @@ const INITIAL_PRODUCTS = [
     publisher: "PlayStation Studios / Sucker Punch",
     tagline: "Kisah Perjuangan Jin Sakai Menjadi Sang Hantu Tsushima dengan Subtitle Indonesia",
     images: {
+      cusa: "CUSA13323",
       poster: "assets/covers/ghost-tsushima.jpg",
       backdrop: "assets/backdrops/ghost-tsushima.jpg",
       cover: "assets/covers/ghost-tsushima.jpg",
+      driveLink: "https://drive.google.com/drive/folders/1P0VCc2I_vcNbOnFz7WbK6UaL6a9PRJlZ?usp=drive_link",
       screenshots: [
         "assets/backdrops/ghost-tsushima.jpg"
       ]
     },
     prices: {
-      primary: 195000,
-      secondary: 195000,
-      original: 729000
+      primary: 15000,
+      secondary: 15000,
+      original: 20000
     },
-    description: "Rasakan keindahan pulau Tsushima era feodal Jepang dalam kisah Jin Sakai yang berkorban mempertahankan tanah kelahirannya dari invasi Mongol. Lengkap dengan Subtitle Indonesia rapi dan ekspansi Iki Island.",
+    description: "Masuki era feodal Jepang akhir abad ke-13 yang memukau dalam Ghost of Tsushima: Director's Cut (Full Subtitle Indonesia) untuk konsol PS4 HEN! Ketika pasukan Kekaisaran Mongol yang dipimpin jenderal kejam Khotun Khan meluluhlantakkan Pulau Tsushima, samurai muda Jin Sakai harus memilih antara mempertahankan kode kehormatan Bushido warisan pamannya, Lord Shimura, atau bangkit sebagai 'Sang Hantu' demi menyelamatkan rakyatnya.\n\nNikmati kebebasan eksplorasi open-world yang sangat artistik dengan panduan hembusan angin, padang bunga warna-warni, kuil Inari, serta duel katana Standoff yang menuntut presisi tinggi. Seluruh narasi sinematik, puisi Haiku, percakapan sekutu seperti Yuna dan Sensei Ishikawa, hingga ekspansi cerita Pulau Iki kini hadir dalam terjemahan Full Subtitle Bahasa Indonesia yang puitis dan mudah dipahami.\n\nDengan kode rilis CUSA13323 yang telah teruji anti-crash di seluruh konsol PS4 HEN (Fat, Slim, maupun Pro), Anda juga dapat menikmati audio dubbing Jepang asli maupun Mode Kurosawa hitam-putih klasik. Pesan sekarang di ALIANSI STORE untuk mendapatkan link Google Drive berkecepatan penuh dan layanan garansi penuh.",
     features: [
       "Teks & Dialog Cerita Full Subtitle Bahasa Indonesia",
       "Termasuk Ekspansi Pulau Iki & Mode Kurosawa",
@@ -128,14 +137,15 @@ const INITIAL_PRODUCTS = [
     ],
     driveLink: "https://drive.google.com/drive/folders/1P0VCc2I_vcNbOnFz7WbK6UaL6a9PRJlZ?usp=drive_link",
     inStock: true,
-    updatedAt: "2026-11-09T05:30:00.000Z"
+    isActive: true,
+    updatedAt: "2026-11-15T15:00:00.000Z"
   },
   {
     id: "game-tlou-part2-subindo",
     title: "The Last of Us Part II (Full Subtitle Indonesia)",
     slug: "the-last-of-us-part-2-sub-indo",
-    cusa: "CUSA-07820",
-    platform: ["PS4 HEN", "PS5", "PS4"],
+    cusa: "CUSA10249",
+    platform: ["PS4 HEN"],
     category: "horror",
     type: "digital",
     badge: "🔥 INTENSE DRAMA",
@@ -149,19 +159,21 @@ const INITIAL_PRODUCTS = [
     publisher: "PlayStation Studios / Naughty Dog",
     tagline: "Kisah Balas Dendam Penuh Emosi Ellie & Abby dengan Subtitle Indonesia Lengkap",
     images: {
+      cusa: "CUSA10249",
       poster: "assets/covers/tlou-part2.jpg",
       backdrop: "assets/backdrops/tlou-part2.jpg",
       cover: "assets/covers/tlou-part2.jpg",
+      driveLink: "https://drive.google.com/drive/folders/1uxBTDu14Dez9CDB1H6UTDBJjc1vU25Id?usp=drive_link",
       screenshots: [
         "assets/backdrops/tlou-part2.jpg"
       ]
     },
     prices: {
-      primary: 180000,
-      secondary: 180000,
-      original: 579000
+      primary: 15000,
+      secondary: 15000,
+      original: 20000
     },
-    description: "Lanjutan perjalanan emosional Ellie melintasi Seattle pasca-pandemi dalam misi membalas dendam. Diterjemahkan secara mendalam ke dalam Bahasa Indonesia sehingga setiap nuansa dilema moral terasa begitu nyata.",
+    description: "Selami salah satu mahakarya naratif paling emosional dan menegangkan sepanjang sejarah PlayStation dalam The Last of Us Part II (Full Subtitle Indonesia) untuk PS4 HEN! Lima tahun setelah perjalanan berbahaya melintasi Amerika Serikat yang hancur akibat wabah jamur Cordyceps, kedamaian hidup Ellie dan Joel di komunitas Jackson direnggut oleh sebuah tragedi kejam yang memicu misi balas dendam berdarah menuju kota Seattle.\n\nRasakan mekanisme gameplay stealth-survival generasi terbaru karya Naughty Dog yang begitu nyata: merayap di balik rerumputan tinggi, merakit amunisi darurat, menghindari kejaran anjing pelacak milik faksi WLF, hingga bertahan hidup dari teror makhluk terinfeksi Clicker dan Shambler. Hadirnya Full Subtitle Bahasa Indonesia pada seluruh dialog Ellie, Dina, dan Abby—termasuk catatan surat rahasia yang tersebar di setiap sudut bangunan—membuat setiap dilema moral terasa begitu menusuk hati.\n\nPaket file digital PKG CUSA10249 di ALIANSI STORE disusun rapi di Google Drive agar mudah diunduh dan dipasang pada konsol PS4 HEN firmware 5.05 hingga 11.00. Bawa pulang pengalaman sinematik pemenang ratusan penghargaan dunia ini dengan harga spesial dan jaminan garansi resmi.",
     features: [
       "Full Subtitle Bahasa Indonesia Dialog & File Surat Rahasia",
       "Gameplay Stealth Survival Paling Realistis",
@@ -171,14 +183,15 @@ const INITIAL_PRODUCTS = [
     ],
     driveLink: "https://drive.google.com/drive/folders/1uxBTDu14Dez9CDB1H6UTDBJjc1vU25Id?usp=drive_link",
     inStock: true,
-    updatedAt: "2026-11-09T05:30:00.000Z"
+    isActive: true,
+    updatedAt: "2026-11-15T15:00:00.000Z"
   },
   {
     id: "game-gta5-subindo",
     title: "GTA V MOD (Full Subtitle Indonesia)",
     slug: "gta-v-mod-subtitle-indonesia-ps4-hen",
-    cusa: "CUSA-00411",
-    platform: ["PS4 HEN", "PS4"],
+    cusa: "CUSA00419",
+    platform: ["PS4 HEN"],
     category: "action",
     type: "digital",
     badge: "🚗 MOD INDONESIA",
@@ -192,19 +205,21 @@ const INITIAL_PRODUCTS = [
     publisher: "Rockstar Games / Aliansi Mod Team",
     tagline: "Grand Theft Auto V Edisi Khusus: Subtitle Indonesia + Mod Kendaraan & Sound Lokal",
     images: {
+      cusa: "CUSA00419",
       poster: "assets/covers/gta-v.jpg",
       backdrop: "assets/backdrops/gta-v.jpg",
       cover: "assets/covers/gta-v.jpg",
+      driveLink: "https://drive.google.com/drive/folders/1JVraSNB9bClkz4xiJK7AxpYkPvAUk7Ch?usp=drive_link",
       screenshots: [
         "assets/backdrops/gta-v.jpg"
       ]
     },
     prices: {
-      primary: 140000,
-      secondary: 140000,
-      original: 429000
+      primary: 25000,
+      secondary: 25000,
+      original: 30000
     },
-    description: "Jelajahi Los Santos bersama Michael, Franklin, dan Trevor dalam bahasa Indonesia! Dilengkapi dengan Mod kearifan lokal, kendaraan khas Indonesia, dan terjemahan misi cerita lengkap tanpa sensor.",
+    description: "Nikmati sensasi menjelajahi gemerlap kota Los Santos dan Blaine County dengan cita rasa lokal dalam GTA V MOD Nuansa Indonesia (Full Subtitle Indonesia) khusus untuk PS4 HEN! Ikuti aksi perampokan spektakuler tiga protagonis ikonik—Michael De Santa, Franklin Clinton, dan Trevor Philips—dengan seluruh dialog misi utama, percakapan telepon, hingga humor sarkastik khas Rockstar Games yang telah diterjemahkan secara utuh ke dalam Bahasa Indonesia.\n\nTidak hanya terjemahan cerita, edisi spesial CUSA00419 (Update 1.49) ini juga dilengkapi paket Mod Nuansa Indonesia serta Mod Menu / Cheat Menu praktis yang bisa langsung diaktifkan lewat kombinasi tombol stik PS4. Anda bebas memunculkan berbagai kendaraan modifikasi khas Indonesia, mengatur cuaca, kebal peluru, hingga menjelajahi jalanan kota dengan suasana yang jauh lebih segar dan seru.\n\nSeluruh file Base Game, Update Patch 1.49, Mod Pack, dan Savedata telah dikemas rapi di dalam folder Google Drive resmi ALIANSI STORE lengkap dengan panduan instalasi bertahap. Sangat cocok untuk koleksi pribadi maupun andalan usaha rental PS4 HEN karena terbukti stabil, anti-hang, dan bergaransi penuh.",
     features: [
       "100% Subtitle Indonesia Misi Cerita Utama & Percakapan Bebas",
       "Mod Kendaraan Motor & Mobil Indonesia Pilihan",
@@ -212,15 +227,17 @@ const INITIAL_PRODUCTS = [
       "Khusus Konsol PS4 HEN Semua Tipe (Fat/Slim/Pro)",
       "Tested 100% Anti Hang & Anti Crash"
     ],
-    driveLink: "https://drive.google.com/drive/folders/21F_gta5mod_subindo_ps4pkg",
-    inStock: true
+    driveLink: "https://drive.google.com/drive/folders/1JVraSNB9bClkz4xiJK7AxpYkPvAUk7Ch?usp=drive_link",
+    inStock: true,
+    isActive: true,
+    updatedAt: "2026-11-15T15:00:00.000Z"
   },
   {
     id: "game-mk11-subindo",
     title: "Mortal Kombat 11 Ultimate (Full Subtitle Indonesia)",
     slug: "mortal-kombat-11-ultimate-sub-indo",
-    cusa: "CUSA-11395",
-    platform: ["PS4 HEN", "PS5", "PS4"],
+    cusa: "CUSA11379",
+    platform: ["PS4 HEN"],
     category: "fighting",
     type: "digital",
     badge: "🥊 ALL DLC UNLOCKED",
@@ -234,19 +251,21 @@ const INITIAL_PRODUCTS = [
     publisher: "Warner Bros. / NetherRealm",
     tagline: "Edisi Terlengkap Mortal Kombat 11: Semua Karakter DLC & Story Aftermath Sub Indo",
     images: {
+      cusa: "CUSA11379",
       poster: "assets/covers/mortal-kombat-11.jpg",
       backdrop: "assets/backdrops/mortal-kombat-11.jpg",
       cover: "assets/covers/mortal-kombat-11.jpg",
+      driveLink: "https://drive.google.com/drive/folders/1Ft7-nvhjDiROsH3lJTpIRiRkRJ0WAnKo?usp=drive_link",
       screenshots: [
         "assets/backdrops/mortal-kombat-11.jpg"
       ]
     },
     prices: {
-      primary: 135000,
-      secondary: 135000,
-      original: 499000
+      primary: 10000,
+      secondary: 10000,
+      original: 15000
     },
-    description: "Rasakan pertarungan brutal Fatality dan sinematik spektakuler Mortal Kombat 11 Ultimate dengan alur cerita ber-Subtitle Indonesia. Termasuk ekspansi cerita Aftermath dan semua karakter tamu seperti Joker, Terminator, Rambo, dan Spawn.",
+    description: "Rasakan puncak pertarungan bela diri paling brutal dan sinematik dalam Mortal Kombat 11 Ultimate (Full Subtitle Indonesia) di konsol PS4 HEN Anda! Ketika penjaga waktu Kronika berusaha menulis ulang sejarah setelah kekalahan Shinnok, para petarung lintas generasi seperti Scorpion, Sub-Zero, Raiden, dan Liu Kang harus bersatu menghadapi anomali garis waktu yang mempertemukan versi masa lalu dan masa kini mereka.\n\nEdisi Ultimate (CUSA11379) ini langsung membuka seluruh 37 daftar petarung lengkap beserta Kombat Pack 1, Kombat Pack 2, dan ekspansi cerita Aftermath—termasuk karakter tamu legendaris seperti Joker, Terminator T-800, RoboCop, Spawn, hingga John Rambo. Nikmati aksi Krushing Blow, Fatal Blow, Friendship, dan Fatality berdarah dalam grafis 60 FPS yang tajam, dilengkapi Full Subtitle Bahasa Indonesia pada seluruh mode cerita sinematiknya.\n\nWajib dimiliki untuk keseruan duel versus 2 pemain bersama teman maupun menyelami alur cerita turnamen antar-alam yang epik. Dapatkan file PKG lengkap siap pasang melalui link Google Drive resmi ALIANSI STORE dengan jaminan garansi work 100% di semua firmware PS4 HEN.",
     features: [
       "Full Subtitle Indonesia Cerita Utama + Aftermath",
       "Membuka 37 Karakter Petarung Lengkap Termasuk Karakter Tamu",
@@ -254,15 +273,17 @@ const INITIAL_PRODUCTS = [
       "Mendukung 2 Pemain Versus Lokal Offline",
       "File Game PKG Siap Instal untuk PS4 HEN"
     ],
-    driveLink: "https://drive.google.com/drive/folders/22G_mk11ultimate_subindo_ps4pkg",
-    inStock: true
+    driveLink: "https://drive.google.com/drive/folders/1Ft7-nvhjDiROsH3lJTpIRiRkRJ0WAnKo?usp=drive_link",
+    inStock: true,
+    isActive: true,
+    updatedAt: "2026-11-15T15:00:00.000Z"
   },
   {
     id: "game-hogwarts-legacy-subindo",
     title: "Hogwarts Legacy (Full Subtitle Indonesia)",
     slug: "hogwarts-legacy-sub-indo-ps4-hen",
-    cusa: "CUSA-12967",
-    platform: ["PS4 HEN", "PS5", "PS4"],
+    cusa: "CUSA12771",
+    platform: ["PS4 HEN"],
     category: "rpg",
     type: "digital",
     badge: "🪄 OPEN WORLD RPG",
@@ -276,19 +297,21 @@ const INITIAL_PRODUCTS = [
     publisher: "Warner Bros. / Avalanche",
     tagline: "Jadilah Murid Sekolah Sihir Hogwarts Abad ke-19 dengan Subtitle Bahasa Indonesia",
     images: {
+      cusa: "CUSA12771",
       poster: "assets/covers/hogwarts-legacy.jpg",
       backdrop: "assets/backdrops/hogwarts-legacy.jpg",
       cover: "assets/covers/hogwarts-legacy.jpg",
+      driveLink: "https://drive.google.com/drive/folders/1fYb7U4P2tBimPkgHbuisnhtrlO3jtClQ?usp=drive_link",
       screenshots: [
         "assets/backdrops/hogwarts-legacy.jpg"
       ]
     },
     prices: {
-      primary: 210000,
-      secondary: 210000,
-      original: 799000
+      primary: 10000,
+      secondary: 10000,
+      original: 15000
     },
-    description: "Rasakan hidup di dunia sihir Harry Potter! Jelajahi Hogwarts, Hogsmeade, Hutan Terlarang, dan kuasai mantra sihir kuno dalam alur cerita RPG mendalam yang kini sepenuhnya berbahasa Indonesia.",
+    description: "Wujudkan impian menjadi penyihir sejati dalam dunia open-world magis Hogwarts Legacy (Full Subtitle Indonesia) untuk konsol PS4 HEN! Berlatar di akhir abad ke-19—jauh sebelum era Harry Potter—Anda berperan sebagai murid tahun kelima yang memegang kunci rahasia Sihir Kuno (Ancient Magic) dan harus menggagalkan pemberontakan goblin Ranrok serta penyihir hitam Victor Rookwood.\n\nPilih sendiri asrama kebanggaan Anda antara Gryffindor, Slytherin, Ravenclaw, atau Hufflepuff, hadiri kelas meramu ramuan dan pertahanan terhadap ilmu hitam, serta terbang bebas melintasi kastil Hogwarts, desa Hogsmeade, hingga Hutan Terlarang di atas sapu terbang atau Hippogriff. Berkat Full Subtitle Bahasa Indonesia, seluruh dialog profesor, teka-teki ruang rahasia Merlin Trials, hingga deskripsi mantra seperti Wingardium Leviosa dan Avada Kedavra dapat dipahami dengan sempurna.\n\nFile PKG CUSA12771 di ALIANSI STORE telah dikemas lengkap dan siap diinstal pada seluruh tipe PS4 HEN firmware 5.05 sampai 11.00. Segera miliki RPG fantasi terbaik ini dengan akses download Google Drive super cepat dan garansi penuh sampai game siap dimainkan.",
     features: [
       "Full Subtitle Indonesia Dialog, Mantra, & Buku Catatan Misteri",
       "Dunia Sihir Luas Open-World Tanpa Batas",
@@ -296,15 +319,17 @@ const INITIAL_PRODUCTS = [
       "Support PS4 HEN Semua Firmware (5.05 - 11.00)",
       "File Bersih & Bergaransi Anti Macet"
     ],
-    driveLink: "https://drive.google.com/drive/folders/23H_hogwartslegacy_subindo_ps4pkg",
-    inStock: true
+    driveLink: "https://drive.google.com/drive/folders/1fYb7U4P2tBimPkgHbuisnhtrlO3jtClQ?usp=drive_link",
+    inStock: true,
+    isActive: true,
+    updatedAt: "2026-11-15T15:00:00.000Z"
   },
   {
     id: "game-uncharted-4-subindo",
     title: "Uncharted 4: A Thief's End (Full Subtitle Indonesia)",
     slug: "uncharted-4-sub-indo",
-    cusa: "CUSA-00341",
-    platform: ["PS4 HEN", "PS5", "PS4"],
+    cusa: "CUSA00341",
+    platform: ["PS4 HEN"],
     category: "action",
     type: "digital",
     badge: "🧭 ACTION ADVENTURE",
@@ -318,19 +343,21 @@ const INITIAL_PRODUCTS = [
     publisher: "PlayStation Studios / Naughty Dog",
     tagline: "Petualangan Terakhir Nathan Drake Berburu Harta Karun Bajak Laut dalam Sub Indo",
     images: {
+      cusa: "CUSA00341",
       poster: "assets/covers/uncharted-4.jpg",
       backdrop: "assets/backdrops/uncharted-4.jpg",
       cover: "assets/covers/uncharted-4.jpg",
+      driveLink: "https://drive.google.com/drive/folders/1SKdN1zmzK1c93Y_WeJRh50L4gGy3k7p9?usp=drive_link",
       screenshots: [
         "assets/backdrops/uncharted-4.jpg"
       ]
     },
     prices: {
-      primary: 110000,
-      secondary: 110000,
-      original: 329000
+      primary: 15000,
+      secondary: 15000,
+      original: 20000
     },
-    description: "Petualangan sinematik kelas dunia Nathan Drake melintasi pulau Madagaskar mencari koloni bajak laut Libertalia. Penuh canda, aksi menegangkan, dan emosi keluarga yang disajikan dengan Subtitle Indonesia sempurna.",
+    description: "Ikuti petualangan perburuan harta karun paling sinematik dan memacu adrenalin bersama Nathan Drake dalam Uncharted 4: A Thief's End (Full Subtitle Indonesia) untuk PS4 HEN! Setelah memutuskan pensiun dari dunia pemburu artefak demi hidup tenang bersama istrinya, Elena Fisher, Nate kembali terseret ke dalam bahaya besar saat kakaknya yang lama dikira tewas, Sam Drake, muncul meminta bantuan untuk menemukan harta karun legendaris Kapten Henry Avery.\n\nJelajahi lanskap eksotis mulai dari pelelangan gelap di Italia, reruntuhan katedral bersalju di Skotlandia, jalanan berlumpur Madagaskar, hingga kota utopis bajak laut Libertalia yang hilang. Perpaduan aksi panjat tebing ekstrem, ayunan tali grappling hook, kejar-kejaran mobil lintas alam, dan baku tembak intens tersaji sempurna dengan Full Subtitle Bahasa Indonesia yang menerjemahkan setiap lelucon khas Nate, Sam, dan Victor Sullivan.\n\nDirilis dengan kode resmi CUSA00341, mahakarya Naughty Dog ini memaksimalkan kualitas grafis PS4 hingga tampak bagaikan film layar lebar Hollywood. Dapatkan file PKG siap instal via Google Drive resmi ALIANSI STORE lengkap dengan panduan pemasangan mudah dan garansi anti-error.",
     features: [
       "100% Subtitle Indonesia Semua Dialog Nate, Sam, & Sully",
       "Aksi Parkour dan Tembak-Menembak Sinematik Terbaik Naughty Dog",
@@ -338,15 +365,17 @@ const INITIAL_PRODUCTS = [
       "Kompatibel Semua Firmware PS4 HEN (5.05 - 11.00)",
       "Pengiriman Link Google Drive Berkecepatan Tinggi"
     ],
-    driveLink: "https://drive.google.com/drive/folders/24I_uncharted4_subindo_ps4pkg",
-    inStock: true
+    driveLink: "https://drive.google.com/drive/folders/1SKdN1zmzK1c93Y_WeJRh50L4gGy3k7p9?usp=drive_link",
+    inStock: true,
+    isActive: true,
+    updatedAt: "2026-11-15T15:00:00.000Z"
   },
   {
     id: "game-stray-subindo",
     title: "Stray (Full Subtitle Indonesia)",
     slug: "stray-sub-indo-ps4-hen",
-    cusa: "CUSA-24899",
-    platform: ["PS4 HEN", "PS5", "PS4"],
+    cusa: "CUSA24899",
+    platform: ["PS4 HEN"],
     category: "adventure",
     type: "digital",
     badge: "🐱 KUCING CYBERPUNK",
@@ -360,19 +389,21 @@ const INITIAL_PRODUCTS = [
     publisher: "Annapurna Interactive / BlueTwelve",
     tagline: "Petualangan Kucing Oranye Menguak Rahasia Kota Cyberpunk dengan Subtitle Indonesia",
     images: {
+      cusa: "CUSA24899",
       poster: "assets/covers/stray.jpg",
       backdrop: "assets/backdrops/stray.jpg",
       cover: "assets/covers/stray.jpg",
+      driveLink: "https://drive.google.com/drive/folders/1qjWgZf5LM3KiBQnzZd1XCJneGtedvOhL?usp=drive_link",
       screenshots: [
         "assets/backdrops/stray.jpg"
       ]
     },
     prices: {
-      primary: 90000,
-      secondary: 90000,
-      original: 349000
+      primary: 8000,
+      secondary: 8000,
+      original: 13000
     },
-    description: "Kendalikan seekor kucing oranye tersesat di dalam kota futuristik misterius yang hanya dihuni oleh robot. Ditemani drone kecil B-12, pecahkan teka-teki lingkungan dan temukan jalan pulang dalam Subtitle Indonesia.",
+    description: "Lihat dunia melalui sudut pandang seekor kucing liar yang cerdas dan menggemaskan dalam Stray (Full Subtitle Indonesia) di konsol PS4 HEN Anda! Terpisah dari keluarganya setelah terjatuh ke dalam Walled City 99—sebuah kota bawah tanah berlampu neon bergaya cyberpunk yang terlupakan—sang kucing oranye harus menjelajahi gang-gang sempit dan atap bangunan demi menemukan jalan kembali ke permukaan.\n\nSepanjang perjalanan, Anda akan bersahabat dengan drone mungil bernama B-12 yang membantu menerjemahkan bahasa para warga robot Companion seperti Momo, Clementine, dan Zbaltazar, sekaligus mempertahankan diri dari kawanan makhluk pemakan logam Zurks. Berkat Full Subtitle Bahasa Indonesia (v1.04 Sub ID), seluruh teka-teki lingkungan, petunjuk misi, dan kisah mengharukan di balik punahnya manusia di kota tersebut dapat diikuti dengan sangat mudah.\n\nDengan ukuran file yang ringan sekitar 15 GB dan kode rilis CUSA24899, game pemenang Best Independent Game ini sangat cepat diunduh serta langsung siap dimainkan di semua firmware PS4 HEN. Pesan sekarang di ALIANSI STORE dan nikmati pengiriman link Google Drive instan.",
     features: [
       "Full Subtitle Indonesia Dialog Drone B-12 & Warga Robot",
       "Ukuran Ringan 15 GB Cepat Diunduh & Dipasang",
@@ -380,15 +411,17 @@ const INITIAL_PRODUCTS = [
       "Kompatibel PS4 HEN Semua Versi Firmware",
       "Garansi Game Berjalan Sempurna"
     ],
-    driveLink: "https://drive.google.com/drive/folders/25J_stray_subindo_ps4pkg",
-    inStock: true
+    driveLink: "https://drive.google.com/drive/folders/1qjWgZf5LM3KiBQnzZd1XCJneGtedvOhL?usp=drive_link",
+    inStock: true,
+    isActive: true,
+    updatedAt: "2026-11-15T15:00:00.000Z"
   },
   {
     id: "game-ac-odyssey-subindo",
     title: "Assassin's Creed Odyssey (Full Subtitle Indonesia)",
     slug: "assassins-creed-odyssey-sub-indo",
-    cusa: "CUSA-09303",
-    platform: ["PS4 HEN", "PS5", "PS4"],
+    cusa: "CUSA09311",
+    platform: ["PS4 HEN"],
     category: "rpg",
     type: "digital",
     badge: "🏛️ YUNANI KUNO RPG",
@@ -402,19 +435,21 @@ const INITIAL_PRODUCTS = [
     publisher: "Ubisoft",
     tagline: "Pilih Takdirmu sebagai Alexios atau Kassandra di Yunani Kuno dengan Teks Sub Indo",
     images: {
+      cusa: "CUSA09311",
       poster: "assets/covers/ac-odyssey.jpg",
       backdrop: "assets/backdrops/ac-odyssey.jpg",
       cover: "assets/covers/ac-odyssey.jpg",
+      driveLink: "https://drive.google.com/drive/folders/1VjZ_0hcRJT2EyhyZ1E7VC5X5F_hTER_4?usp=drive_link",
       screenshots: [
         "assets/backdrops/ac-odyssey.jpg"
       ]
     },
     prices: {
-      primary: 150000,
-      secondary: 150000,
-      original: 679000
+      primary: 10000,
+      secondary: 10000,
+      original: 15000
     },
-    description: "Dari prajurit bayaran buangan menjadi pahlawan legendaris Yunani. Hadapi Perang Peloponnesos, monster mitologi Medusa & Minotaur, serta konspirasi Cult of Kosmos dengan Full Subtitle Bahasa Indonesia.",
+    description: "Tempa takdir Anda sendiri dari seorang prajurit bayaran Sparta yang terbuang menjadi pahlawan legendaris Yunani Kuno dalam Assassin's Creed Odyssey (Full Subtitle Indonesia) untuk PS4 HEN! Pilih karakter utama Anda antara Alexios atau Kassandra, genggam Tombak Leonidas yang memiliki kekuatan artefak Isu, dan arungi lautan Aegea di tengah berkecamuknya Perang Peloponnesos antara Athena dan Sparta.\n\nSebagai RPG open-world berskala masif karya Ubisoft, setiap pilihan dialog yang Anda ambil akan menentukan nasib keluarga Anda serta akhir cerita. Berlayarlah memimpin kapal perang Adrestia, terlibat dalam pertempuran darat 300 prajurit, bongkar jaringan rahasia Cult of Kosmos, hingga tantang makhluk mitologi legendaris seperti Medusa, Minotaur, dan Cyclops—semuanya kini jauh lebih imersif berkat Full Subtitle Bahasa Indonesia.\n\nFile PKG kode CUSA09311 di ALIANSI STORE telah teruji lancar di seluruh konsol PS4 HEN firmware 5.05 hingga 11.00. Dapatkan ratusan jam petualangan sejarah dan mitologi epik ini melalui link Google Drive resmi berkecepatan tinggi dengan garansi penuh.",
     features: [
       "Subtitle Indonesia Menyeluruh Seluruh Cerita & Dialog Pilihan",
       "Peta Open-World Laut & Darat Yunani Kuno yang Luas",
@@ -422,15 +457,17 @@ const INITIAL_PRODUCTS = [
       "Support PS4 HEN Firmware 5.05 - 11.00",
       "Termasuk DLC Paket Tambahan Cerita Atlantis"
     ],
-    driveLink: "https://drive.google.com/drive/folders/26K_acodyssey_subindo_ps4pkg",
-    inStock: true
+    driveLink: "https://drive.google.com/drive/folders/1VjZ_0hcRJT2EyhyZ1E7VC5X5F_hTER_4?usp=drive_link",
+    inStock: true,
+    isActive: true,
+    updatedAt: "2026-11-15T15:00:00.000Z"
   },
   {
     id: "game-one-piece-odyssey-subindo",
     title: "One Piece Odyssey (Full Subtitle Indonesia)",
     slug: "one-piece-odyssey-sub-indo",
-    cusa: "CUSA-30048",
-    platform: ["PS4 HEN", "PS5", "PS4"],
+    cusa: "CUSA14606",
+    platform: ["PS4 HEN"],
     category: "rpg",
     type: "digital",
     badge: "🏴‍☠️ ANIME RPG",
@@ -444,19 +481,21 @@ const INITIAL_PRODUCTS = [
     publisher: "Bandai Namco",
     tagline: "Petualangan Epik Kru Bajak Laut Topi Jerami di Pulau Misterius dalam Subtitle Indonesia",
     images: {
-      poster: "assets/covers/one-piece-odyssey.jpg",
+      cusa: "CUSA14606",
+      poster: "https://upload.wikimedia.org/wikipedia/en/0/0b/One_Piece_Odyssey_Steam_artwork.jpg",
       backdrop: "assets/backdrops/one-piece-odyssey.jpg",
-      cover: "assets/covers/one-piece-odyssey.jpg",
+      cover: "https://upload.wikimedia.org/wikipedia/en/0/0b/One_Piece_Odyssey_Steam_artwork.jpg",
+      driveLink: "https://drive.google.com/drive/folders/1-64nEr0eZFEOSXKOJ2QXuYSp6_8DTjQX?usp=drive_link",
       screenshots: [
         "assets/backdrops/one-piece-odyssey.jpg"
       ]
     },
     prices: {
-      primary: 175000,
-      secondary: 175000,
-      original: 649000
+      primary: 10000,
+      secondary: 10000,
+      original: 15000
     },
-    description: "Game RPG turn-based orisinal kreasi Eiichiro Oda. Kendalikan Luffy, Zoro, Nami, Sanji, dan seluruh kru Mugiwara menjelajahi pulau misterius serta kilas balik nostalgia Alabasta & Dressrosa dalam Bahasa Indonesia.",
+    description: "Berlayarlah menuju petualangan JRPG paling spektakuler untuk merayakan perjalanan panjang sang calon Raja Bajak Laut dalam One Piece Odyssey (Full Subtitle Indonesia) di konsol PS4 HEN! Ketika kapal Thousand Sunny terjebak badai dahsyat di Dunia Baru, Monkey D. Luffy beserta seluruh kru Topi Jerami—Zoro, Nami, Usopp, Sanji, Chopper, Robin, Franky, dan Brook—terdampar di pulau misterius bernama Waford.\n\nSetelah gadis misterius bernama Lim menyegel kekuatan mereka ke dalam kubus ingatan, Anda harus menjelajahi dunia 'Memoria' untuk menghidupkan kembali pertempuran ikonik di Kerajaan Alabasta, Water Seven, Marineford, hingga Dressrosa dengan alur kejutan baru yang diawasi langsung oleh sang kreator Eiichiro Oda. Sistem pertarungan Scramble Area Battle yang strategis disertai animasi jurus Gomu Gomu dan Haki tampil memukau dengan Full Subtitle Bahasa Indonesia.\n\nEdisi CUSA14606 dari ALIANSI STORE ini siap memanjakan para penggemar anime One Piece di konsol PS4 HEN semua versi firmware. Nikmati akses unduhan langsung dari Google Drive resmi lengkap dengan panduan instalasi dan jaminan garansi toko.",
     features: [
       "100% Subtitle Indonesia Seluruh Dialog & Jurus Spesial Mugiwara",
       "Cerita Orisinal Pengawasan Langsung Eiichiro Oda",
@@ -464,15 +503,17 @@ const INITIAL_PRODUCTS = [
       "Support PS4 HEN Semua Versi",
       "Link Download Cepat Tanpa Batas Kuota"
     ],
-    driveLink: "https://drive.google.com/drive/folders/27L_onepieceodyssey_subindo_ps4pkg",
-    inStock: true
+    driveLink: "https://drive.google.com/drive/folders/1-64nEr0eZFEOSXKOJ2QXuYSp6_8DTjQX?usp=drive_link",
+    inStock: true,
+    isActive: true,
+    updatedAt: "2026-11-15T15:00:00.000Z"
   },
   {
     id: "game-watch-dogs-subindo",
     title: "Watch Dogs (Full Subtitle Indonesia)",
     slug: "watch-dogs-sub-indo-ps4-hen",
-    cusa: "CUSA-04460",
-    platform: ["PS4 HEN", "PS4", "PS5"],
+    cusa: "CUSA00021",
+    platform: ["PS4 HEN"],
     category: "action",
     type: "digital",
     badge: "💻 HACKER OPEN WORLD",
@@ -486,19 +527,21 @@ const INITIAL_PRODUCTS = [
     publisher: "Ubisoft",
     tagline: "Retas Seluruh Kota Chicago sebagai Aiden Pearce dengan Dialog Subtitle Indonesia",
     images: {
+      cusa: "CUSA00021",
       poster: "assets/covers/watch-dogs.jpg",
       backdrop: "assets/backdrops/watch-dogs.jpg",
       cover: "assets/covers/watch-dogs.jpg",
+      driveLink: "https://drive.google.com/drive/folders/1IVWJXMq1S0gXWTDwpBbKsOuDZIg3NLr8?usp=drive_link",
       screenshots: [
         "assets/backdrops/watch-dogs.jpg"
       ]
     },
     prices: {
-      primary: 95000,
-      secondary: 95000,
-      original: 299000
+      primary: 10000,
+      secondary: 10000,
+      original: 15000
     },
-    description: "Gunakan smartphone Anda sebagai senjata terhebat untuk mengendalikan sistem ctOS di kota Chicago. Retas lampu merah, kamera pengawas, dan saluran listrik untuk membalas dendam keluarga dengan Subtitle Indonesia lengkap.",
+    description: "Di dunia modern yang sepenuhnya terhubung secara digital, informasi adalah senjata paling mematikan! Dalam Watch Dogs (Full Subtitle Indonesia) untuk konsol PS4 HEN, Anda berperan sebagai Aiden Pearce—seorang peretas brilian di kota Chicago yang terobsesi menuntut keadilan setelah tragedi kelam menimpa keluarganya akibat konspirasi korporasi bayangan dan sindikat kriminal.\n\nBerbekal smartphone khusus yang terhubung langsung ke jaringan pusat ctOS (Central Operating System), Anda dapat memanipulasi seluruh infrastruktur kota secara real-time: mengubah lampu lalu lintas untuk menjebak mobil musuh, meledakkan pipa uap bawah tanah, mematikan aliran listrik satu distrik untuk infiltrasi senyap, hingga menyadap kamera keamanan. Seluruh alur cerita spionase siber bersama Clara Lille dan Raymond 'T-Bone' Kenney kini hadir lengkap dengan Full Subtitle Bahasa Indonesia.\n\nDengan kode rilis CUSA00021 dan ukuran file hemat sekitar 25 GB, game action open-world besutan Ubisoft ini sangat ringan dipasang di semua konsol PS4 HEN firmware 5.05 hingga 11.00. Dapatkan link Google Drive resmi di ALIANSI STORE dengan garansi 100% lancar.",
     features: [
       "Subtitle Bahasa Indonesia Misi Cerita Utama & Audio Log",
       "Mekanik Hacking Kota Open-World Unik",
@@ -506,15 +549,17 @@ const INITIAL_PRODUCTS = [
       "Kompatibel PS4 HEN Firmware 5.05 - 11.00",
       "Ukuran Hemat 25 GB Siap Instalasi Cepat"
     ],
-    driveLink: "https://drive.google.com/drive/folders/28M_watchdogs_subindo_ps4pkg",
-    inStock: true
+    driveLink: "https://drive.google.com/drive/folders/1IVWJXMq1S0gXWTDwpBbKsOuDZIg3NLr8?usp=drive_link",
+    inStock: true,
+    isActive: true,
+    updatedAt: "2026-11-15T15:00:00.000Z"
   },
   {
     id: "game-spiderman-subindo",
     title: "Marvel's Spider-Man (Full Subtitle Indonesia)",
     slug: "marvels-spider-man-sub-indo",
-    cusa: "CUSA-02299",
-    platform: ["PS4 HEN", "PS5", "PS4"],
+    cusa: "CUSA02299",
+    platform: ["PS4 HEN"],
     category: "action",
     type: "digital",
     badge: "🕷️ SUPERHERO HIT",
@@ -528,19 +573,21 @@ const INITIAL_PRODUCTS = [
     publisher: "PlayStation Studios / Insomniac",
     tagline: "Berayun di Kota New York Melawan Sinister Six dengan Terjemahan Sub Indo Lengkap",
     images: {
+      cusa: "CUSA02299",
       poster: "assets/covers/spiderman.jpg",
       backdrop: "assets/backdrops/spiderman.jpg",
       cover: "assets/covers/spiderman.jpg",
+      driveLink: "https://drive.google.com/drive/folders/1flqbyn1edmdGlmXPpjQmBfxK1_2n61Vx?usp=drive_link",
       screenshots: [
         "assets/backdrops/spiderman.jpg"
       ]
     },
     prices: {
-      primary: 160000,
-      secondary: 160000,
-      original: 579000
+      primary: 15000,
+      secondary: 15000,
+      original: 20000
     },
-    description: "Rasakan sensasi berayun jaring laba-laba paling dinamis sebagai Peter Parker melintasi gedung pencakar langit New York City. Hadapi Doc Ock, Mister Negative, dan penjahat Sinister Six dalam Full Subtitle Bahasa Indonesia.",
+    description: "Rasakan kebebasan berayun dengan jaring laba-laba melintasi gedung-gedung pencakar langit Manhattan dalam Marvel's Spider-Man (Full Subtitle Indonesia) untuk konsol PS4 HEN! Mengisahkan Peter Parker yang telah berpengalaman selama delapan tahun menjaga keamanan kota New York sekaligus bekerja sebagai ilmuwan muda di laboratorium Dr. Otto Octavius, keseimbangan hidupnya diuji ketika ancaman kelompok Inner Demons pimpinan Mister Negative mulai meneror kota.\n\nNikmati sistem pertarungan akrobatik yang cepat, penggunaan berbagai gadget jaring canggih, serta puluhan kostum ikonik Spider-Man dengan kemampuan spesial unik saat menghadapi aliansi penjahat super Sinister Six—mulai dari Electro, Vulture, Rhino, Scorpion, Mister Negative, hingga Doc Ock. Seluruh dialog penuh humor khas Peter, investigasi bersama Mary Jane Watson dan Miles Morales, serta drama emosional kini tersaji rapi dalam Full Subtitle Bahasa Indonesia.\n\nPaket CUSA02299 di ALIANSI STORE ini telah diuji berjalan mulus di seluruh firmware PS4 HEN (5.05 - 11.00). Segera pesan untuk mendapatkan akses link download resmi beserta panduan instalasi lengkap dan garansi penuh.",
     features: [
       "100% Subtitle Indonesia Dialog Peter, MJ, Miles & Sinister Six",
       "Termasuk Paket 3 DLC Cerita 'The City That Never Sleeps'",
@@ -548,15 +595,17 @@ const INITIAL_PRODUCTS = [
       "Support PS4 HEN Semua Firmware",
       "File Game Teruji 100% Working"
     ],
-    driveLink: "https://drive.google.com/drive/folders/29N_spiderman_subindo_ps4pkg",
-    inStock: true
+    driveLink: "https://drive.google.com/drive/folders/1flqbyn1edmdGlmXPpjQmBfxK1_2n61Vx?usp=drive_link",
+    inStock: true,
+    isActive: true,
+    updatedAt: "2026-11-15T15:00:00.000Z"
   },
   {
     id: "game-pes-2027-bitbox",
     title: "PES 2027 Bitbox Summer Update",
     slug: "pes-2027-bitbox-summer-update-ps4-hen",
-    cusa: "CUSA-14917",
-    platform: ["PS4 HEN", "PS4"],
+    cusa: "CUSA18740",
+    platform: ["PS4 HEN"],
     category: "sports",
     type: "digital",
     badge: "⚽ LATEST UPDATE 2027",
@@ -570,19 +619,21 @@ const INITIAL_PRODUCTS = [
     publisher: "Konami / Bitbox Patch Team",
     tagline: "Patch Musim Panas Terbaru: Jersey 2026/2027, Bursa Transfer Eropa, BRI Liga 1 & Timnas",
     images: {
+      cusa: "CUSA18740",
       poster: "assets/covers/pes-2027.jpg",
       backdrop: "assets/backdrops/pes-2027.jpg",
       cover: "assets/covers/pes-2027.jpg",
+      driveLink: "https://drive.google.com/drive/folders/1m5KFwedXfdEoIN6BCr4hT07wRN6MkYnO?usp=drive_link",
       screenshots: [
         "assets/backdrops/pes-2027.jpg"
       ]
     },
     prices: {
-      primary: 135000,
-      secondary: 135000,
-      original: 399000
+      primary: 20000,
+      secondary: 20000,
+      original: 25000
     },
-    description: "Edisi paling dicari untuk rental dan pecinta game bola PS4! Patch Bitbox Summer Edition membawa pembaruan bursa transfer terkini musim 2026/2027, wajah asli pemain muda, jersey anyar, serta BRI Liga 1 dan Timnas Indonesia lengkap.",
+    description: "Hadirkan atmosfer stadion sepak bola dunia dan kebanggaan Tanah Air di konsol PS4 HEN Anda bersama eFootball PES 2027 Bitbox Summer Update! Dibangun di atas mesin gameplay eFootball PES 2021 Season Update (CUSA18740) yang paling dicintai para gamer maupun pengusaha rental PS4, patch Bitbox terbaru ini membawa pembaruan menyeluruh bursa transfer pemain musim 2026/2027 di seluruh liga top Eropa.\n\nRasakan sensasi membela Timnas Indonesia Garuda dengan wajah pemain naturalisasi & lokal yang sangat realistis (Real Face HD), berkompetisi di ajang BRI Liga 1 Indonesia lengkap dengan chant suporter, hingga menikmati jersey klub Eropa terbaru, sepatu bola, papan skor televisi resmi, serta rumput stadion bertekstur tajam. Kontrol operan, dribel, dan tendangan yang responsif menjamin keseruan mabar bersama teman berjam-jam tanpa bosan.\n\nSeluruh file Base Game dan Update Patch Bitbox Summer 2027 telah tersedia lengkap di folder Google Drive resmi ALIANSI STORE disertai panduan cara pasang yang sangat mudah untuk semua firmware PS4 HEN (5.05 - 11.00). Pesan sekarang dan rasakan pengalaman sepak bola paling update dengan garansi resmi!",
     features: [
       "Update Transfer Pemain Musim Panas 2026/2027 Lengkap",
       "BRI Liga 1 Indonesia & Timnas Garuda Full Face Realistis",
@@ -590,8 +641,10 @@ const INITIAL_PRODUCTS = [
       "Grafis Tajam & Gameplay Responsif untuk PS4 HEN",
       "Tinggal Pasang File PKG Langsung Main"
     ],
-    driveLink: "https://drive.google.com/drive/folders/30O_pes2027bitbox_subindo_ps4pkg",
-    inStock: true
+    driveLink: "https://drive.google.com/drive/folders/1m5KFwedXfdEoIN6BCr4hT07wRN6MkYnO?usp=drive_link",
+    inStock: true,
+    isActive: true,
+    updatedAt: "2026-11-15T15:00:00.000Z"
   }
 ];
 

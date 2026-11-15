@@ -557,6 +557,36 @@ function loadStoredData() {
     saveProducts();
   }
 
+  // One-time catalog sync v82 (CUSA GDrive + Harga Adzi Digital Service diskon Rp 5.000 + Platform PS4 HEN + Deskripsi AI)
+  // Setelah berjalan 1x, flag terkunci selamanya agar perubahan manual user di masa depan TIDAK PERNAH tertimpa!
+  const ADZI_CATALOG_SYNC_KEY = 'aliansi_adzi_catalog_sync_v82';
+  if (localStorage.getItem(ADZI_CATALOG_SYNC_KEY) !== 'true' && typeof INITIAL_PRODUCTS !== 'undefined' && Array.isArray(INITIAL_PRODUCTS)) {
+    const prevProducts = Array.isArray(state.products) ? state.products : [];
+    const syncedCatalog = INITIAL_PRODUCTS.map(ip => {
+      const prev = prevProducts.find(p => p.id === ip.id);
+      const clone = JSON.parse(JSON.stringify(ip));
+      if (prev && prev.images) {
+        if (prev.images.poster && (prev.images.poster.startsWith('data:image') || !prev.images.poster.startsWith('assets/covers/'))) {
+          clone.images.poster = prev.images.poster;
+          clone.images.cover = prev.images.poster;
+        }
+        if (prev.images.backdrop && (prev.images.backdrop.startsWith('data:image') || !prev.images.backdrop.startsWith('assets/backdrops/'))) {
+          clone.images.backdrop = prev.images.backdrop;
+        }
+      }
+      return clone;
+    });
+    // Pertahankan juga game tambahan yang pernah dibuat manual oleh user di luar 14 game awal
+    prevProducts.forEach(prev => {
+      if (prev && prev.id && !syncedCatalog.some(sc => sc.id === prev.id)) {
+        syncedCatalog.push(prev);
+      }
+    });
+    state.products = syncedCatalog;
+    localStorage.setItem(ADZI_CATALOG_SYNC_KEY, 'true');
+    saveProducts();
+  }
+
   // Ensure default catalog products exist without overwriting custom modifications
   if (typeof INITIAL_PRODUCTS !== 'undefined' && Array.isArray(INITIAL_PRODUCTS)) {
     INITIAL_PRODUCTS.forEach(ip => {
@@ -9711,49 +9741,49 @@ function suggestCusaCode(title) {
   if (!title) return '';
   const clean = title.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
   const cusaMap = [
-    { keys: ['it takes two'], cusa: 'CUSA-16982' },
-    { keys: ['god of war ragnarok', 'god of war ragnarök'], cusa: 'CUSA-34384' },
-    { keys: ['god of war'], cusa: 'CUSA-07408' },
-    { keys: ['silent hill 2'], cusa: 'CUSA-43890' },
-    { keys: ['resident evil 4'], cusa: 'CUSA-33387' },
-    { keys: ['resident evil village', 're8'], cusa: 'CUSA-18017' },
-    { keys: ['resident evil 2'], cusa: 'CUSA-09193' },
-    { keys: ['resident evil 3'], cusa: 'CUSA-14168' },
-    { keys: ['ghost of tsushima', 'tsushima'], cusa: 'CUSA-11456' },
-    { keys: ['the last of us part 2', 'last of us part ii', 'tlou 2'], cusa: 'CUSA-07820' },
-    { keys: ['the last of us part 1', 'last of us part i', 'last of us remastered', 'tlou 1'], cusa: 'CUSA-00552' },
-    { keys: ['fc 25', 'ea sports fc 25'], cusa: 'CUSA-47522' },
-    { keys: ['fc 24', 'ea sports fc 24'], cusa: 'CUSA-40326' },
-    { keys: ['fifa 23'], cusa: 'CUSA-31879' },
-    { keys: ['pes 2027', 'pes 2021', 'efootball pes'], cusa: 'CUSA-14917' },
-    { keys: ['red dead redemption 2', 'rdr 2', 'rdr2'], cusa: 'CUSA-08519' },
-    { keys: ['red dead redemption'], cusa: 'CUSA-36843' },
-    { keys: ['gta v', 'gta 5', 'grand theft auto v', 'grand theft auto 5'], cusa: 'CUSA-00411' },
-    { keys: ['elden ring'], cusa: 'CUSA-28863' },
-    { keys: ['uncharted 4'], cusa: 'CUSA-00341' },
-    { keys: ['uncharted the lost legacy', 'lost legacy'], cusa: 'CUSA-07737' },
-    { keys: ['black myth wukong', 'wukong'], cusa: 'CUSA-38910' },
-    { keys: ['mortal kombat 11', 'mk 11', 'mk11'], cusa: 'CUSA-11395' },
-    { keys: ['hogwarts legacy'], cusa: 'CUSA-12967' },
-    { keys: ['stray'], cusa: 'CUSA-24899' },
-    { keys: ['assassins creed odyssey', 'ac odyssey'], cusa: 'CUSA-09303' },
-    { keys: ['assassins creed valhalla', 'ac valhalla'], cusa: 'CUSA-18534' },
-    { keys: ['assassins creed mirage', 'ac mirage'], cusa: 'CUSA-34674' },
-    { keys: ['one piece odyssey'], cusa: 'CUSA-30048' },
-    { keys: ['watch dogs'], cusa: 'CUSA-04460' },
-    { keys: ['spider-man', 'spiderman', 'marvels spider man'], cusa: 'CUSA-02299' },
-    { keys: ['miles morales'], cusa: 'CUSA-17709' },
-    { keys: ['cyberpunk 2077'], cusa: 'CUSA-16596' },
-    { keys: ['witcher 3', 'the witcher 3'], cusa: 'CUSA-05725' },
-    { keys: ['bloodborne'], cusa: 'CUSA-03173' },
-    { keys: ['sekiro'], cusa: 'CUSA-13801' },
-    { keys: ['horizon zero dawn'], cusa: 'CUSA-01967' },
-    { keys: ['horizon forbidden west'], cusa: 'CUSA-24705' },
-    { keys: ['monster hunter world'], cusa: 'CUSA-07713' },
-    { keys: ['death stranding'], cusa: 'CUSA-11260' },
-    { keys: ['gran turismo 7', 'gt7'], cusa: 'CUSA-24765' },
-    { keys: ['tekken 7'], cusa: 'CUSA-05972' },
-    { keys: ['naruto shippuden ultimate ninja storm 4', 'storm 4'], cusa: 'CUSA-02412' }
+    { keys: ['it takes two'], cusa: 'CUSA16742' },
+    { keys: ['god of war ragnarok', 'god of war ragnarök'], cusa: 'CUSA34386' },
+    { keys: ['god of war'], cusa: 'CUSA07408' },
+    { keys: ['silent hill 2'], cusa: 'CUSA43890' },
+    { keys: ['resident evil 4'], cusa: 'CUSA33387' },
+    { keys: ['resident evil village', 're8'], cusa: 'CUSA18017' },
+    { keys: ['resident evil 2'], cusa: 'CUSA09193' },
+    { keys: ['resident evil 3'], cusa: 'CUSA14168' },
+    { keys: ['ghost of tsushima', 'tsushima'], cusa: 'CUSA13323' },
+    { keys: ['the last of us part 2', 'last of us part ii', 'tlou 2'], cusa: 'CUSA10249' },
+    { keys: ['the last of us part 1', 'last of us part i', 'last of us remastered', 'tlou 1'], cusa: 'CUSA00552' },
+    { keys: ['fc 25', 'ea sports fc 25'], cusa: 'CUSA47522' },
+    { keys: ['fc 24', 'ea sports fc 24'], cusa: 'CUSA40326' },
+    { keys: ['fifa 23'], cusa: 'CUSA31879' },
+    { keys: ['pes 2027', 'pes 2021', 'efootball pes'], cusa: 'CUSA18740' },
+    { keys: ['red dead redemption 2', 'rdr 2', 'rdr2'], cusa: 'CUSA08519' },
+    { keys: ['red dead redemption'], cusa: 'CUSA36843' },
+    { keys: ['gta v', 'gta 5', 'grand theft auto v', 'grand theft auto 5'], cusa: 'CUSA00419' },
+    { keys: ['elden ring'], cusa: 'CUSA28863' },
+    { keys: ['uncharted 4'], cusa: 'CUSA00341' },
+    { keys: ['uncharted the lost legacy', 'lost legacy'], cusa: 'CUSA07737' },
+    { keys: ['black myth wukong', 'wukong'], cusa: 'CUSA38910' },
+    { keys: ['mortal kombat 11', 'mk 11', 'mk11'], cusa: 'CUSA11379' },
+    { keys: ['hogwarts legacy'], cusa: 'CUSA12771' },
+    { keys: ['stray'], cusa: 'CUSA24899' },
+    { keys: ['assassins creed odyssey', 'ac odyssey'], cusa: 'CUSA09311' },
+    { keys: ['assassins creed valhalla', 'ac valhalla'], cusa: 'CUSA18534' },
+    { keys: ['assassins creed mirage', 'ac mirage'], cusa: 'CUSA34674' },
+    { keys: ['one piece odyssey'], cusa: 'CUSA14606' },
+    { keys: ['watch dogs', 'watchdog'], cusa: 'CUSA00021' },
+    { keys: ['spider-man', 'spiderman', 'marvels spider man'], cusa: 'CUSA02299' },
+    { keys: ['miles morales'], cusa: 'CUSA17709' },
+    { keys: ['cyberpunk 2077'], cusa: 'CUSA16596' },
+    { keys: ['witcher 3', 'the witcher 3'], cusa: 'CUSA05725' },
+    { keys: ['bloodborne'], cusa: 'CUSA03173' },
+    { keys: ['sekiro'], cusa: 'CUSA13801' },
+    { keys: ['horizon zero dawn'], cusa: 'CUSA01967' },
+    { keys: ['horizon forbidden west'], cusa: 'CUSA24705' },
+    { keys: ['monster hunter world'], cusa: 'CUSA07713' },
+    { keys: ['death stranding'], cusa: 'CUSA11260' },
+    { keys: ['gran turismo 7', 'gt7'], cusa: 'CUSA24765' },
+    { keys: ['tekken 7'], cusa: 'CUSA05972' },
+    { keys: ['naruto shippuden ultimate ninja storm 4', 'storm 4'], cusa: 'CUSA02412' }
   ];
   for (const item of cusaMap) {
     if (item.keys.some(k => clean.includes(k))) {
@@ -10387,6 +10417,8 @@ function submitEditProduct() {
   p.images.poster = poster || p.images.poster || '';
   p.images.cover = p.images.poster;
   p.images.backdrop = backdrop || p.images.backdrop || '';
+  if (p.cusa) p.images.cusa = p.cusa;
+  if (p.driveLink) p.images.driveLink = p.driveLink;
   p.description = document.getElementById('edit-game-desc').value.trim();
 
   // Status Publikasi Game (Aktif / Nonaktif)
