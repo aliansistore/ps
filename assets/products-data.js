@@ -29,9 +29,9 @@ const INITIAL_PRODUCTS = [
       ]
     },
     prices: {
-      primary: 120000,
-      secondary: 120000,
-      original: 479000
+      primary: 10000,
+      secondary: 10000,
+      original: 15000
     },
     description: "Mainkan mahakarya petualangan co-op 2 pemain paling seru 'It Takes Two' dengan Full Subtitle Bahasa Indonesia. Sangat cocok dimainkan berdua bersama pasangan atau teman dengan jalan cerita komedi emosional yang kini 100% mudah dipahami!",
     features: [
@@ -114,9 +114,9 @@ const INITIAL_PRODUCTS = [
       ]
     },
     prices: {
-      primary: 195000,
-      secondary: 195000,
-      original: 729000
+      primary: 15000,
+      secondary: 15000,
+      original: 20000
     },
     description: "Rasakan keindahan pulau Tsushima era feodal Jepang dalam kisah Jin Sakai yang berkorban mempertahankan tanah kelahirannya dari invasi Mongol. Lengkap dengan Subtitle Indonesia rapi dan ekspansi Iki Island.",
     features: [
@@ -157,9 +157,9 @@ const INITIAL_PRODUCTS = [
       ]
     },
     prices: {
-      primary: 180000,
-      secondary: 180000,
-      original: 579000
+      primary: 15000,
+      secondary: 15000,
+      original: 20000
     },
     description: "Lanjutan perjalanan emosional Ellie melintasi Seattle pasca-pandemi dalam misi membalas dendam. Diterjemahkan secara mendalam ke dalam Bahasa Indonesia sehingga setiap nuansa dilema moral terasa begitu nyata.",
     features: [
