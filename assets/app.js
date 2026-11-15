@@ -2,7 +2,7 @@
 // Features: Web Audio SFX Synth, PS5 Console Spotlight, Card Dual-Pricing, Realtime Fulfillment
 
 const APP_STORAGE_KEYS = {
-  PRODUCTS: 'aliansi_store_products_v5',
+  PRODUCTS: 'aliansi_store_products_v4',
   ORDERS: 'aliansi_store_orders_v3',
   CONFIG: 'aliansi_store_config_v3',
   CART: 'aliansi_store_cart_v2',
@@ -539,52 +539,22 @@ function loadStoredData() {
   state.isAudioMuted = localStorage.getItem(APP_STORAGE_KEYS.AUDIO_MUTED) === 'true';
   updateAudioIndicator();
 
-  // Load Products from Local Storage with backwards-compatible migration and integrity verification
-  const CATALOG_INTEGRITY_KEY = 'aliansi_catalog_integrity_version';
-  const CURRENT_CATALOG_VERSION = '20261115_authentic_71cafc5_v80';
-  const storedVersion = localStorage.getItem(CATALOG_INTEGRITY_KEY);
-
-  let storedProducts = localStorage.getItem(APP_STORAGE_KEYS.PRODUCTS);
-
-  if (storedVersion !== CURRENT_CATALOG_VERSION) {
-    // Insiden penimpaan cache: jika versi integritas katalog belum sesuai,
-    // muat 100% data otentik baseline commit 71cafc5 dari INITIAL_PRODUCTS
-    state.products = (typeof INITIAL_PRODUCTS !== 'undefined' && Array.isArray(INITIAL_PRODUCTS))
-      ? JSON.parse(JSON.stringify(INITIAL_PRODUCTS))
-      : [];
-
-    // Jika user sebelumnya pernah menambahkan game kustom baru (ID di luar baseline), pertahankan game tersebut
-    if (storedProducts) {
-      try {
-        const parsed = JSON.parse(storedProducts);
-        if (Array.isArray(parsed)) {
-          parsed.forEach(p => {
-            if (!state.products.some(bp => bp.id === p.id)) {
-              state.products.push(p);
-            }
-          });
-        }
-      } catch (e) {}
-    }
-
-    saveProducts();
-    localStorage.setItem(CATALOG_INTEGRITY_KEY, CURRENT_CATALOG_VERSION);
-  } else {
-    if (storedProducts) {
-      try {
-        const parsed = JSON.parse(storedProducts);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          state.products = parsed;
-        } else {
-          state.products = typeof INITIAL_PRODUCTS !== 'undefined' ? [...INITIAL_PRODUCTS] : [];
-        }
-      } catch (e) {
-        state.products = typeof INITIAL_PRODUCTS !== 'undefined' ? [...INITIAL_PRODUCTS] : [];
+  // Load Products from Local Storage with backwards-compatible migration (v4 & v5)
+  let storedProducts = localStorage.getItem(APP_STORAGE_KEYS.PRODUCTS) || localStorage.getItem('aliansi_store_products_v5');
+  if (storedProducts) {
+    try {
+      const parsed = JSON.parse(storedProducts);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        state.products = parsed;
+      } else {
+        state.products = typeof INITIAL_PRODUCTS !== 'undefined' ? JSON.parse(JSON.stringify(INITIAL_PRODUCTS)) : [];
       }
-    } else {
-      state.products = typeof INITIAL_PRODUCTS !== 'undefined' ? [...INITIAL_PRODUCTS] : [];
-      saveProducts();
+    } catch (e) {
+      state.products = typeof INITIAL_PRODUCTS !== 'undefined' ? JSON.parse(JSON.stringify(INITIAL_PRODUCTS)) : [];
     }
+  } else {
+    state.products = typeof INITIAL_PRODUCTS !== 'undefined' ? JSON.parse(JSON.stringify(INITIAL_PRODUCTS)) : [];
+    saveProducts();
   }
 
   // Ensure default catalog products exist without overwriting custom modifications
@@ -596,7 +566,7 @@ function loadStoredData() {
         state.products.push({ ...ip });
       } else {
         // NON-DESTRUCTIVE FALLBACK ONLY: Isi field yang benar-benar kosong,
-        // DILARANG KERAS menimpa harga, judul, deskripsi, ukuran, atau data yang sudah di-update user!
+        // DILARANG KERAS menimpa harga, CUSA, kategori, judul, deskripsi, ukuran, atau data yang sudah di-update user!
         if (ip.driveLink && !existing.driveLink) {
           existing.driveLink = ip.driveLink;
         }
@@ -616,14 +586,6 @@ function loadStoredData() {
         if (!existing.prices || typeof existing.prices.primary === 'undefined') {
           existing.prices = { ...ip.prices };
         }
-        // Auto-heal: jika harga di local terdistorsi (<= 25.000 untuk game HEN), pulihkan kembali ke harga otentik
-        const localPrimary = (existing.prices && existing.prices.primary) || 0;
-        if (localPrimary <= 25000 && ip.prices && ip.prices.primary > 25000) {
-          existing.prices = { ...ip.prices };
-          if (ip.cusa) existing.cusa = ip.cusa;
-          existing.updatedAt = '2026-11-15T12:00:00.000Z';
-        }
-        // JAMINAN MUTLAK: Jangan pernah menimpa existing.prices dari INITIAL_PRODUCTS
       }
     });
   }
@@ -1054,14 +1016,7 @@ async function syncFromSupabase() {
             const merged = { ...cp };
             merged.images = finalImages;
             // PROTEKSI PERMANEN CUSA & DATA ADMIN:
-            // Utamakan CUSA otentik format CUSA-XXXXX dari cloud atau baseline lokal yang valid
-            if (cp.cusa && cp.cusa.startsWith('CUSA-')) {
-              merged.cusa = cp.cusa;
-            } else if (localProd.cusa && localProd.cusa.startsWith('CUSA-')) {
-              merged.cusa = localProd.cusa;
-            } else {
-              merged.cusa = cp.cusa || (cp.images && cp.images.cusa) || localProd.cusa || '';
-            }
+            merged.cusa = cp.cusa || (cp.images && cp.images.cusa) || localProd.cusa || '';
             merged.driveLink = cp.driveLink || localProd.driveLink || (cp.images && cp.images.driveLink) || '';
             if ((!cp.size || cp.size === '50 GB') && localProd.size && localProd.size !== '50 GB') {
               merged.size = localProd.size;
@@ -1074,30 +1029,18 @@ async function syncFromSupabase() {
               merged.features = localProd.features;
             }
 
-            // PROTEKSI MUTLAK HARGA:
-            // Utamakan harga otentik yang valid (> 25.000)
-            const localPrimaryPrice = (localProd.prices && localProd.prices.primary) || 0;
+            // Gunakan harga terbaru dari Cloud jika valid (> 0), atau fallback ke lokal
             const cloudPrimaryPrice = (cp.prices && cp.prices.primary) || 0;
-            if (cloudPrimaryPrice > 25000 && localPrimaryPrice <= 25000) {
-              merged.prices = { ...cp.prices };
-            } else if (localPrimaryPrice > 25000) {
-              merged.prices = { ...localProd.prices };
-            } else if (cloudPrimaryPrice > 0) {
+            if (cloudPrimaryPrice > 0) {
               merged.prices = { ...cp.prices };
             } else if (localProd.prices && localProd.prices.primary) {
               merged.prices = { ...localProd.prices };
             }
 
             mergedProducts[localIdx] = merged;
-
-            // Jika cloud memiliki harga/CUSA yang stale atau berbeda dari harga lokal yang valid, heal cloud segera!
-            if (localPrimaryPrice > 25000 && cloudPrimaryPrice <= 25000) {
-              syncProductToSupabase(merged);
-            }
           } else {
-            // Local change is newer or same: keep local data and heal/sync cloud HANYA jika harga lokal valid!
-            const localPrimaryPrice = (localProd.prices && localProd.prices.primary) || 0;
-            if (localPrimaryPrice > 25000) {
+            // Local change is newer or same: keep local data and sync to cloud if local was explicitly updated
+            if (localTime > cloudTime) {
               syncProductToSupabase(localProd);
             }
           }
@@ -1332,7 +1275,6 @@ async function syncProductToSupabase(p) {
       id: p.id,
       title: p.title,
       slug: p.slug || p.id,
-      cusa: p.cusa || null,
       platform: p.platform,
       category: p.category,
       type: p.type || 'digital',
@@ -12944,6 +12886,74 @@ function renderBerandaVouchers() {
   }).join('');
 
   if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
+}
+
+// ==========================================
+// CATALOG RECOVERY / IMPORT / BACKUP MODAL
+// ==========================================
+function openCatalogImportModal() {
+  playSfx('click');
+  const modal = document.getElementById('modal-catalog-import');
+  if (!modal) return;
+  const input = document.getElementById('import-catalog-json-input');
+  if (input) input.value = '';
+  modal.classList.remove('hidden');
+  if (window.lucide) lucide.createIcons();
+}
+
+function copyCurrentCatalogJson() {
+  playSfx('click');
+  const jsonStr = JSON.stringify(state.products || [], null, 2);
+  const input = document.getElementById('import-catalog-json-input');
+  if (input) input.value = jsonStr;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(jsonStr).then(() => {
+      showToast('Data katalog saat ini berhasil disalin ke clipboard!', 'success');
+    }).catch(() => {
+      showToast('Data ditampilkan di kotak teks. Silakan salin manual.', 'info');
+    });
+  } else {
+    showToast('Data ditampilkan di kotak teks. Silakan salin manual.', 'info');
+  }
+}
+
+async function submitCatalogImportJson() {
+  playSfx('click');
+  const input = document.getElementById('import-catalog-json-input');
+  const raw = input ? input.value.trim() : '';
+  if (!raw) {
+    showToast('Tempelkan data JSON katalog produk terlebih dahulu!', 'warning');
+    return;
+  }
+  try {
+    let parsed = JSON.parse(raw);
+    if (typeof parsed === 'string') {
+      parsed = JSON.parse(parsed);
+    }
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      showToast('Format JSON tidak valid (harus berupa Array daftar produk)!', 'error');
+      return;
+    }
+    const nowIso = new Date().toISOString();
+    state.products = parsed.map(p => ({
+      ...p,
+      updatedAt: nowIso
+    }));
+    saveProducts();
+    for (const prod of state.products) {
+      await syncProductToSupabase(prod);
+    }
+    closeModals();
+    playSfx('success');
+    renderProducts();
+    initSpotlightHero();
+    renderAdminProductsTable();
+    renderAdminStats();
+    showToast(`Berhasil memulihkan & menyimpan ${state.products.length} produk secara permanen ke Cloud Supabase!`, 'success');
+  } catch (err) {
+    console.error('Catalog import error:', err);
+    showToast('Gagal membaca JSON: pastikan format yang ditempel utuh dan benar.', 'error');
+  }
 }
 
 if (document.readyState === 'loading') {

@@ -3712,6 +3712,9 @@
                 class="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-400 focus:border-sky-500 outline-none"
               />
             </div>
+            <button type="button" onclick="openCatalogImportModal()" class="px-3 py-2 rounded-xl text-xs font-bold bg-purple-950/80 hover:bg-purple-900 text-purple-300 border border-purple-500/40 flex items-center gap-1.5 shrink-0 cursor-pointer" title="Pulihkan atau Impor Data Katalog Produk dari Domain Lama (Netlify)">
+              <i data-lucide="database-backup" class="w-4 h-4 text-purple-400"></i> Pulihkan / Impor Data
+            </button>
             <button onclick="openAddProductModal()" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white shadow-md shadow-sky-600/30 flex items-center gap-1.5 shrink-0">
               <i data-lucide="plus" class="w-4 h-4"></i> Tambah Game
             </button>
@@ -6810,6 +6813,55 @@
     </div>
   </div>
 
+  <!-- MODAL: Catalog Recovery & Import from Old Domain (Netlify) -->
+  <div id="modal-catalog-import" class="app-modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop-blur">
+    <div class="bg-[#080f24] border border-purple-500/40 rounded-3xl max-w-xl w-full max-h-[90vh] overflow-y-auto modal-custom-scroll shadow-2xl relative p-6" onclick="event.stopPropagation()">
+      <button onclick="closeModals()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center cursor-pointer">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center border border-purple-500/30">
+          <i data-lucide="database-backup" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-black text-white font-display">Pulihkan / Impor Data Katalog Produk</h3>
+          <p class="text-xs text-slate-400">Tarik perubahan manual (harga, CUSA, kategori) dari browser lama atau tempel JSON katalog</p>
+        </div>
+      </div>
+
+      <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 text-xs text-slate-300 space-y-2 mb-4">
+        <div class="font-bold text-purple-300 flex items-center gap-1.5">
+          <i data-lucide="info" class="w-4 h-4 shrink-0"></i>
+          <span>Cara Ambil Data dari Tab Netlify Lama (Jika masih tersimpan di Browser Anda):</span>
+        </div>
+        <ol class="list-decimal list-inside space-y-1 text-[11px] text-slate-400">
+          <li>Buka tab <a href="https://aliansistore-ps.netlify.app/" target="_blank" class="text-sky-400 underline font-semibold">aliansistore-ps.netlify.app</a> di browser tempat Anda dulu mengedit produk.</li>
+          <li>Tekan <b>F12</b> (atau Klik Kanan &gt; Inspect &gt; tab <b>Console</b>), lalu jalankan perintah ini:<br/>
+            <code class="block mt-1 p-2 rounded-lg bg-slate-950 text-emerald-400 font-mono text-[10px] select-all">copy(localStorage.getItem('aliansi_store_products_v4'))</code>
+          </li>
+          <li>Tempel (Paste) hasilnya di kotak di bawah ini lalu klik <b>Simpan Permanen ke Cloud &amp; Toko</b>.</li>
+        </ol>
+      </div>
+
+      <div class="mb-4">
+        <div class="flex items-center justify-between mb-1.5">
+          <label class="text-xs font-bold text-slate-300">Data JSON Katalog Produk:</label>
+          <button type="button" onclick="copyCurrentCatalogJson()" class="text-[11px] font-bold text-sky-400 hover:text-sky-300 flex items-center gap-1 cursor-pointer">
+            <i data-lucide="copy" class="w-3 h-3"></i> Salin Data Saat Ini (Backup)
+          </button>
+        </div>
+        <textarea id="import-catalog-json-input" rows="6" placeholder='Tempel JSON dari localStorage di sini (diawali dengan [{"id":"game-..." ...])' class="w-full p-3 rounded-xl bg-slate-950 border border-slate-700 text-emerald-300 font-mono text-[11px] outline-none focus:border-purple-500"></textarea>
+      </div>
+
+      <div class="flex items-center justify-end gap-2">
+        <button type="button" onclick="closeModals()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold cursor-pointer">Batal</button>
+        <button type="button" onclick="submitCatalogImportJson()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-sky-600 hover:from-purple-500 hover:to-sky-500 text-white text-xs font-black shadow-lg flex items-center gap-2 cursor-pointer">
+          <i data-lucide="cloud-upload" class="w-4 h-4"></i> Simpan Permanen ke Cloud &amp; Toko
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- DRAWER: Cart -->
   <div id="drawer-cart" class="hidden fixed inset-0 z-50 overflow-hidden">
     <div class="absolute inset-0 bg-black/60 dark:bg-black/75 backdrop-blur-md transition-opacity" onclick="closeCartDrawer()"></div>
@@ -6874,7 +6926,7 @@
   </nav>
 
   <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261115_restore_exact_71cafc5_v80"></script>
-  <script src="assets/app.js?v=20261115_restore_exact_71cafc5_v80"></script>
+  <script src="assets/products-data.js?v=20261115_fix_supabase_cusa_v81"></script>
+  <script src="assets/app.js?v=20261115_fix_supabase_cusa_v81"></script>
 </body>
 </html>
