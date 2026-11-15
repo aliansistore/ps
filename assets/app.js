@@ -558,12 +558,19 @@ function loadStoredData() {
   }
 
   // One-time catalog sync v83 (CUSA GDrive + PES 2027 CUSA18468 + Harga Adzi Digital Service diskon Rp 5.000 + Platform PS4 HEN + Deskripsi AI)
-  // Setelah berjalan 1x, flag terkunci selamanya agar perubahan manual user di masa depan TIDAK PERNAH tertimpa!
+  // Dilindungi Timestamp Shield: Hanya memperbarui produk jika data lokal lebih lama dari baseline v83 (2026-11-15T15:05:00.000Z),
+  // sehingga setiap editan manual user setelah ini DIJAMIN 100% TIDAK AKAN PERNAH TERTIMPA di domain manapun!
   const ADZI_CATALOG_SYNC_KEY = 'aliansi_adzi_catalog_sync_v83';
   if (localStorage.getItem(ADZI_CATALOG_SYNC_KEY) !== 'true' && typeof INITIAL_PRODUCTS !== 'undefined' && Array.isArray(INITIAL_PRODUCTS)) {
     const prevProducts = Array.isArray(state.products) ? state.products : [];
     const syncedCatalog = INITIAL_PRODUCTS.map(ip => {
       const prev = prevProducts.find(p => p.id === ip.id);
+      const prevTime = (prev && prev.updatedAt) ? new Date(prev.updatedAt).getTime() : 0;
+      const ipTime = ip.updatedAt ? new Date(ip.updatedAt).getTime() : 0;
+      // Jika user sudah melakukan edit manual yang lebih baru dari baseline v83, pertahankan 100% data user!
+      if (prev && prevTime > ipTime) {
+        return prev;
+      }
       const clone = JSON.parse(JSON.stringify(ip));
       if (prev && prev.images) {
         if (prev.images.poster && (prev.images.poster.startsWith('data:image') || !prev.images.poster.startsWith('assets/covers/'))) {
