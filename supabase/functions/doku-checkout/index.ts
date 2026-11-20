@@ -103,9 +103,6 @@ Deno.serve(async (req: Request) => {
       ? 'https://api.doku.com'
       : 'https://api-sandbox.doku.com';
 
-    const requestId = crypto.randomUUID();
-    const requestTimestamp = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
-
     const lineItems = items.length > 0
       ? items.map((item: { title?: string; unitPrice?: number; qty?: number }) => ({
           name: String(item.title || 'Game PlayStation Digital').slice(0, 64),
@@ -132,49 +129,64 @@ Deno.serve(async (req: Request) => {
       orderObj.line_items = lineItems;
     }
 
-    const paymentObj: Record<string, unknown> = {
-      payment_due_date: 60, // berlaku 60 menit
+    const sendToDoku = async (includePaymentMethodFilter: boolean) => {
+      const paymentObj: Record<string, unknown> = {
+        payment_due_date: 60, // berlaku 60 menit
+      };
+
+      if (includePaymentMethodFilter && paymentMethodKey && METHOD_MAP[paymentMethodKey]) {
+        paymentObj.payment_method_types = METHOD_MAP[paymentMethodKey];
+      }
+
+      const dokuPayload = {
+        order: orderObj,
+        payment: paymentObj,
+        customer: {
+          id: invoiceNumber,
+          name: customerName,
+          email: customerEmail,
+          phone: customerPhone,
+        },
+      };
+
+      const rawBody = JSON.stringify(dokuPayload);
+      const reqId = crypto.randomUUID();
+      const reqTs = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
+      const digest = await sha256Base64(rawBody);
+      const componentSignature =
+        `Client-Id:${clientId}\n` +
+        `Request-Id:${reqId}\n` +
+        `Request-Timestamp:${reqTs}\n` +
+        `Request-Target:${requestTarget}\n` +
+        `Digest:${digest}`;
+      const signature = `HMACSHA256=${await hmacSha256Base64(secretKey, componentSignature)}`;
+
+      const resp = await fetch(`${baseUrl}${requestTarget}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Client-Id': clientId,
+          'Request-Id': reqId,
+          'Request-Timestamp': reqTs,
+          'Digest': digest,
+          'Signature': signature,
+        },
+        body: rawBody,
+      });
+
+      const data = await resp.json();
+      return { resp, data };
     };
 
-    if (paymentMethodKey && METHOD_MAP[paymentMethodKey]) {
-      paymentObj.payment_method_types = METHOD_MAP[paymentMethodKey];
+    // 1. Coba sesuai metode yang dipilih user; jika channel belum aktif di akun DOKU, fallback ke semua channel aktif
+    let { resp: dokuResp, data: dokuData } = await sendToDoku(true);
+    if (!dokuResp.ok && paymentMethodKey && METHOD_MAP[paymentMethodKey]) {
+      const retry = await sendToDoku(false);
+      if (retry.resp.ok) {
+        dokuResp = retry.resp;
+        dokuData = retry.data;
+      }
     }
-
-    const dokuPayload = {
-      order: orderObj,
-      payment: paymentObj,
-      customer: {
-        id: invoiceNumber,
-        name: customerName,
-        email: customerEmail,
-        phone: customerPhone,
-      },
-    };
-
-    const rawBody = JSON.stringify(dokuPayload);
-    const digest = await sha256Base64(rawBody);
-    const componentSignature =
-      `Client-Id:${clientId}\n` +
-      `Request-Id:${requestId}\n` +
-      `Request-Timestamp:${requestTimestamp}\n` +
-      `Request-Target:${requestTarget}\n` +
-      `Digest:${digest}`;
-    const signature = `HMACSHA256=${await hmacSha256Base64(secretKey, componentSignature)}`;
-
-    const dokuResp = await fetch(`${baseUrl}${requestTarget}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Client-Id': clientId,
-        'Request-Id': requestId,
-        'Request-Timestamp': requestTimestamp,
-        'Digest': digest,
-        'Signature': signature,
-      },
-      body: rawBody,
-    });
-
-    const dokuData = await dokuResp.json();
 
     if (!dokuResp.ok) {
       return new Response(
