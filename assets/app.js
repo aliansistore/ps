@@ -3049,59 +3049,59 @@ function selectPaymentMethod(element, method) {
   element.classList.add('border-sky-500', 'bg-sky-950/50', 'ring-1', 'ring-sky-500');
 }
 
-// ================= DUITKU PAYMENT GATEWAY INTEGRATION =================
-const DUITKU_METHOD_MAP = {
-  'qris': 'SP',        // ShopeePay QRIS (Universal scan)
-  'bca': 'BC',         // BCA Virtual Account
-  'mandiri': 'M2',     // Mandiri Virtual Account
-  'bri': 'BR',         // BRI Virtual Account
-  'bni': 'I1',         // BNI Virtual Account
-  'dana': 'DA',        // DANA Direct
-  'ovo': 'OV',         // OVO
-  'shopeepay': 'SA'    // ShopeePay
+// ================= DOKU PAYMENT GATEWAY (SUPABASE EDGE FUNCTION) =================
+const DOKU_METHOD_MAP = {
+  'qris': 'qris',
+  'bca': 'bca',
+  'mandiri': 'mandiri',
+  'bri': 'bri',
+  'bni': 'bni',
+  'dana': 'dana',
+  'ovo': 'ovo',
+  'gopay': 'gopay',
+  'shopeepay': 'shopeepay'
 };
 
-async function requestDuitkuInquiry(order) {
-  const methodCode = DUITKU_METHOD_MAP[order.paymentMethod] || DUITKU_METHOD_MAP[state.selectedPayment] || 'SP';
+async function requestDokuCheckout(order) {
+  const methodKey = DOKU_METHOD_MAP[order.paymentMethod] || DOKU_METHOD_MAP[state.selectedPayment] || 'qris';
 
   const payload = {
-    merchantOrderId: order.id,
-    paymentAmount: order.total,
-    paymentMethod: methodCode,
-    productDetails: (order.items && order.items.length > 0)
-      ? order.items.map(i => i.title).join(', ').substring(0, 240)
-      : 'Game PS4 Digital',
-    email: order.customerEmail || 'customer@gmail.com',
-    phoneNumber: order.customerPhone || '081234567890',
-    callbackUrl: 'https://aliansistore-ps.netlify.app/callback',
-    returnUrl: window.location.origin + window.location.pathname
+    invoiceNumber: order.id,
+    amount: order.total,
+    paymentMethod: methodKey,
+    customerName: order.customerName || 'Customer Aliansi Store',
+    customerEmail: order.customerEmail || 'customer@aliansistore.com',
+    customerPhone: order.customerPhone || '081234567890',
+    returnUrl: window.location.origin + window.location.pathname,
+    items: (order.items || []).map(i => ({
+      title: i.title,
+      unitPrice: i.unitPrice,
+      qty: i.qty || 1
+    }))
   };
 
-  const endpoints = [
-    'https://aliansistore-ps.netlify.app/.netlify/functions/duitku-inquiry',
-    '/.netlify/functions/duitku-inquiry',
-    '/api/duitku-inquiry'
-  ];
+  const edgeUrl = `${SUPABASE_CONFIG.url}/functions/v1/doku-checkout`;
+  try {
+    const res = await fetch(edgeUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_CONFIG.anonKey,
+        'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`
+      },
+      body: JSON.stringify(payload)
+    });
 
-  for (const ep of endpoints) {
-    try {
-      const res = await fetch(ep, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data && data.statusCode === '00') {
-          return { ...data, paymentMethod: methodCode };
-        }
-      }
-    } catch (err) {
-      // Coba endpoint cadangan berikutnya
+    const data = await res.json().catch(() => null);
+    if (res.ok && data && data.success && data.paymentUrl) {
+      return data;
     }
+    console.warn('DOKU Checkout notice:', data || res.status);
+    return data || null;
+  } catch (err) {
+    console.warn('DOKU Edge Function belum aktif / tidak terjangkau:', err);
+    return null;
   }
-
-  return null;
 }
 
 // Submit Order
@@ -3145,7 +3145,7 @@ async function submitOrder() {
   const originalBtnText = btnSubmit ? btnSubmit.innerHTML : '';
   if (btnSubmit) {
     btnSubmit.disabled = true;
-    btnSubmit.innerHTML = `<span class="inline-block animate-spin mr-2">⏳</span> Menghubungkan Duitku QRIS...`;
+    btnSubmit.innerHTML = `<span class="inline-block animate-spin mr-2">⏳</span> Menghubungkan DOKU Payment Gateway...`;
   }
 
   let subtotal = 0;
@@ -3190,23 +3190,23 @@ async function submitOrder() {
     fulfillment: null
   };
 
-  // Request Duitku Payment Gateway untuk SEMUA metode pembayaran (QRIS, BCA VA, Mandiri VA, DANA)
+  // Request DOKU Payment Gateway (via Supabase Edge Function) untuk SEMUA metode pembayaran
   try {
-    const duitkuRes = await requestDuitkuInquiry(newOrder);
-    if (duitkuRes && duitkuRes.statusCode === '00') {
+    const dokuRes = await requestDokuCheckout(newOrder);
+    if (dokuRes && dokuRes.success && dokuRes.paymentUrl) {
       newOrder.fulfillment = {
-        duitku: {
-          reference: duitkuRes.reference,
-          paymentUrl: duitkuRes.paymentUrl,
-          qrString: duitkuRes.qrString || null,
-          vaNumber: duitkuRes.vaNumber || null,
-          paymentMethod: duitkuRes.paymentMethod || state.selectedPayment,
-          amount: duitkuRes.amount
+        doku: {
+          env: dokuRes.env || 'sandbox',
+          tokenId: dokuRes.tokenId || null,
+          paymentUrl: dokuRes.paymentUrl,
+          expiredDate: dokuRes.expiredDate || null,
+          paymentMethod: dokuRes.paymentMethod || state.selectedPayment,
+          amount: dokuRes.amount || newOrder.total
         }
       };
     }
   } catch (e) {
-    console.warn('Gagal memanggil Duitku Inquiry:', e);
+    console.warn('Gagal memanggil DOKU Checkout:', e);
   }
 
   state.orders.unshift(newOrder);
@@ -3683,10 +3683,70 @@ function renderPaymentBox(order) {
   const container = document.getElementById('inv-payment-instructions-content');
   if (!container) return;
 
-  const duitkuData = (order.fulfillment && order.fulfillment.duitku) ? order.fulfillment.duitku : null;
-  const paymentUrl = duitkuData?.paymentUrl;
-  const vaNumber = duitkuData?.vaNumber;
-  const qrString = duitkuData?.qrString || `00020101021226670016ID.CO.QRIS.WWW011893600002011234567802150000000000000010303UMI51440014ID.GO.BI.QRIS011893600002011234567802150000000000000010303UMI52045814530336054${order.total}5802ID5913ALIANSI_STORE6007JAKARTA61051234062070703A016304${order.id}`;
+  const dokuData = (order.fulfillment && order.fulfillment.doku) ? order.fulfillment.doku : null;
+  const legacyData = (order.fulfillment && order.fulfillment.duitku) ? order.fulfillment.duitku : null;
+  const paymentUrl = dokuData?.paymentUrl || legacyData?.paymentUrl || null;
+  const vaNumber = legacyData?.vaNumber || null;
+  const isSandbox = !dokuData || dokuData.env !== 'production';
+  const qrString = legacyData?.qrString || `00020101021226670016ID.CO.QRIS.WWW011893600002011234567802150000000000000010303UMI51440014ID.GO.BI.QRIS011893600002011234567802150000000000000010303UMI52045814530336054${order.total}5802ID5913ALIANSI_STORE6007JAKARTA61051234062070703A016304${order.id}`;
+
+  const methodNames = {
+    qris: 'QRIS (Semua Bank & E-Wallet)',
+    bca: 'Virtual Account BCA',
+    mandiri: 'Virtual Account Mandiri',
+    bri: 'Virtual Account BRI',
+    bni: 'Virtual Account BNI',
+    dana: 'E-Wallet DANA',
+    ovo: 'E-Wallet OVO',
+    gopay: 'E-Wallet GoPay',
+    shopeepay: 'E-Wallet ShopeePay'
+  };
+  const methodLabel = methodNames[order.paymentMethod] || String(order.paymentMethod || 'DOKU Checkout').toUpperCase();
+
+  // Jika DOKU Checkout URL aktif dari Supabase Edge Function
+  if (dokuData && paymentUrl) {
+    container.innerHTML = `
+      <div class="p-5 rounded-2xl bg-white dark:bg-[#070d1e] border border-slate-200 dark:border-sky-500/40 text-center shadow-sm">
+        <div class="flex items-center justify-center gap-2 flex-wrap mb-2">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-500/40 text-[11px] font-bold">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span> DOKU PAYMENT GATEWAY (OTOMATIS)
+          </span>
+          ${isSandbox ? `<span class="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-500/40 text-[10px] font-extrabold">SANDBOX MODE</span>` : ''}
+        </div>
+
+        <p class="text-xs text-slate-600 dark:text-slate-400 mb-3">
+          Metode dipilih: <strong class="text-slate-900 dark:text-white">${methodLabel}</strong>. Klik tombol di bawah untuk membuka halaman pembayaran resmi DOKU (verifikasi otomatis).
+        </p>
+
+        <div class="text-xs font-bold text-slate-700 dark:text-slate-300">Total Tagihan:</div>
+        <div class="text-2xl font-black text-sky-600 dark:text-sky-400 font-display mt-0.5 mb-4">${formatRupiah(order.total)}</div>
+
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-2 mb-3">
+          <a href="${paymentUrl}" target="_blank" rel="noopener noreferrer" class="force-white w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-rose-600 to-sky-600 hover:from-rose-500 hover:to-sky-500 text-white text-xs font-black shadow-lg shadow-sky-600/30 flex items-center justify-center gap-2 transition-all">
+            <i data-lucide="external-link" class="w-4 h-4"></i> Bayar Sekarang via DOKU Checkout
+          </a>
+        </div>
+
+        <div class="text-[11px] text-slate-600 dark:text-slate-400 mb-4 flex items-center justify-center gap-1.5">
+          <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-500 dark:text-amber-400"></i>
+          <span>Menunggu konfirmasi otomatis dari DOKU...</span>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-2">
+          <button onclick="checkOrderStatusManual('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold border border-slate-300 dark:border-slate-700 flex items-center justify-center gap-1.5">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Cek Status Sekarang
+          </button>
+          ${isSandbox ? `
+            <button onclick="simulateCustomerPaid('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-900/60 dark:hover:bg-emerald-800/80 text-emerald-800 dark:text-emerald-300 text-xs font-bold border border-emerald-300 dark:border-emerald-600/40 flex items-center justify-center gap-1.5" title="Uji Coba Sandbox">
+              <i data-lucide="play" class="w-3.5 h-3.5"></i> Tes Lunas (Sandbox)
+            </button>
+          ` : ''}
+        </div>
+      </div>
+    `;
+    lucide.createIcons();
+    return;
+  }
 
   const isVA = (order.paymentMethod === 'bca' || order.paymentMethod === 'mandiri' || order.paymentMethod === 'bri' || order.paymentMethod === 'bni' || !!vaNumber);
   const isDana = (order.paymentMethod === 'dana');
@@ -3697,7 +3757,7 @@ function renderPaymentBox(order) {
     container.innerHTML = `
       <div class="p-5 rounded-2xl bg-white dark:bg-[#070d1e] border border-slate-200 dark:border-sky-500/40 text-center shadow-sm">
         <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-950 text-sky-700 dark:text-sky-400 border border-sky-300 dark:border-sky-500/30 text-[11px] font-bold mb-2">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span> VIRTUAL ACCOUNT ${bankLabel.toUpperCase()} RESMI DUITKU (OTOMATIS)
+          <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span> VIRTUAL ACCOUNT ${bankLabel.toUpperCase()} RESMI DOKU (OTOMATIS)
         </div>
         <p class="text-xs text-slate-600 dark:text-slate-400 mb-3">Bayar via ${bankLabel} Mobile, Internet Banking, atau ATM. Diverifikasi otomatis tanpa kirim bukti transfer.</p>
 
@@ -3716,13 +3776,13 @@ function renderPaymentBox(order) {
 
         <div class="text-[11px] text-slate-600 dark:text-slate-400 mb-4 flex items-center justify-center gap-1.5">
           <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-500 dark:text-amber-400"></i>
-          <span>Menunggu konfirmasi pembayaran otomatis Duitku...</span>
+          <span>Menunggu konfirmasi pembayaran otomatis DOKU...</span>
         </div>
 
         <div class="flex flex-col sm:flex-row items-center justify-center gap-2">
           ${paymentUrl ? `
             <a href="${paymentUrl}" target="_blank" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-lg transition-all flex items-center justify-center gap-1.5">
-              <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Buka Pembayaran Duitku (Web / Simulator)
+              <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Buka Pembayaran DOKU (Web / Simulator)
             </a>
           ` : ''}
           <button onclick="checkOrderStatusManual('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold border border-slate-300 dark:border-slate-700 flex items-center justify-center gap-1.5">
@@ -3739,7 +3799,7 @@ function renderPaymentBox(order) {
     container.innerHTML = `
       <div class="p-5 rounded-2xl bg-white dark:bg-[#070d1e] border border-slate-200 dark:border-sky-500/40 text-center shadow-sm">
         <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-950 text-sky-700 dark:text-sky-400 border border-sky-300 dark:border-sky-500/30 text-[11px] font-bold mb-2">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span> E-WALLET DANA RESMI DUITKU (OTOMATIS)
+          <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span> E-WALLET DANA RESMI DOKU (OTOMATIS)
         </div>
         <p class="text-xs text-slate-600 dark:text-slate-400 mb-3">Klik tombol di bawah untuk menyelesaikan pembayaran langsung di aplikasi DANA.</p>
 
@@ -3768,7 +3828,7 @@ function renderPaymentBox(order) {
     container.innerHTML = `
       <div class="text-center p-5 rounded-2xl bg-white dark:bg-[#070d1e] border border-slate-200 dark:border-sky-500/40 shadow-sm">
         <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-950 text-sky-700 dark:text-sky-400 border border-sky-300 dark:border-sky-500/30 text-[11px] font-bold mb-2">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span> QRIS RESMI DUITKU (OTOMATIS)
+          <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span> QRIS RESMI DOKU (OTOMATIS)
         </div>
         <p class="text-xs text-slate-600 dark:text-slate-400 mb-3">Scan pakai aplikasi apa saja: BCA, Mandiri, BRI, Livin, GoPay, OVO, DANA, ShopeePay</p>
         
@@ -3779,13 +3839,13 @@ function renderPaymentBox(order) {
 
         <div class="text-[11px] text-slate-600 dark:text-slate-400 mb-4 flex items-center justify-center gap-1.5">
           <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-500 dark:text-amber-400"></i>
-          <span>Menunggu konfirmasi pembayaran otomatis (bebas reload)...</span>
+          <span>Menunggu konfirmasi pembayaran otomatis DOKU...</span>
         </div>
 
         <div class="flex flex-col sm:flex-row items-center justify-center gap-2">
           ${paymentUrl ? `
             <a href="${paymentUrl}" target="_blank" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-lg transition-all flex items-center justify-center gap-1.5">
-              <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Buka Pembayaran Duitku (Web / Simulator)
+              <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Buka Pembayaran DOKU (Web / Simulator)
             </a>
           ` : ''}
           <button onclick="checkOrderStatusManual('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold border border-slate-300 dark:border-slate-700 flex items-center justify-center gap-1.5">
