@@ -2835,6 +2835,23 @@ function openCheckout() {
   lucide.createIcons();
 }
 
+function removeCheckoutItem(index) {
+  playSfx('click');
+  if (!Array.isArray(state.cart) || index < 0 || index >= state.cart.length) return;
+  const removed = state.cart.splice(index, 1)[0];
+  saveCart();
+  if (state.cart.length === 0) {
+    closeModals();
+    showToast(`"${removed?.title || 'Game'}" dihapus. Keranjang kini kosong.`, 'info');
+    return;
+  }
+  renderCheckoutSummary();
+  if (window.lucide && typeof lucide.createIcons === 'function') {
+    lucide.createIcons();
+  }
+  showToast(`"${removed?.title || 'Game'}" dihapus dari daftar pembayaran.`, 'info');
+}
+
 function renderCheckoutSummary() {
   const summaryContainer = document.getElementById('checkout-items-summary');
   const subtotalElem = document.getElementById('checkout-subtotal');
@@ -2866,18 +2883,28 @@ function renderCheckoutSummary() {
   const finalTotal = Math.max(0, subtotal - discount);
 
   if (summaryContainer) {
-    summaryContainer.innerHTML = state.cart.map(item => {
+    summaryContainer.innerHTML = state.cart.map((item, idx) => {
       const prod = state.products.find(p => p.id === item.productId);
       const isHen = item.variant === 'PS4 HEN' || isHenProduct(prod);
       const displayVariant = isHen ? 'PS4 HEN' : (item.variant || 'Primary');
       return `
-      <div class="flex items-center justify-between py-2 border-b border-slate-800/80 text-xs">
-        <div class="flex-1 pr-2 truncate">
-          <div class="text-white font-bold truncate">${item.title}</div>
-          <div class="text-[10px] text-sky-400 uppercase font-mono">${displayVariant} • ${item.platform} • x${item.qty}</div>
+      <div class="flex items-center justify-between gap-2 py-2.5 border-b border-slate-200 dark:border-slate-800/80 text-xs">
+        <div class="flex-1 min-w-0 pr-1">
+          <div class="text-slate-900 dark:text-white font-bold truncate">${escapeHtml(item.title)}</div>
+          <div class="text-[10px] text-sky-600 dark:text-sky-400 uppercase font-mono">${displayVariant} • ${escapeHtml(item.platform || 'PS4 HEN')} • x${item.qty}</div>
         </div>
-        <div class="font-extrabold text-white shrink-0 font-display">
-          ${formatRupiah(item.unitPrice * item.qty)}
+        <div class="flex items-center gap-2 shrink-0">
+          <div class="font-extrabold text-slate-900 dark:text-white font-display">
+            ${formatRupiah(item.unitPrice * item.qty)}
+          </div>
+          <button
+            type="button"
+            onclick="removeCheckoutItem(${idx})"
+            class="w-7 h-7 rounded-lg bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white border border-rose-500/30 flex items-center justify-center transition-all cursor-pointer"
+            title="Hapus game ini dari pembayaran"
+          >
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
         </div>
       </div>
     `;
@@ -3504,18 +3531,31 @@ function renderInvoiceDetails(order) {
   // Items List
   const itemsContainer = document.getElementById('inv-items');
   if (itemsContainer) {
-    itemsContainer.innerHTML = order.items.map(item => {
+    const canRemoveItem = order.paymentStatus === 'UNPAID' && Array.isArray(order.items) && order.items.length > 1;
+    itemsContainer.innerHTML = order.items.map((item, idx) => {
       const prod = (state.products || []).find(p => p.id === (item.productId || item.id) || p.title === item.title);
       const isHen = item.variant === 'PS4 HEN' || isHenProduct(prod);
       const displayVariant = isHen ? 'PS4 HEN' : (item.variant || 'Primary');
       return `
-      <div class="flex items-center justify-between py-2 border-b border-slate-800/80 text-xs">
-        <div>
-          <div class="font-bold text-white">${escapeHtml(item.title)}</div>
-          <div class="text-[11px] text-sky-400 uppercase font-mono">${displayVariant} • ${item.platform} • x${item.qty}</div>
+      <div class="flex items-center justify-between gap-2 py-2 border-b border-slate-200 dark:border-slate-800/80 text-xs">
+        <div class="flex-1 min-w-0">
+          <div class="font-bold text-slate-900 dark:text-white truncate">${escapeHtml(item.title)}</div>
+          <div class="text-[11px] text-sky-600 dark:text-sky-400 uppercase font-mono">${displayVariant} • ${escapeHtml(item.platform || 'PS4 HEN')} • x${item.qty}</div>
         </div>
-        <div class="text-right font-display font-extrabold text-slate-100">
-          ${formatRupiah((item.unitPrice || item.price) * item.qty)}
+        <div class="flex items-center gap-2 shrink-0">
+          <div class="text-right font-display font-extrabold text-slate-900 dark:text-slate-100">
+            ${formatRupiah((item.unitPrice || item.price) * item.qty)}
+          </div>
+          ${canRemoveItem ? `
+            <button
+              type="button"
+              onclick="removeInvoiceItem('${order.id}', ${idx})"
+              class="w-7 h-7 rounded-lg bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white border border-rose-500/30 flex items-center justify-center transition-all cursor-pointer"
+              title="Hapus game ini dari tagihan"
+            >
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          ` : ''}
         </div>
       </div>
     `;
@@ -3684,14 +3724,11 @@ function renderPaymentBox(order) {
   if (!container) return;
 
   const dokuData = (order.fulfillment && order.fulfillment.doku) ? order.fulfillment.doku : null;
-  const legacyData = (order.fulfillment && order.fulfillment.duitku) ? order.fulfillment.duitku : null;
-  const paymentUrl = dokuData?.paymentUrl || legacyData?.paymentUrl || null;
-  const vaNumber = legacyData?.vaNumber || null;
-  const isSandbox = !dokuData || dokuData.env !== 'production';
-  const qrString = legacyData?.qrString || `00020101021226670016ID.CO.QRIS.WWW011893600002011234567802150000000000000010303UMI51440014ID.GO.BI.QRIS011893600002011234567802150000000000000010303UMI52045814530336054${order.total}5802ID5913ALIANSI_STORE6007JAKARTA61051234062070703A016304${order.id}`;
+  const paymentUrl = dokuData?.paymentUrl || null;
+  const isSandbox = !!(dokuData && dokuData.env === 'sandbox');
 
   const methodNames = {
-    qris: 'QRIS (Semua Bank & E-Wallet)',
+    qris: 'QRIS / DOKU Checkout',
     bca: 'Virtual Account BCA',
     mandiri: 'Virtual Account Mandiri',
     bri: 'Virtual Account BRI',
@@ -3703,7 +3740,7 @@ function renderPaymentBox(order) {
   };
   const methodLabel = methodNames[order.paymentMethod] || String(order.paymentMethod || 'DOKU Checkout').toUpperCase();
 
-  // Jika DOKU Checkout URL aktif dari Supabase Edge Function
+  // Jika DOKU Checkout URL resmi sudah aktif dari Supabase Edge Function
   if (dokuData && paymentUrl) {
     container.innerHTML = `
       <div class="p-5 rounded-2xl bg-white dark:bg-[#070d1e] border border-slate-200 dark:border-sky-500/40 text-center shadow-sm">
@@ -3715,7 +3752,7 @@ function renderPaymentBox(order) {
         </div>
 
         <p class="text-xs text-slate-600 dark:text-slate-400 mb-3">
-          Metode dipilih: <strong class="text-slate-900 dark:text-white">${methodLabel}</strong>. Klik tombol di bawah untuk membuka halaman pembayaran resmi DOKU (verifikasi otomatis).
+          Metode dipilih: <strong class="text-slate-900 dark:text-white">${methodLabel}</strong>. Klik tombol di bawah untuk membuka halaman pembayaran resmi DOKU (Virtual Account, Minimarket, E-Wallet & lainnya — verifikasi otomatis).
         </p>
 
         <div class="text-xs font-bold text-slate-700 dark:text-slate-300">Total Tagihan:</div>
@@ -3736,148 +3773,150 @@ function renderPaymentBox(order) {
           <button onclick="checkOrderStatusManual('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold border border-slate-300 dark:border-slate-700 flex items-center justify-center gap-1.5">
             <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Cek Status Sekarang
           </button>
-          ${isSandbox ? `
-            <button onclick="simulateCustomerPaid('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-900/60 dark:hover:bg-emerald-800/80 text-emerald-800 dark:text-emerald-300 text-xs font-bold border border-emerald-300 dark:border-emerald-600/40 flex items-center justify-center gap-1.5" title="Uji Coba Sandbox">
-              <i data-lucide="play" class="w-3.5 h-3.5"></i> Tes Lunas (Sandbox)
-            </button>
-          ` : ''}
         </div>
       </div>
     `;
-    lucide.createIcons();
+    if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
     return;
   }
 
-  const isVA = (order.paymentMethod === 'bca' || order.paymentMethod === 'mandiri' || order.paymentMethod === 'bri' || order.paymentMethod === 'bni' || !!vaNumber);
-  const isDana = (order.paymentMethod === 'dana');
-
-  if (isVA) {
-    const bankLabel = order.paymentMethod === 'bca' ? 'BCA' : (order.paymentMethod === 'mandiri' ? 'Mandiri' : (order.paymentMethod === 'bri' ? 'BRI' : 'Bank'));
-    const displayVa = vaNumber || ('7007014' + String(order.id).replace(/[^0-9]/g, '').slice(-8));
-    container.innerHTML = `
-      <div class="p-5 rounded-2xl bg-white dark:bg-[#070d1e] border border-slate-200 dark:border-sky-500/40 text-center shadow-sm">
-        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-950 text-sky-700 dark:text-sky-400 border border-sky-300 dark:border-sky-500/30 text-[11px] font-bold mb-2">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span> VIRTUAL ACCOUNT ${bankLabel.toUpperCase()} RESMI DOKU (OTOMATIS)
-        </div>
-        <p class="text-xs text-slate-600 dark:text-slate-400 mb-3">Bayar via ${bankLabel} Mobile, Internet Banking, atau ATM. Diverifikasi otomatis tanpa kirim bukti transfer.</p>
-
-        <div class="p-4 rounded-2xl bg-sky-50/70 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-500/30 my-3">
-          <div class="text-[10px] text-sky-700 dark:text-sky-400 font-bold uppercase tracking-wider mb-1 font-mono">Nomor Virtual Account ${bankLabel}:</div>
-          <div class="text-xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono tracking-wider select-all mb-2">
-            ${displayVa}
-          </div>
-          <button onclick="copyText('${displayVa}', 'Nomor Virtual Account ${bankLabel} tersalin!')" class="px-4 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-md transition-all">
-            <i data-lucide="copy" class="w-3.5 h-3.5"></i> Salin Nomor VA
-          </button>
-        </div>
-
-        <div class="text-xs font-bold text-slate-700 dark:text-slate-300">Total Tagihan:</div>
-        <div class="text-2xl font-black text-sky-600 dark:text-sky-400 font-display mt-0.5 mb-3">${formatRupiah(order.total)}</div>
-
-        <div class="text-[11px] text-slate-600 dark:text-slate-400 mb-4 flex items-center justify-center gap-1.5">
-          <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-500 dark:text-amber-400"></i>
-          <span>Menunggu konfirmasi pembayaran otomatis DOKU...</span>
-        </div>
-
-        <div class="flex flex-col sm:flex-row items-center justify-center gap-2">
-          ${paymentUrl ? `
-            <a href="${paymentUrl}" target="_blank" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-lg transition-all flex items-center justify-center gap-1.5">
-              <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Buka Pembayaran DOKU (Web / Simulator)
-            </a>
-          ` : ''}
-          <button onclick="checkOrderStatusManual('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold border border-slate-300 dark:border-slate-700 flex items-center justify-center gap-1.5">
-            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Cek Status Sekarang
-          </button>
-          <button onclick="simulateCustomerPaid('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-900/60 dark:hover:bg-emerald-800/80 text-emerald-800 dark:text-emerald-300 text-xs font-bold border border-emerald-300 dark:border-emerald-600/40 flex items-center justify-center gap-1.5" title="Uji Coba Sandbox">
-            <i data-lucide="play" class="w-3.5 h-3.5"></i> Tes Lunas (Sandbox)
-          </button>
-        </div>
+  // Jika pesanan belum memiliki link DOKU Checkout (misal pesanan lama atau koneksi terputus sesaat)
+  // Jangan tampilkan QRIS/VA palsu — sediakan tombol buat link pembayaran resmi DOKU!
+  container.innerHTML = `
+    <div class="p-5 rounded-2xl bg-white dark:bg-[#070d1e] border border-slate-200 dark:border-sky-500/40 text-center shadow-sm">
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-500/40 text-[11px] font-bold mb-2">
+        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> DOKU PAYMENT GATEWAY (OTOMATIS)
       </div>
-    `;
-    lucide.createIcons();
-  } else if (isDana && paymentUrl) {
-    container.innerHTML = `
-      <div class="p-5 rounded-2xl bg-white dark:bg-[#070d1e] border border-slate-200 dark:border-sky-500/40 text-center shadow-sm">
-        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-950 text-sky-700 dark:text-sky-400 border border-sky-300 dark:border-sky-500/30 text-[11px] font-bold mb-2">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span> E-WALLET DANA RESMI DOKU (OTOMATIS)
-        </div>
-        <p class="text-xs text-slate-600 dark:text-slate-400 mb-3">Klik tombol di bawah untuk menyelesaikan pembayaran langsung di aplikasi DANA.</p>
+      <p class="text-xs text-slate-600 dark:text-slate-400 mb-3">
+        Klik tombol di bawah untuk membuat link pembayaran resmi DOKU agar bisa langsung dibayar dan diverifikasi otomatis.
+      </p>
 
-        <div class="text-xs font-bold text-slate-700 dark:text-slate-300">Total Tagihan:</div>
-        <div class="text-2xl font-black text-sky-600 dark:text-sky-400 font-display mt-0.5 mb-4">${formatRupiah(order.total)}</div>
+      <div class="text-xs font-bold text-slate-700 dark:text-slate-300">Total Tagihan:</div>
+      <div class="text-2xl font-black text-sky-600 dark:text-sky-400 font-display mt-0.5 mb-4">${formatRupiah(order.total)}</div>
 
-        <div class="flex flex-col sm:flex-row items-center justify-center gap-2 mb-3">
-          <a href="${paymentUrl}" target="_blank" class="w-full sm:w-auto px-5 py-3 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-black shadow-lg shadow-sky-600/30 flex items-center justify-center gap-2 transition-all">
-            <i data-lucide="external-link" class="w-4 h-4"></i> Bayar Sekarang via DANA
-          </a>
-        </div>
-
-        <div class="flex flex-col sm:flex-row items-center justify-center gap-2">
-          <button onclick="checkOrderStatusManual('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold border border-slate-300 dark:border-slate-700 flex items-center justify-center gap-1.5">
-            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Cek Status Sekarang
-          </button>
-          <button onclick="simulateCustomerPaid('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-900/60 dark:hover:bg-emerald-800/80 text-emerald-800 dark:text-emerald-300 text-xs font-bold border border-emerald-300 dark:border-emerald-600/40 flex items-center justify-center gap-1.5" title="Uji Coba Sandbox">
-            <i data-lucide="play" class="w-3.5 h-3.5"></i> Tes Lunas (Sandbox)
-          </button>
-        </div>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-2">
+        <button id="btn-regenerate-doku" onclick="regenerateDokuPayment('${order.id}')" class="force-white w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-rose-600 to-sky-600 hover:from-rose-500 hover:to-sky-500 text-white text-xs font-black shadow-lg shadow-sky-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer">
+          <i data-lucide="credit-card" class="w-4 h-4"></i> Buat Link Pembayaran DOKU
+        </button>
+        <button onclick="checkOrderStatusManual('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold border border-slate-300 dark:border-slate-700 flex items-center justify-center gap-1.5">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Cek Status
+        </button>
       </div>
-    `;
-    lucide.createIcons();
-  } else {
-    // Default QRIS (Universal for all Banks & E-Wallets)
-    container.innerHTML = `
-      <div class="text-center p-5 rounded-2xl bg-white dark:bg-[#070d1e] border border-slate-200 dark:border-sky-500/40 shadow-sm">
-        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-950 text-sky-700 dark:text-sky-400 border border-sky-300 dark:border-sky-500/30 text-[11px] font-bold mb-2">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span> QRIS RESMI DOKU (OTOMATIS)
-        </div>
-        <p class="text-xs text-slate-600 dark:text-slate-400 mb-3">Scan pakai aplikasi apa saja: BCA, Mandiri, BRI, Livin, GoPay, OVO, DANA, ShopeePay</p>
-        
-        <div class="inline-block p-4 rounded-2xl bg-white shadow-xl shadow-sky-500/10 border border-slate-200 dark:border-transparent mb-3" id="qrcode-container"></div>
-        
-        <div class="text-xs font-bold text-slate-700 dark:text-slate-300">Total Pembayaran:</div>
-        <div class="text-2xl font-black text-sky-600 dark:text-sky-400 font-display mt-0.5 mb-3">${formatRupiah(order.total)}</div>
+    </div>
+  `;
+  if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
+}
 
-        <div class="text-[11px] text-slate-600 dark:text-slate-400 mb-4 flex items-center justify-center gap-1.5">
-          <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-500 dark:text-amber-400"></i>
-          <span>Menunggu konfirmasi pembayaran otomatis DOKU...</span>
-        </div>
+async function regenerateDokuPayment(orderId) {
+  playSfx('click');
+  const order = state.orders.find(o => o.id === orderId);
+  if (!order) return;
 
-        <div class="flex flex-col sm:flex-row items-center justify-center gap-2">
-          ${paymentUrl ? `
-            <a href="${paymentUrl}" target="_blank" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-lg transition-all flex items-center justify-center gap-1.5">
-              <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Buka Pembayaran DOKU (Web / Simulator)
-            </a>
-          ` : ''}
-          <button onclick="checkOrderStatusManual('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold border border-slate-300 dark:border-slate-700 flex items-center justify-center gap-1.5">
-            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Cek Status Sekarang
-          </button>
-          <button onclick="simulateCustomerPaid('${order.id}')" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-900/60 dark:hover:bg-emerald-800/80 text-emerald-800 dark:text-emerald-300 text-xs font-bold border border-emerald-300 dark:border-emerald-600/40 flex items-center justify-center gap-1.5" title="Uji Coba Sandbox">
-            <i data-lucide="play" class="w-3.5 h-3.5"></i> Tes Lunas (Sandbox)
-          </button>
-        </div>
-      </div>
-    `;
-
-    setTimeout(() => {
-      const qrEl = document.getElementById('qrcode-container');
-      if (qrEl) {
-        qrEl.innerHTML = '';
-        if (typeof QRCode === 'function') {
-          new QRCode(qrEl, {
-            text: qrString,
-            width: 175,
-            height: 175,
-            colorDark: "#020617",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.M
-          });
-        } else {
-          qrEl.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=175x175&data=${encodeURIComponent(qrString)}" class="w-[175px] h-[175px]" alt="QR Code" />`;
-        }
-      }
-      lucide.createIcons();
-    }, 50);
+  const btn = document.getElementById('btn-regenerate-doku');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<span class="inline-block animate-spin mr-1.5">⏳</span> Menghubungkan ke DOKU...`;
   }
+
+  try {
+    const dokuRes = await requestDokuCheckout(order);
+    if (dokuRes && dokuRes.success && dokuRes.paymentUrl) {
+      order.fulfillment = {
+        ...(order.fulfillment || {}),
+        doku: {
+          env: dokuRes.env || 'production',
+          tokenId: dokuRes.tokenId || null,
+          paymentUrl: dokuRes.paymentUrl,
+          expiredDate: dokuRes.expiredDate || null,
+          paymentMethod: dokuRes.paymentMethod || order.paymentMethod,
+          amount: dokuRes.amount || order.total
+        }
+      };
+      saveOrders();
+      syncOrderToSupabase(order);
+      renderPaymentBox(order);
+      showToast('Link pembayaran resmi DOKU berhasil dibuat!', 'success');
+    } else {
+      showToast(dokuRes?.message || 'Gagal terhubung ke DOKU. Silakan coba lagi.', 'error');
+      renderPaymentBox(order);
+    }
+  } catch (e) {
+    showToast('Gagal membuat link DOKU. Periksa koneksi internet Anda.', 'error');
+    renderPaymentBox(order);
+  }
+}
+
+async function removeInvoiceItem(orderId, itemIndex) {
+  playSfx('click');
+  const orderIdx = state.orders.findIndex(o => o.id === orderId);
+  if (orderIdx === -1) return;
+  const order = state.orders[orderIdx];
+  if (!order || order.paymentStatus !== 'UNPAID') return;
+  if (!Array.isArray(order.items) || order.items.length <= 1) {
+    showToast('Minimal harus ada 1 game dalam pesanan.', 'warning');
+    return;
+  }
+
+  const removed = order.items.splice(itemIndex, 1)[0];
+
+  // Hitung ulang subtotal, diskon voucher, dan total baru
+  let newSubtotal = 0;
+  order.items.forEach(item => {
+    newSubtotal += (Number(item.unitPrice || item.price) || 0) * (Number(item.qty) || 1);
+  });
+
+  let newDiscount = 0;
+  if (order.voucherCode) {
+    const voucher = (state.config && state.config.vouchers || []).find(v => v && v.code === order.voucherCode);
+    if (voucher && (!voucher.minPurchase || newSubtotal >= Number(voucher.minPurchase))) {
+      newDiscount = calculateVoucherDiscount(voucher, newSubtotal);
+    } else {
+      order.voucherCode = null;
+    }
+  }
+
+  const newTotal = Math.max(0, newSubtotal - newDiscount);
+  const oldOrderId = order.id;
+  // Buat nomor invoice baru agar DOKU Checkout membuat link pembayaran dengan nominal baru yang akurat
+  const newInvoiceId = generateInvoiceId();
+
+  order.id = newInvoiceId;
+  order.subtotal = newSubtotal;
+  order.discount = newDiscount;
+  order.total = newTotal;
+  order.fulfillment = null;
+
+  showToast(`"${removed?.title || 'Game'}" dihapus. Memperbarui link pembayaran DOKU...`, 'info');
+  renderInvoiceDetails(order);
+
+  // Hapus order unpaid lama di Supabase (opsional) & buat link DOKU baru untuk total terbaru
+  try {
+    if (supabaseClient && oldOrderId !== newInvoiceId) {
+      supabaseClient.from('orders').delete().eq('id', oldOrderId).then(() => {}).catch(() => {});
+    }
+    const dokuRes = await requestDokuCheckout(order);
+    if (dokuRes && dokuRes.success && dokuRes.paymentUrl) {
+      order.fulfillment = {
+        doku: {
+          env: dokuRes.env || 'production',
+          tokenId: dokuRes.tokenId || null,
+          paymentUrl: dokuRes.paymentUrl,
+          expiredDate: dokuRes.expiredDate || null,
+          paymentMethod: dokuRes.paymentMethod || order.paymentMethod,
+          amount: dokuRes.amount || order.total
+        }
+      };
+    }
+  } catch (e) {
+    console.warn('Gagal memperbarui link DOKU setelah hapus item:', e);
+  }
+
+  state.currentInvoice = order;
+  saveOrders();
+  syncOrderToSupabase(order);
+  renderInvoiceDetails(order);
+  startInvoiceLivePolling(order.id);
+  showToast(`Tagihan diperbarui menjadi ${formatRupiah(order.total)} dengan link DOKU terbaru!`, 'success');
 }
 
 function renderFulfillmentBox(fulfillment, order) {
