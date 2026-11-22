@@ -3099,7 +3099,7 @@ async function requestDokuCheckout(order) {
     customerName: order.customerName || 'Customer Aliansi Store',
     customerEmail: order.customerEmail || 'customer@aliansistore.com',
     customerPhone: order.customerPhone || '081234567890',
-    returnUrl: window.location.origin + window.location.pathname,
+    returnUrl: `${window.location.origin}${window.location.pathname}?invoice=${encodeURIComponent(order.id)}&payment=return`,
     items: (order.items || []).map(i => ({
       title: i.title,
       unitPrice: i.unitPrice,
@@ -3880,6 +3880,25 @@ function openDokuInlineFallbackModal(paymentUrl) {
     </div>
   `;
   document.body.appendChild(overlay);
+}
+
+// Listener otomatis saat pop-up DOKU Checkout ditutup atau selesai bayar (postMessage closeJokul)
+if (typeof window !== 'undefined' && !window.__aliansiDokuMsgBound) {
+  window.__aliansiDokuMsgBound = true;
+  window.addEventListener('message', (event) => {
+    try {
+      const data = event && event.data;
+      if (!data || data.func !== 'closeJokul') return;
+      document.querySelectorAll('#jokul_checkout_modal, .jokul-modal, #doku-inline-fallback-modal').forEach(el => el.remove());
+      const targetInvoiceId = data.invoiceId || (state.currentInvoice && state.currentInvoice.id) || '';
+      if (targetInvoiceId) {
+        openInvoiceModal(targetInvoiceId);
+        if (typeof checkOrderStatusManual === 'function') {
+          setTimeout(() => checkOrderStatusManual(targetInvoiceId), 300);
+        }
+      }
+    } catch (e) {}
+  });
 }
 
 async function regenerateDokuPayment(orderId) {
@@ -7784,13 +7803,28 @@ function openCustomerHistoryModal(userId) {
 function checkUrlForActions() {
   const urlParams = new URLSearchParams(window.location.search);
   const action = urlParams.get('action');
+  const isPaymentReturn = urlParams.get('payment') === 'return';
 
   // Direct Invoice / Tracking lookup via URL query (?invoice=ALN-... or ?order=ALN-...)
   const invoiceId = urlParams.get('invoice') || urlParams.get('order') || urlParams.get('orderId');
+
+  // Jika DOKU melakukan redirect di dalam iframe pop-up (bukan di jendela utama),
+  // tutup pop-up DOKU di halaman induk dan langsung segarkan modal invoice di halaman induk!
+  if (isPaymentReturn && window.self !== window.top) {
+    try {
+      window.parent.postMessage({ func: 'closeJokul', source: 'aliansi-return', invoiceId: invoiceId || '' }, '*');
+      return;
+    } catch (e) {}
+  }
+
   if (invoiceId) {
-    setTimeout(() => {
-      openInvoiceModal(invoiceId.trim());
-    }, 600);
+    const cleanInv = invoiceId.trim();
+    setTimeout(async () => {
+      await openInvoiceModal(cleanInv);
+      if (typeof checkOrderStatusManual === 'function') {
+        checkOrderStatusManual(cleanInv);
+      }
+    }, 350);
   }
 
   if (action === 'open-chat') {
