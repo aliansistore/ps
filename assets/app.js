@@ -461,7 +461,31 @@ function toggleTheme() {
 }
 
 // ================= INITIALIZATION =================
+function installLucidePerformanceCoalescer() {
+  if (typeof window === 'undefined' || !window.lucide || typeof window.lucide.createIcons !== 'function' || window.lucide.__coalesced) {
+    return;
+  }
+  const origCreateIcons = window.lucide.createIcons.bind(window.lucide);
+  let rafScheduled = false;
+  window.lucide.createIcons = function(opts) {
+    // Jika dipanggil dengan opsi spesifik (misal root tertentu), jalankan langsung
+    if (opts && Object.keys(opts).length > 0) {
+      return origCreateIcons(opts);
+    }
+    if (rafScheduled) return;
+    rafScheduled = true;
+    requestAnimationFrame(() => {
+      rafScheduled = false;
+      try {
+        origCreateIcons();
+      } catch (e) {}
+    });
+  };
+  window.lucide.__coalesced = true;
+}
+
 function initApp() {
+  installLucidePerformanceCoalescer();
   initSupabaseClient();
   initTheme();
   loadStoredData();
@@ -1029,17 +1053,20 @@ async function syncFromSupabase() {
       // Smart merge: preserve local changes if local is newer or cloud is stale
       const currentList = Array.isArray(state.products) ? [...state.products] : [];
       const mergedProducts = [...currentList];
+      let productsChanged = false;
 
       cloudProducts.forEach(cp => {
         const localIdx = mergedProducts.findIndex(lp => lp.id === cp.id);
         if (localIdx === -1) {
           mergedProducts.push(cp);
+          productsChanged = true;
         } else {
           const localProd = mergedProducts[localIdx];
           const localTime = localProd.updatedAt ? new Date(localProd.updatedAt).getTime() : 0;
           const cloudTime = cp.updatedAt ? new Date(cp.updatedAt).getTime() : 0;
 
           if (cloudTime > localTime) {
+            productsChanged = true;
             // Cloud has newer timestamp; perform a smart non-destructive merge:
             const localImgs = localProd.images || {};
             const cloudImgs = cp.images || {};
@@ -1098,11 +1125,13 @@ async function syncFromSupabase() {
         }
       });
 
-      state.products = mergedProducts;
-      localStorage.setItem(APP_STORAGE_KEYS.PRODUCTS, JSON.stringify(state.products));
-      renderProducts();
-      initSpotlightHero();
-      renderAdminProductsTable();
+      if (productsChanged) {
+        state.products = mergedProducts;
+        localStorage.setItem(APP_STORAGE_KEYS.PRODUCTS, JSON.stringify(state.products));
+        renderProducts();
+        initSpotlightHero();
+        renderAdminProductsTable();
+      }
     }
 
     // 2. Fetch Orders from Cloud
@@ -1613,10 +1642,13 @@ function initSpotlightHero() {
   renderSpotlightThumbnails(spotlightGames);
   updateSpotlightDisplay(0);
 
-  // Auto-rotate every 8 seconds
+  // Auto-rotate every 8 seconds (otomatis jeda saat tab tidak aktif agar hemat CPU/baterai)
   if (state.spotlightTimer) clearInterval(state.spotlightTimer);
   state.spotlightTimer = setInterval(() => {
-    const nextIdx = (state.spotlightIndex + 1) % spotlightGames.length;
+    if (document.hidden) return;
+    const currentList = getSpotlightGames();
+    if (currentList.length <= 1) return;
+    const nextIdx = (state.spotlightIndex + 1) % currentList.length;
     updateSpotlightDisplay(nextIdx);
   }, 8000);
 }
@@ -2148,6 +2180,7 @@ function renderProducts() {
               alt="${product.title}"
               class="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500"
               loading="lazy"
+              decoding="async"
               onerror="this.onerror=null; this.src='assets/covers/service-1tb.jpg'"
             />
             

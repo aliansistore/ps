@@ -35,6 +35,12 @@
   <title>ALIANSI STORE | Next-Gen PlayStation Game Marketplace</title>
   <meta name="description" content="Marketplace game PlayStation modern di Indonesia. Spesialis Game PS4 HEN, Subtitle Indonesia (Format File PKG Google Drive), Jasa Isi Harddisk, dan Layanan Konsol Instan." />
   
+  <!-- Preconnect to CDNs & Supabase for Faster First Paint -->
+  <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="preconnect" href="https://unpkg.com" crossorigin />
+  <link rel="preconnect" href="https://fgotjbcabnragtpijuvk.supabase.co" crossorigin />
+
   <!-- Browser Tab Thumbnail / Favicon -->
   <link rel="icon" type="image/png" href="assets/favicon.png?v=20261103_1" />
   <link rel="shortcut icon" type="image/png" href="assets/favicon.png?v=20261103_1" />
@@ -65,12 +71,12 @@
     }
   </script>
 
-  <!-- Lucide Icons & Audio/QR Libs & Supabase Client & DOKU Checkout Popup SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="https://jokul.doku.com/jokul-checkout-js/v1/jokul-checkout-1.0.0.js"></script>
+  <!-- Non-Blocking Deferred Libraries (Parallel Download, Preserves Execution Order) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="https://unpkg.com/lucide@latest"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script defer src="https://jokul.doku.com/jokul-checkout-js/v1/jokul-checkout-1.0.0.js"></script>
 
   <!-- Custom Next-Gen Stylesheet (with cache buster query) -->
   <link rel="stylesheet" href="assets/style.css?v=20261112_voucher_lightmode_v69" />
@@ -80,6 +86,23 @@
     /* Smooth theme transitions ONLY after initial paint (prevents Night->Light flash on refresh) */
     html.theme-ready, html.theme-ready body, html.theme-ready .nav-capsule, html.theme-ready .game-card-nextgen, html.theme-ready .matrix-card, html.theme-ready .matrix-card-featured, html.theme-ready .glass-panel, html.theme-ready .glass-panel-glow {
       transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    /* 60 FPS GPU Compositing & Off-Screen Layout/Paint Skipping (Zero Visual Loss) */
+    .game-card-nextgen {
+      content-visibility: auto;
+      contain-intrinsic-size: auto 370px;
+      contain: layout style;
+    }
+    .ticker-wrapper {
+      contain: layout style paint;
+    }
+    #testimoni, #faq {
+      content-visibility: auto;
+      contain-intrinsic-size: auto 600px;
+    }
+    .spotlight-backdrop, .nav-capsule {
+      transform: translateZ(0);
     }
 
     /* Ensure DOKU Embedded Checkout Pop-up always floats above all Aliansi Store modals with premium styling & sleek scrollbar */
@@ -7032,8 +7055,8 @@
     </button>
   </nav>
 
-  <!-- Application Scripts (with cache-buster query) -->
-  <script src="assets/products-data.js?v=20261116_zero_flash_theme_v84"></script>
-  <script src="assets/app.js?v=20261122_auto_hd_image_v95"></script>
+  <!-- Application Scripts (deferred, cache-busted) -->
+  <script defer src="assets/products-data.js?v=20261116_zero_flash_theme_v84"></script>
+  <script defer src="assets/app.js?v=20261122_perf_60fps_v96"></script>
 </body>
 </html>
