@@ -9231,6 +9231,237 @@ const PLAYSTATION_GENRE_CATALOG = {
   }
 };
 
+// ================= AUTO-HD IMAGE UPSCALER & ENHANCER ENGINE =================
+const _hdProcessedUrls = new Set();
+
+function upgradeImageUrlToHD(rawUrl, type) {
+  if (!rawUrl || typeof rawUrl !== 'string') return rawUrl;
+  let url = rawUrl.trim();
+  if (!url.startsWith('http://') && !url.startsWith('https://')) return url;
+
+  const isPoster = type === 'poster';
+  try {
+    // 1. Wikimedia / Wikipedia thumbnails -> Full original high-res image
+    if (url.includes('upload.wikimedia.org/wikipedia/') && url.includes('/thumb/')) {
+      const m = url.match(/^(https:\/\/upload\.wikimedia\.org\/wikipedia\/[^/]+)\/thumb\/([^/]+\/[^/]+\/[^/]+)\/[^/]+$/);
+      if (m) {
+        url = `${m[1]}/${m[2]}`;
+      }
+    }
+    // 2. Steam low-res headers/capsules -> High-res library poster / hero backdrop
+    if (url.includes('steamstatic.com/steam/apps/')) {
+      if (isPoster && /\/(header|capsule_[^/]+)\.jpg/i.test(url)) {
+        url = url.replace(/\/(header|capsule_[^/]+)\.jpg.*$/i, '/library_600x900_2x.jpg');
+      } else if (!isPoster && /\/(header|capsule_[^/]+)\.jpg/i.test(url)) {
+        url = url.replace(/\/(header|capsule_[^/]+)\.jpg.*$/i, '/library_hero.jpg');
+      }
+    }
+    // 3. Google / PlayStation CDN size params -> bump to HD
+    if (/[?&]w=\d+/.test(url)) {
+      url = url.replace(/([?&]w=)\d+/, `$1${isPoster ? 800 : 1280}`);
+    }
+    if (/=s\d+(-c)?$/.test(url)) {
+      url = url.replace(/=s\d+(-c)?$/, `=s${isPoster ? 1000 : 1600}`);
+    }
+  } catch (e) {}
+  return url;
+}
+
+function sharpenCanvasImageData(ctx, width, height, amount = 0.42) {
+  try {
+    const imgData = ctx.getImageData(0, 0, width, height);
+    const src = imgData.data;
+    const out = new Uint8ClampedArray(src.length);
+    const w = width;
+    const h = height;
+
+    // 3x3 Unsharp Mask sharpening + subtle contrast boost
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const idx = (y * w + x) * 4;
+        if (y === 0 || y === h - 1 || x === 0 || x === w - 1) {
+          out[idx] = src[idx];
+          out[idx + 1] = src[idx + 1];
+          out[idx + 2] = src[idx + 2];
+          out[idx + 3] = src[idx + 3];
+          continue;
+        }
+        const top = ((y - 1) * w + x) * 4;
+        const bot = ((y + 1) * w + x) * 4;
+        const lft = (y * w + (x - 1)) * 4;
+        const rgt = (y * w + (x + 1)) * 4;
+
+        for (let c = 0; c < 3; c++) {
+          const center = src[idx + c];
+          const avg = (src[top + c] + src[bot + c] + src[lft + c] + src[rgt + c]) * 0.25;
+          let val = center + (center - avg) * amount;
+          // Subtle micro-contrast (1.04x around midpoint 128)
+          val = (val - 128) * 1.04 + 128;
+          out[idx + c] = val < 0 ? 0 : (val > 255 ? 255 : val);
+        }
+        out[idx + 3] = src[idx + 3];
+      }
+    }
+    imgData.data.set(out);
+    ctx.putImageData(imgData, 0, 0);
+  } catch (e) {
+    // Ignore if canvas is tainted
+  }
+}
+
+function upscaleAndSharpenImageToDataUrl(img, type) {
+  const isPoster = type === 'poster';
+  const origW = img.naturalWidth || img.width || 0;
+  const origH = img.naturalHeight || img.height || 0;
+  if (!origW || !origH) return null;
+
+  const targetMinW = isPoster ? 640 : 1280;
+  const maxW = isPoster ? 720 : 1280;
+  const maxH = isPoster ? 1080 : 720;
+
+  let targetW = origW;
+  let targetH = origH;
+  let wasUpscaled = false;
+
+  if (origW < targetMinW) {
+    // Upscale ke resolusi HD sambil menjaga rasio asli (maksimal 2.5x agar tetap tajam)
+    const scale = Math.min(targetMinW / origW, 2.5);
+    targetW = Math.round(origW * scale);
+    targetH = Math.round(origH * scale);
+    wasUpscaled = true;
+  }
+
+  // Batasi agar tidak melebihi maxW/maxH (efisien untuk Supabase & localStorage)
+  if (targetW > maxW || targetH > maxH) {
+    const ratio = Math.min(maxW / targetW, maxH / targetH);
+    targetW = Math.round(targetW * ratio);
+    targetH = Math.round(targetH * ratio);
+  }
+
+  // 2-step progressive upscaling untuk hasil bicubic yang halus
+  let workCanvas = document.createElement('canvas');
+  let workCtx = workCanvas.getContext('2d');
+  if (wasUpscaled && targetW > origW * 1.45) {
+    const midW = Math.round((origW + targetW) / 2);
+    const midH = Math.round((origH + targetH) / 2);
+    workCanvas.width = midW;
+    workCanvas.height = midH;
+    workCtx.imageSmoothingEnabled = true;
+    workCtx.imageSmoothingQuality = 'high';
+    workCtx.drawImage(img, 0, 0, midW, midH);
+  } else {
+    workCanvas.width = origW;
+    workCanvas.height = origH;
+    workCtx.drawImage(img, 0, 0, origW, origH);
+  }
+
+  const finalCanvas = document.createElement('canvas');
+  finalCanvas.width = targetW;
+  finalCanvas.height = targetH;
+  const finalCtx = finalCanvas.getContext('2d');
+  finalCtx.imageSmoothingEnabled = true;
+  finalCtx.imageSmoothingQuality = 'high';
+  finalCtx.drawImage(workCanvas, 0, 0, targetW, targetH);
+
+  // Terapkan sharpening HD jika gambar di-upscale
+  if (wasUpscaled) {
+    sharpenCanvasImageData(finalCtx, targetW, targetH, 0.48);
+  }
+
+  return {
+    dataUrl: finalCanvas.toDataURL('image/jpeg', 0.88),
+    origW,
+    origH,
+    targetW,
+    targetH,
+    wasUpscaled
+  };
+}
+
+function loadImageWithCors(url, useCors = true) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    if (useCors) img.crossOrigin = 'anonymous';
+    const timer = setTimeout(() => reject(new Error('Image load timeout')), 8000);
+    img.onload = () => {
+      clearTimeout(timer);
+      resolve(img);
+    };
+    img.onerror = (err) => {
+      clearTimeout(timer);
+      reject(err);
+    };
+    img.src = url;
+  });
+}
+
+async function autoEnhanceImageToHD(rawUrl, type) {
+  if (!rawUrl || typeof rawUrl !== 'string') return { url: rawUrl, enhanced: false };
+  const isPoster = type === 'poster';
+  const targetMinW = isPoster ? 600 : 1080;
+  const targetW = isPoster ? 720 : 1280;
+
+  // Langkah 1: Upgrade URL ke versi resolusi asli/HD jika berasal dari Wikimedia/Steam/CDN
+  const upgradedUrl = upgradeImageUrlToHD(rawUrl, type);
+
+  // Jika lokal asset (assets/covers/...), biarkan apa adanya
+  if (!upgradedUrl.startsWith('http://') && !upgradedUrl.startsWith('https://') && !upgradedUrl.startsWith('data:image')) {
+    return { url: upgradedUrl, enhanced: false };
+  }
+
+  // Langkah 2: Coba muat gambar via CORS untuk cek resolusi & upscale + sharpen di Canvas
+  try {
+    const img = await loadImageWithCors(upgradedUrl, true);
+    const w = img.naturalWidth || img.width;
+    const h = img.naturalHeight || img.height;
+    if (w >= targetMinW) {
+      // Sudah HD! Jika URL-nya tadi berhasil di-upgrade (misal Wikimedia thumb -> full), tandai enhanced
+      return {
+        url: upgradedUrl,
+        enhanced: upgradedUrl !== rawUrl,
+        origW: w,
+        origH: h,
+        targetW: w,
+        targetH: h,
+        method: 'url-hd'
+      };
+    }
+    const res = upscaleAndSharpenImageToDataUrl(img, type);
+    if (res && res.dataUrl) {
+      return {
+        url: res.dataUrl,
+        enhanced: true,
+        origW: res.origW,
+        origH: res.origH,
+        targetW: res.targetW,
+        targetH: res.targetH,
+        method: 'canvas-hd'
+      };
+    }
+  } catch (corsErr) {
+    // Langkah 3: Jika server gambar memblokir CORS, gunakan CDN HD Upscaler & Sharpener (wsrv.nl)
+    if (upgradedUrl.startsWith('http://') || upgradedUrl.startsWith('https://')) {
+      const wsrvUrl = `https://wsrv.nl/?url=${encodeURIComponent(upgradedUrl)}&w=${targetW}&we=false&sharp=1.5&output=webp&q=90`;
+      try {
+        const hdImg = await loadImageWithCors(wsrvUrl, true);
+        if (hdImg && (hdImg.naturalWidth || 0) >= targetMinW * 0.8) {
+          return {
+            url: wsrvUrl,
+            enhanced: true,
+            origW: 0,
+            origH: 0,
+            targetW: hdImg.naturalWidth,
+            targetH: hdImg.naturalHeight,
+            method: 'cdn-hd'
+          };
+        }
+      } catch (e) {}
+    }
+  }
+
+  return { url: upgradedUrl, enhanced: upgradedUrl !== rawUrl };
+}
+
 function updateImagePreview(prefix, type) {
   const inputEl = document.getElementById(`${prefix}-game-${type}`);
   const previewImg = document.getElementById(`${prefix}-game-${type}-preview`);
@@ -9239,10 +9470,30 @@ function updateImagePreview(prefix, type) {
 
   const url = inputEl.value.trim();
   if (url) {
+    previewImg.onload = async function() {
+      // Auto-HD check jika gambar dari internet resolusinya di bawah standar HD
+      const isExternal = url.startsWith('http://') || url.startsWith('https://');
+      const minW = type === 'poster' ? 600 : 1080;
+      const cacheKey = `${type}:${url}`;
+      if (isExternal && !url.includes('wsrv.nl') && !_hdProcessedUrls.has(cacheKey) && previewImg.naturalWidth > 0 && previewImg.naturalWidth < minW) {
+        _hdProcessedUrls.add(cacheKey);
+        const origW = previewImg.naturalWidth;
+        const origH = previewImg.naturalHeight;
+        showToast(`Gambar ${type === 'poster' ? 'Poster' : 'Wallpaper'} (${origW}×${origH}) terdeteksi belum HD. Meng-HD-kan otomatis...`, 'info', 'Auto-HD Enhancer');
+        const res = await autoEnhanceImageToHD(url, type);
+        if (res && res.url && res.url !== url && inputEl.value.trim() === url) {
+          _hdProcessedUrls.add(`${type}:${res.url}`);
+          inputEl.value = res.url;
+          previewImg.src = res.url;
+          showToast(`✨ Gambar berhasil di-HD-kan otomatis (${origW}×${origH} → ${res.targetW || 'HD'}×${res.targetH || 'HD'})!`, 'success', 'Auto-HD Selesai');
+        }
+      }
+    };
     previewImg.src = url;
     previewImg.classList.remove('hidden');
     placeholder.classList.add('hidden');
   } else {
+    previewImg.onload = null;
     previewImg.src = '';
     previewImg.classList.add('hidden');
     placeholder.classList.remove('hidden');
@@ -9263,38 +9514,20 @@ function handleImageFileUpload(event, prefix, type) {
   reader.onload = function(e) {
     const img = new Image();
     img.onload = function() {
-      // High-efficiency dimensions for local storage & cloud:
-      // Poster 2:3 -> max 480 x 720 (quality 0.82)
-      // Wallpaper 16:9 -> max 960 x 540 (quality 0.82)
-      const maxW = isPoster ? 480 : 960;
-      const maxH = isPoster ? 720 : 540;
-      let width = img.width;
-      let height = img.height;
+      const enhanced = upscaleAndSharpenImageToDataUrl(img, type);
+      if (!enhanced || !enhanced.dataUrl) return;
 
-      if (width > maxW || height > maxH) {
-        if (width / maxW > height / maxH) {
-          height = Math.round((height * maxW) / width);
-          width = maxW;
-        } else {
-          width = Math.round((width * maxH) / height);
-          height = maxH;
-        }
-      }
-
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, width, height);
-
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
       const inputEl = document.getElementById(`${prefix}-game-${type}`);
       if (inputEl) {
-        inputEl.value = dataUrl;
+        inputEl.value = enhanced.dataUrl;
         updateImagePreview(prefix, type);
       }
       playSfx('success');
-      showToast(`Gambar ${isPoster ? 'Poster Cover' : 'Wallpaper Background'} berhasil diunggah dari file komputer!`, 'success');
+      if (enhanced.wasUpscaled) {
+        showToast(`✨ ${isPoster ? 'Poster' : 'Wallpaper'} otomatis di-HD-kan (${enhanced.origW}×${enhanced.origH} → ${enhanced.targetW}×${enhanced.targetH} HD + Sharpen)!`, 'success', 'Auto-HD Enhancer');
+      } else {
+        showToast(`Gambar ${isPoster ? 'Poster Cover' : 'Wallpaper Background'} HD (${enhanced.targetW}×${enhanced.targetH}) berhasil diunggah!`, 'success');
+      }
     };
     img.src = e.target.result;
   };
@@ -9323,31 +9556,14 @@ function handlePickerModalFileUpload(event) {
   reader.onload = function(e) {
     const img = new Image();
     img.onload = function() {
-      // High-efficiency dimensions for local storage & cloud:
-      const maxW = isPoster ? 480 : 960;
-      const maxH = isPoster ? 720 : 540;
-      let width = img.width;
-      let height = img.height;
-
-      if (width > maxW || height > maxH) {
-        if (width / maxW > height / maxH) {
-          height = Math.round((height * maxW) / width);
-          width = maxW;
-        } else {
-          width = Math.round((width * maxH) / height);
-          height = maxH;
-        }
+      const enhanced = upscaleAndSharpenImageToDataUrl(img, session.type);
+      if (!enhanced || !enhanced.dataUrl) return;
+      selectImageFromPicker(enhanced.dataUrl);
+      if (enhanced.wasUpscaled) {
+        showToast(`✨ ${isPoster ? 'Poster' : 'Wallpaper'} otomatis di-HD-kan (${enhanced.origW}×${enhanced.origH} → ${enhanced.targetW}×${enhanced.targetH} HD)!`, 'success', 'Auto-HD Enhancer');
+      } else {
+        showToast(`File gambar HD berhasil diunggah sebagai ${isPoster ? 'Poster' : 'Wallpaper'}!`, 'success');
       }
-
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, width, height);
-
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
-      selectImageFromPicker(dataUrl);
-      showToast(`File gambar berhasil diunggah dan diterapkan sebagai ${isPoster ? 'Poster' : 'Wallpaper'}!`, 'success');
     };
     img.src = e.target.result;
   };
@@ -9844,9 +10060,10 @@ function selectImageFromPicker(url) {
   const session = window._activeImagePicker;
   if (!session || !url) return;
 
+  const upgradedUrl = upgradeImageUrlToHD(url, session.type);
   const inputEl = document.getElementById(`${session.prefix}-game-${session.type}`);
   if (inputEl) {
-    inputEl.value = url;
+    inputEl.value = upgradedUrl;
     updateImagePreview(session.prefix, session.type);
   }
 
