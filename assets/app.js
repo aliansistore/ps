@@ -99,11 +99,11 @@ function getProductBackdrop(product) {
     return BACKDROP_MAP[pid];
   }
 
-  // 2. Explicit custom or uploaded backdrop
+  // 2. Explicit custom or uploaded backdrop (otomatis upgrade ke HD jika URL thumbnail kecil)
   if (imgs.backdrop && typeof imgs.backdrop === 'string') {
     const trimmed = imgs.backdrop.trim();
     if (trimmed.length > 0 && !trimmed.includes('unsplash.com') && !trimmed.includes('photo-1508098682722')) {
-      return trimmed;
+      return typeof upgradeImageUrlToHD === 'function' ? upgradeImageUrlToHD(trimmed, 'backdrop') : trimmed;
     }
   }
 
@@ -125,7 +125,7 @@ function getProductPoster(product) {
   if (img && typeof img === 'string') {
     const trimmed = img.trim();
     if (trimmed.length > 0 && !trimmed.includes('photo-1508098682722')) {
-      return trimmed;
+      return typeof upgradeImageUrlToHD === 'function' ? upgradeImageUrlToHD(trimmed, 'poster') : trimmed;
     }
   }
 
@@ -9274,11 +9274,18 @@ function upgradeImageUrlToHD(rawUrl, type) {
 
   const isPoster = type === 'poster';
   try {
-    // 1. Wikimedia / Wikipedia thumbnails -> Full original high-res image
-    if (url.includes('upload.wikimedia.org/wikipedia/') && url.includes('/thumb/')) {
-      const m = url.match(/^(https:\/\/upload\.wikimedia\.org\/wikipedia\/[^/]+)\/thumb\/([^/]+\/[^/]+\/[^/]+)\/[^/]+$/);
+    // 1. Wikimedia / Wikipedia thumbnails (baik upload.wikimedia.org maupun thumb.wikimedia.org + query utm_*)
+    if ((url.includes('upload.wikimedia.org/wikipedia/') || url.includes('thumb.wikimedia.org/wikipedia/')) && url.includes('/thumb/')) {
+      const cleanNoQuery = url.split('?')[0];
+      const m = cleanNoQuery.match(/^https:\/\/(?:upload|thumb)\.wikimedia\.org\/(wikipedia\/[^/]+)\/thumb\/([^/]+\/[^/]+\/[^/]+)\/[^/]+$/);
       if (m) {
-        url = `${m[1]}/${m[2]}`;
+        const origWikiUrl = `https://upload.wikimedia.org/${m[1]}/${m[2]}`;
+        // Untuk wallpaper dari Wikipedia (sering beresolusi kecil ~300-600px karena fair-use),
+        // otomatis lewatkan ke HD Upscaler + Sharpener CDN (1440px WebP tajam)
+        if (!isPoster) {
+          return `https://wsrv.nl/?url=${encodeURIComponent(origWikiUrl)}&w=1440&we=false&sharp=1.8&output=webp&q=92`;
+        }
+        url = origWikiUrl;
       }
     }
     // 2. Steam low-res headers/capsules -> High-res library poster / hero backdrop
@@ -9291,7 +9298,7 @@ function upgradeImageUrlToHD(rawUrl, type) {
     }
     // 3. Google / PlayStation CDN size params -> bump to HD
     if (/[?&]w=\d+/.test(url)) {
-      url = url.replace(/([?&]w=)\d+/, `$1${isPoster ? 800 : 1280}`);
+      url = url.replace(/([?&]w=)\d+/, `$1${isPoster ? 800 : 1440}`);
     }
     if (/=s\d+(-c)?$/.test(url)) {
       url = url.replace(/=s\d+(-c)?$/, `=s${isPoster ? 1000 : 1600}`);
