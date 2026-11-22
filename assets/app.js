@@ -3759,14 +3759,14 @@ function renderPaymentBox(order) {
         <div class="text-2xl font-black text-sky-600 dark:text-sky-400 font-display mt-0.5 mb-4">${formatRupiah(order.total)}</div>
 
         <div class="flex flex-col sm:flex-row items-center justify-center gap-2 mb-3">
-          <a href="${paymentUrl}" target="_blank" rel="noopener noreferrer" class="force-white w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-rose-600 to-sky-600 hover:from-rose-500 hover:to-sky-500 text-white text-xs font-black shadow-lg shadow-sky-600/30 flex items-center justify-center gap-2 transition-all">
-            <i data-lucide="external-link" class="w-4 h-4"></i> Bayar Sekarang via DOKU Checkout
-          </a>
+          <button type="button" onclick="openDokuPaymentPopup('${escapeHtml(paymentUrl)}', '${escapeHtml(dokuData.env || 'production')}')" class="force-white w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-rose-600 to-sky-600 hover:from-rose-500 hover:to-sky-500 text-white text-xs font-black shadow-lg shadow-sky-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer">
+            <i data-lucide="credit-card" class="w-4 h-4"></i> Bayar Sekarang via DOKU Checkout
+          </button>
         </div>
 
         <div class="text-[11px] text-slate-600 dark:text-slate-400 mb-4 flex items-center justify-center gap-1.5">
           <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-500 dark:text-amber-400"></i>
-          <span>Menunggu konfirmasi otomatis dari DOKU...</span>
+          <span>Pembayaran tampil langsung di halaman ini • Verifikasi otomatis dari DOKU</span>
         </div>
 
         <div class="flex flex-col sm:flex-row items-center justify-center gap-2">
@@ -3805,6 +3805,69 @@ function renderPaymentBox(order) {
     </div>
   `;
   if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
+}
+
+function openDokuPaymentPopup(paymentUrl, env = 'production') {
+  playSfx('click');
+  if (!paymentUrl) {
+    showToast('Link pembayaran DOKU belum tersedia.', 'error');
+    return;
+  }
+
+  const sdkUrl = env === 'sandbox'
+    ? 'https://sandbox.doku.com/jokul-checkout-js/v1/jokul-checkout-1.0.0.js'
+    : 'https://jokul.doku.com/jokul-checkout-js/v1/jokul-checkout-1.0.0.js';
+
+  const launchPopup = () => {
+    if (typeof window.loadJokulCheckout === 'function') {
+      try {
+        window.loadJokulCheckout(paymentUrl);
+        return;
+      } catch (err) {
+        console.warn('loadJokulCheckout error, falling back to inline modal:', err);
+      }
+    }
+    // Fallback inline overlay tetap di dalam halaman Aliansi Store (tanpa buka tab baru)
+    openDokuInlineFallbackModal(paymentUrl);
+  };
+
+  if (typeof window.loadJokulCheckout === 'function' && env !== 'sandbox') {
+    launchPopup();
+    return;
+  }
+
+  // Muat SDK DOKU secara dinamis jika belum termuat
+  const existing = document.querySelector(`script[src="${sdkUrl}"]`);
+  if (existing) {
+    launchPopup();
+    return;
+  }
+
+  showToast('Membuka jendela pembayaran DOKU...', 'info');
+  const script = document.createElement('script');
+  script.src = sdkUrl;
+  script.onload = () => launchPopup();
+  script.onerror = () => openDokuInlineFallbackModal(paymentUrl);
+  document.head.appendChild(script);
+}
+
+function openDokuInlineFallbackModal(paymentUrl) {
+  const existingModal = document.getElementById('doku-inline-fallback-modal');
+  if (existingModal) existingModal.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'doku-inline-fallback-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(2,6,23,0.82);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:12px;';
+  overlay.innerHTML = `
+    <div style="width:100%;max-width:480px;height:88vh;max-height:760px;background:#ffffff;border-radius:18px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 25px 60px rgba(0,0,0,0.45);">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#0f172a;color:#fff;font-size:12px;font-weight:700;">
+        <span>DOKU Checkout • ALIANSI STORE</span>
+        <button type="button" onclick="document.getElementById('doku-inline-fallback-modal')?.remove()" style="background:#ef4444;color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer;">Tutup ✕</button>
+      </div>
+      <iframe src="${paymentUrl}" style="flex:1;width:100%;border:none;" allow="payment *; clipboard-write"></iframe>
+    </div>
+  `;
+  document.body.appendChild(overlay);
 }
 
 async function regenerateDokuPayment(orderId) {

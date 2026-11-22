@@ -65,11 +65,12 @@
     }
   </script>
 
-  <!-- Lucide Icons & Audio/QR Libs & Supabase Client -->
+  <!-- Lucide Icons & Audio/QR Libs & Supabase Client & DOKU Checkout Popup SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://jokul.doku.com/jokul-checkout-js/v1/jokul-checkout-1.0.0.js"></script>
 
   <!-- Custom Next-Gen Stylesheet (with cache buster query) -->
   <link rel="stylesheet" href="assets/style.css?v=20261112_voucher_lightmode_v69" />
@@ -79,6 +80,11 @@
     /* Smooth theme transitions ONLY after initial paint (prevents Night->Light flash on refresh) */
     html.theme-ready, html.theme-ready body, html.theme-ready .nav-capsule, html.theme-ready .game-card-nextgen, html.theme-ready .matrix-card, html.theme-ready .matrix-card-featured, html.theme-ready .glass-panel, html.theme-ready .glass-panel-glow {
       transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    /* Ensure DOKU Embedded Checkout Pop-up always floats above all Aliansi Store modals */
+    #jokul_checkout_modal, .jokul-modal, .jokul-modal-overlay, [id*="jokul_checkout"], [class*="jokul-checkout"] {
+      z-index: 999999 !important;
     }
 
     /* ==========================================================================
@@ -6953,6 +6959,6 @@
 
   <!-- Application Scripts (with cache-buster query) -->
   <script src="assets/products-data.js?v=20261116_zero_flash_theme_v84"></script>
-  <script src="assets/app.js?v=20261122_doku_clean_v86"></script>
+  <script src="assets/app.js?v=20261122_doku_popup_v87"></script>
 </body>
 </html>
