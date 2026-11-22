@@ -82,9 +82,62 @@
       transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
     }
 
-    /* Ensure DOKU Embedded Checkout Pop-up always floats above all Aliansi Store modals */
-    #jokul_checkout_modal, .jokul-modal, .jokul-modal-overlay, [id*="jokul_checkout"], [class*="jokul-checkout"] {
+    /* Ensure DOKU Embedded Checkout Pop-up always floats above all Aliansi Store modals with premium styling & sleek scrollbar */
+    @keyframes jokulPopIn {
+      0% { opacity: 0; transform: scale(0.95) translateY(12px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    #jokul_checkout_modal, .jokul-modal {
       z-index: 999999 !important;
+      background: rgba(3, 7, 18, 0.78) !important;
+      backdrop-filter: blur(10px) !important;
+      -webkit-backdrop-filter: blur(10px) !important;
+      padding: 16px !important;
+      box-sizing: border-box !important;
+    }
+    #jokul_checkout_modal .jokul-content, .jokul-modal .jokul-content {
+      position: relative !important;
+      width: 100% !important;
+      max-width: 470px !important;
+      height: min(90vh, 780px) !important;
+      max-height: 90vh !important;
+      margin: 2vh auto !important;
+      padding: 0 !important;
+      background: #ffffff !important;
+      border-radius: 22px !important;
+      border: 1.5px solid rgba(56, 189, 248, 0.45) !important;
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.55), 0 0 35px rgba(0, 112, 209, 0.3) !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      scrollbar-width: thin !important;
+      scrollbar-color: #0ea5e9 transparent !important;
+      animation: jokulPopIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+    }
+    #jokul_checkout_modal .jokul-content::-webkit-scrollbar,
+    .jokul-modal .jokul-content::-webkit-scrollbar {
+      width: 6px !important;
+    }
+    #jokul_checkout_modal .jokul-content::-webkit-scrollbar-track,
+    .jokul-modal .jokul-content::-webkit-scrollbar-track {
+      background: transparent !important;
+      margin: 14px 0 !important;
+    }
+    #jokul_checkout_modal .jokul-content::-webkit-scrollbar-thumb,
+    .jokul-modal .jokul-content::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #0070d1 0%, #00d4ff 100%) !important;
+      border-radius: 9999px !important;
+    }
+    #jokul_checkout_modal .jokul-content::-webkit-scrollbar-thumb:hover,
+    .jokul-modal .jokul-content::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, #0284c7 0%, #38bdf8 100%) !important;
+    }
+    #jokul_checkout_modal .jokul-content iframe,
+    .jokul-modal .jokul-content iframe {
+      width: 100% !important;
+      height: 940px !important;
+      min-height: 100% !important;
+      border: none !important;
+      display: block !important;
     }
 
     /* ==========================================================================
@@ -6959,6 +7012,6 @@
 
   <!-- Application Scripts (with cache-buster query) -->
   <script src="assets/products-data.js?v=20261116_zero_flash_theme_v84"></script>
-  <script src="assets/app.js?v=20261122_doku_popup_v87"></script>
+  <script src="assets/app.js?v=20261122_doku_sleek_scroll_v88"></script>
 </body>
 </html>

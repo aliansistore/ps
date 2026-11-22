@@ -3821,6 +3821,8 @@ function openDokuPaymentPopup(paymentUrl, env = 'production') {
   const launchPopup = () => {
     if (typeof window.loadJokulCheckout === 'function') {
       try {
+        // Bersihkan modal jokul lama jika sebelumnya pernah dibuka agar tidak menumpuk
+        document.querySelectorAll('#jokul_checkout_modal, .jokul-modal').forEach(el => el.remove());
         window.loadJokulCheckout(paymentUrl);
         return;
       } catch (err) {
