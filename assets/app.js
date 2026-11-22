@@ -10246,6 +10246,11 @@ function openAddProductModal() {
   const modal = document.getElementById('modal-admin-add-product');
   if (!modal) return;
   document.getElementById('new-game-title').value = '';
+  const newCatEl = document.getElementById('new-game-category');
+  if (newCatEl) newCatEl.value = '';
+  document.querySelectorAll('input[name="new-game-platform"]').forEach(cb => {
+    cb.checked = false;
+  });
   const newCusaEl = document.getElementById('new-game-cusa');
   if (newCusaEl) newCusaEl.value = '';
   const newSizeEl = document.getElementById('new-game-size');
@@ -10424,8 +10429,8 @@ function submitNewProduct() {
   const hasDiscount = document.getElementById('new-game-has-discount')?.checked;
   const priceDiscounted = parseRupiah(document.getElementById('new-game-price-discounted')?.value);
 
-  if (!title || platformChecked.length === 0 || priceNormal <= 0) {
-    showToast('Lengkapi judul, platform, dan Harga Normal (Rp) game!', 'warning');
+  if (!title || !category || platformChecked.length === 0 || priceNormal <= 0) {
+    showToast('Lengkapi judul, kategori genre, platform, dan Harga Normal (Rp) game!', 'warning');
     return;
   }
 

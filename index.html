@@ -4870,8 +4870,9 @@
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-bold text-slate-300 mb-1">Kategori Genre PS</label>
+            <label class="block text-xs font-bold text-slate-300 mb-1">Kategori Genre PS <span class="text-rose-400">*</span></label>
             <select id="new-game-category" class="w-full px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500">
+              <option value="" selected>-- Pilih Kategori Genre --</option>
               <option value="action">⚔️ Action & Adventure</option>
               <option value="rpg">🧙‍♂️ RPG & Open World</option>
               <option value="horror">🧟 Horror & Survival</option>
@@ -4889,8 +4890,8 @@
           <div>
             <label class="block text-xs font-bold text-slate-300 mb-1">Platform <span class="text-rose-400">*</span></label>
             <div class="flex items-center gap-3 pt-1 text-xs">
-              <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" name="new-game-platform" value="PS5" checked /> PS5</label>
-              <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" name="new-game-platform" value="PS4" checked /> PS4</label>
+              <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" name="new-game-platform" value="PS5" /> PS5</label>
+              <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" name="new-game-platform" value="PS4" /> PS4</label>
               <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" name="new-game-platform" value="PS4 HEN" /> HEN</label>
             </div>
           </div>
@@ -7003,6 +7004,6 @@
 
   <!-- Application Scripts (with cache-buster query) -->
   <script src="assets/products-data.js?v=20261116_zero_flash_theme_v84"></script>
-  <script src="assets/app.js?v=20261122_dedup_email_v91"></script>
+  <script src="assets/app.js?v=20261122_empty_add_form_v92"></script>
 </body>
 </html>
