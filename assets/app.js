@@ -3400,6 +3400,7 @@ function handleOrderRealtimeUpdate(dbOrder) {
       stopInvoiceLivePolling();
       playSfx('success');
       triggerConfetti();
+      // Email & akses Google Drive sudah dipicu 1x secara terdeduplikasi di renderInvoiceDetails -> dispatchOrderCompletionEmails
       dispatchOrderCompletionEmails(updatedOrder);
       showToast('🎉 Pembayaran Lunas Terverifikasi! Folder Google Drive telah otomatis dibuka & email bukti transaksi (No-Reply) disiapkan.', 'success', 'Pembayaran Sukses');
     }
@@ -4156,6 +4157,8 @@ function buildOrderDriveLinksText(order) {
 
 const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzRbjQSYGQ6Z3BRrjAT-dGYtT_XhV9N9uXm2NXPJtLRF2ZH0SOcK34VBPsWcuNrrJ1uGw/exec';
 
+const _dispatchedOrderEmailIds = new Set();
+
 async function resendInvoiceEmail() {
   playSfx('click');
   const order = state.currentInvoice;
@@ -4164,13 +4167,33 @@ async function resendInvoiceEmail() {
     return;
   }
   showToast(`Mengirim ulang faktur & akses Google Drive ke ${order.customerEmail || 'email pembeli'}...`, 'info', 'Mengirim Email');
-  await dispatchOrderCompletionEmails(order);
+  await dispatchOrderCompletionEmails(order, { force: true });
   playSfx('success');
   showToast(`Faktur resmi & akses Google Drive telah dikirim ke ${order.customerEmail}! Silakan cek Inbox / Spam.`, 'success', 'Email Terkirim');
 }
 
-async function dispatchOrderCompletionEmails(order) {
-  if (!order) return;
+async function dispatchOrderCompletionEmails(order, options = {}) {
+  if (!order || !order.id) return;
+  const forceResend = !!(options && options.force === true);
+  const lockKey = 'aliansi_email_dispatched_' + order.id;
+
+  // Proteksi anti-duplikat 3 lapis (Memory Set + LocalStorage + Fulfillment flag):
+  // Mencegah email & share Google Drive terkirim 2x akibat Realtime + Polling / re-render bersamaan
+  if (!forceResend) {
+    if (
+      _dispatchedOrderEmailIds.has(order.id) ||
+      localStorage.getItem(lockKey) === 'true' ||
+      (order.fulfillment && order.fulfillment.emails_dispatched && order.fulfillment.emails_dispatched.customerReceiptSent)
+    ) {
+      return;
+    }
+  }
+
+  // Kunci secara sinkron SEBELUM proses async berjalan agar panggilan ke-2 langsung diblokir
+  _dispatchedOrderEmailIds.add(order.id);
+  try {
+    localStorage.setItem(lockKey, 'true');
+  } catch (e) {}
 
   if (!order.fulfillment) order.fulfillment = {};
   
