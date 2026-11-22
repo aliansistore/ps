@@ -157,7 +157,7 @@ const state = {
   spotlightTimer: null,
   cardVariants: {}, // Tracks { [productId]: 'primary' | 'secondary' }
   appliedVoucher: null,
-  selectedPayment: 'qris',
+  selectedPayment: 'doku',
   checkoutType: 'guest',
   adminFilter: 'all',
   adminProductStatusFilter: 'all',
@@ -3090,7 +3090,7 @@ const DOKU_METHOD_MAP = {
 };
 
 async function requestDokuCheckout(order) {
-  const methodKey = DOKU_METHOD_MAP[order.paymentMethod] || DOKU_METHOD_MAP[state.selectedPayment] || 'qris';
+  const methodKey = DOKU_METHOD_MAP[order.paymentMethod] || '';
 
   const payload = {
     invoiceNumber: order.id,
@@ -3267,7 +3267,17 @@ async function submitOrder() {
 
   closeModals();
   openInvoiceModal(newOrder.id);
-  showToast('Pesanan berhasil dibuat! Silakan scan QRIS untuk menyelesaikan pembayaran.', 'success', 'Order Dibuat');
+
+  // Langsung buka pop-up pembayaran DOKU otomatis tanpa perlu klik tombol bayar lagi
+  const dokuInfo = newOrder.fulfillment && newOrder.fulfillment.doku;
+  if (dokuInfo && dokuInfo.paymentUrl) {
+    showToast('Pesanan dibuat! Membuka jendela pembayaran DOKU...', 'success', 'DOKU Checkout');
+    setTimeout(() => {
+      openDokuPaymentPopup(dokuInfo.paymentUrl, dokuInfo.env || 'production');
+    }, 220);
+  } else {
+    showToast('Pesanan berhasil dibuat! Klik tombol Buat Link Pembayaran DOKU untuk membayar.', 'info', 'Order Dibuat');
+  }
 }
 
 function triggerConfetti() {

@@ -4198,33 +4198,24 @@
       </div>
 
       <div class="mb-6">
-        <label class="block text-xs font-bold text-white uppercase tracking-wider mb-2">Pilih Pembayaran (Payment Gateway DOKU Otomatis):</label>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          <div class="payment-card cursor-pointer p-3 rounded-2xl border border-sky-500 bg-sky-950/50 ring-1 ring-sky-500 flex flex-col items-center text-center transition-all" onclick="selectPaymentMethod(this, 'qris')">
-            <i data-lucide="qr-code" class="w-6 h-6 text-sky-400 mb-1.5"></i>
-            <span class="text-xs font-black text-white">QRIS</span>
-            <span class="text-[10px] text-emerald-400 font-bold">Semua Bank &amp; E-Wallet</span>
+        <div class="p-3.5 rounded-2xl border border-sky-500/40 bg-sky-950/30 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-600 to-sky-600 text-white flex items-center justify-center shrink-0 shadow-md">
+            <i data-lucide="shield-check" class="w-5 h-5"></i>
           </div>
-          <div class="payment-card cursor-pointer p-3 rounded-2xl border border-slate-800 bg-slate-900/50 hover:border-slate-700 flex flex-col items-center text-center transition-all" onclick="selectPaymentMethod(this, 'bca')">
-            <i data-lucide="landmark" class="w-6 h-6 text-blue-400 mb-1.5"></i>
-            <span class="text-xs font-black text-white">BCA VA</span>
-            <span class="text-[10px] text-sky-400">Virtual Account</span>
-          </div>
-          <div class="payment-card cursor-pointer p-3 rounded-2xl border border-slate-800 bg-slate-900/50 hover:border-slate-700 flex flex-col items-center text-center transition-all" onclick="selectPaymentMethod(this, 'mandiri')">
-            <i data-lucide="credit-card" class="w-6 h-6 text-amber-400 mb-1.5"></i>
-            <span class="text-xs font-black text-white">Mandiri VA</span>
-            <span class="text-[10px] text-sky-400">Virtual Account</span>
-          </div>
-          <div class="payment-card cursor-pointer p-3 rounded-2xl border border-slate-800 bg-slate-900/50 hover:border-slate-700 flex flex-col items-center text-center transition-all" onclick="selectPaymentMethod(this, 'dana')">
-            <i data-lucide="smartphone" class="w-6 h-6 text-sky-400 mb-1.5"></i>
-            <span class="text-xs font-black text-white">DANA</span>
-            <span class="text-[10px] text-sky-400">E-Wallet DOKU</span>
+          <div class="min-w-0">
+            <div class="text-xs font-black text-white flex items-center gap-1.5 flex-wrap">
+              <span>Pembayaran Otomatis via DOKU</span>
+              <span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[9px] font-extrabold border border-emerald-500/30">INSTAN</span>
+            </div>
+            <p class="text-[11px] text-slate-300 mt-0.5 leading-relaxed">
+              Pilih Virtual Account (Mandiri, BRI, BNI, Permata, CIMB, BSI, dll.), Alfamart, Indomaret, atau E-Wallet langsung di pop-up DOKU setelah klik Bayar.
+            </p>
           </div>
         </div>
       </div>
 
       <button onclick="submitOrder()" class="w-full py-3.5 rounded-xl cyber-button font-black text-sm shadow-xl flex items-center justify-center gap-2">
-        <i data-lucide="check-circle-2" class="w-4 h-4"></i> Konfirmasi Pesanan & Bayar
+        <i data-lucide="credit-card" class="w-4 h-4"></i> Bayar Sekarang via DOKU
       </button>
     </div>
   </div>
@@ -7012,6 +7003,6 @@
 
   <!-- Application Scripts (with cache-buster query) -->
   <script src="assets/products-data.js?v=20261116_zero_flash_theme_v84"></script>
-  <script src="assets/app.js?v=20261122_doku_sleek_scroll_v88"></script>
+  <script src="assets/app.js?v=20261122_doku_instant_v89"></script>
 </body>
 </html>
