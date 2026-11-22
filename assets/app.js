@@ -1,5 +1,8 @@
 // ALIANSI STORE - Next-Gen Gaming UI & Logic Engine
 // Features: Web Audio SFX Synth, PS5 Console Spotlight, Card Dual-Pricing, Realtime Fulfillment
+if (typeof window !== 'undefined' && !window.lucide) {
+  window.lucide = { createIcons: function() {} };
+}
 
 const APP_STORAGE_KEYS = {
   PRODUCTS: 'aliansi_store_products_v4',

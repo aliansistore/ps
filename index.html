@@ -71,12 +71,9 @@
     }
   </script>
 
-  <!-- Non-Blocking Deferred Libraries (Parallel Download, Preserves Execution Order) -->
-  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script defer src="https://unpkg.com/lucide@latest"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script defer src="https://jokul.doku.com/jokul-checkout-js/v1/jokul-checkout-1.0.0.js"></script>
+  <!-- Async Non-Blocking Libraries (Never Block App Boot or First Paint) -->
+  <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script async src="https://unpkg.com/lucide@latest" onload="if(window.lucide)window.lucide.createIcons()"></script>
 
   <!-- Custom Next-Gen Stylesheet (with cache buster query) -->
   <link rel="stylesheet" href="assets/style.css?v=20261112_voucher_lightmode_v69" />
@@ -2898,7 +2895,7 @@
     <!-- ================= FULL-BLEED PLAYSTATION 5 CINEMATIC HERO STAGE ================= -->
     <section class="spotlight-container relative min-h-[520px] lg:min-h-[580px] flex items-center border-b border-slate-800/80 -mt-20 pt-20">
       
-      <div id="hero-spotlight-backdrop" class="spotlight-backdrop" style="background-image: url('assets/backdrops/it-takes-two.jpg'); opacity: 1;"></div>
+      <div id="hero-spotlight-backdrop" class="spotlight-backdrop" style="opacity: 0;"></div>
       <div class="spotlight-overlay"></div>
 
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10 w-full">
@@ -2912,16 +2909,16 @@
               <div id="hero-game-platforms" class="flex items-center gap-1.5"></div>
               <div class="flex items-center gap-1 text-amber-400 text-xs font-bold bg-black/60 px-2.5 py-0.5 rounded-lg border border-amber-500/20">
                 <i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400"></i>
-                <span id="hero-game-rating">4.9 / 5.0</span>
+                <span id="hero-game-rating">5.0 / 5.0</span>
               </div>
             </div>
 
             <h1 id="hero-game-title" class="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight mb-2 sm:mb-3 font-display">
-              It Takes Two (Full Subtitle Indonesia)
+              ALIANSI STORE PS4 HEN
             </h1>
 
             <p id="hero-game-tagline" class="text-xs sm:text-base text-slate-300 max-w-2xl mb-4 sm:mb-6 leading-relaxed line-clamp-2">
-              Petualangan Co-op Terbaik dengan Full Subtitle Bahasa Indonesia Lengkap & Rapi (Support PS4 HEN & Digital).
+              Memuat game pilihan terpopuler...
             </p>
 
             <div class="inline-flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 p-2.5 sm:p-3.5 rounded-2xl bg-slate-900/85 backdrop-blur-xl border border-sky-500/30 mb-5 sm:mb-6 shadow-2xl">
@@ -2929,15 +2926,15 @@
                 <span class="text-[9px] sm:text-[10px] text-sky-300 font-extrabold uppercase tracking-wider flex items-center gap-1">
                   <i data-lucide="tag" class="w-3.5 h-3.5 text-sky-400"></i> HARGA DISKON (FILE PKG)
                 </span>
-                <span id="hero-price-primary" class="text-lg sm:text-2xl font-black text-white font-display">Rp 10.000</span>
+                <span id="hero-price-primary" class="text-lg sm:text-2xl font-black text-white font-display">Rp -</span>
               </div>
               <div class="h-6 sm:h-8 w-px bg-slate-700"></div>
               <div class="hidden sm:block pl-1">
                 <div class="flex items-center gap-1.5 mb-0.5">
                   <span class="text-[10px] text-slate-400 font-bold">Harga:</span>
-                  <span id="hero-discount-badge" class="px-1.5 py-0.5 rounded text-[9px] font-black bg-rose-600 text-white shadow-sm">-33%</span>
+                  <span id="hero-discount-badge" class="px-1.5 py-0.5 rounded text-[9px] font-black bg-rose-600 text-white shadow-sm">-</span>
                 </div>
-                <span id="hero-price-original" class="text-xs text-slate-400 line-through font-mono">Rp 15.000</span>
+                <span id="hero-price-original" class="text-xs text-slate-400 line-through font-mono">Rp -</span>
               </div>
               <div class="pl-2 border-l border-slate-800 flex items-center gap-1.5">
                 <span class="text-[10px] px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30 flex items-center gap-1">
@@ -2982,6 +2979,38 @@
         </div>
       </div>
     </section>
+    <!-- Instant 3ms Synchronous Hero Spotlight Pre-Hydrator (Eliminates Wrong-Game Flash & Empty Box) -->
+    <script>
+      (function() {
+        try {
+          var raw = localStorage.getItem('aliansi_store_products_v4');
+          if (!raw) return;
+          var prods = JSON.parse(raw);
+          if (!Array.isArray(prods) || prods.length === 0) return;
+          var active = prods.filter(function(p) { return p && p.isActive !== false && p.inStock !== false; });
+          var chosen = active.filter(function(p) { return p.isSpotlight === true; });
+          var list = (chosen.length > 0 ? chosen : active).slice(0, 4);
+          var g = list[0];
+          if (!g) return;
+          var bg = (g.images && (g.images.backdrop || g.images.poster || g.images.cover)) || '';
+          var bgEl = document.getElementById('hero-spotlight-backdrop');
+          if (bgEl && bg) {
+            bgEl.style.backgroundImage = "url('" + bg + "')";
+            bgEl.style.opacity = '1';
+          }
+          var tEl = document.getElementById('hero-game-title');
+          if (tEl && g.title) tEl.textContent = g.title;
+          var tagEl = document.getElementById('hero-game-tagline');
+          if (tagEl && g.tagline) tagEl.textContent = g.tagline;
+          var bEl = document.getElementById('hero-game-badge');
+          if (bEl && g.badge) bEl.textContent = g.badge;
+          var pEl = document.getElementById('hero-price-primary');
+          if (pEl && g.prices && g.prices.primary) pEl.textContent = 'Rp ' + Number(g.prices.primary).toLocaleString('id-ID');
+          var oEl = document.getElementById('hero-price-original');
+          if (oEl && g.prices && g.prices.original) oEl.textContent = 'Rp ' + Number(g.prices.original).toLocaleString('id-ID');
+        } catch (e) {}
+      })();
+    </script>
 
     <!-- Live Social Proof Ticker (Recent Purchases Marquee) -->
     <div class="relative bg-[#050916] border-b border-slate-800/80 py-2.5 ticker-wrapper overflow-hidden select-none">
@@ -7055,8 +7084,8 @@
     </button>
   </nav>
 
-  <!-- Application Scripts (deferred, cache-busted) -->
-  <script defer src="assets/products-data.js?v=20261116_zero_flash_theme_v84"></script>
-  <script defer src="assets/app.js?v=20261123_hd_backdrop_fix_v97"></script>
+  <!-- Application Scripts (Instant execution after HTML parse, zero waiting for external CDNs) -->
+  <script src="assets/products-data.js?v=20261116_zero_flash_theme_v84"></script>
+  <script src="assets/app.js?v=20261123_instant_boot_v98"></script>
 </body>
 </html>
