@@ -4864,6 +4864,21 @@
           </label>
         </div>
 
+        <!-- Tampilkan di Game Pilihan Terpopuler (Hero Spotlight) -->
+        <div class="p-3 rounded-2xl bg-slate-900/90 border border-amber-500/25 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <i data-lucide="star" class="w-4 h-4 text-amber-400 shrink-0"></i>
+            <div>
+              <span class="text-xs font-bold text-white block">Game Pilihan Terpopuler (Hero)</span>
+              <span class="text-[10px] text-slate-400 block">Tampilkan di banner utama halaman depan (maks. 4 game)</span>
+            </div>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer shrink-0">
+            <input type="checkbox" id="new-game-is-spotlight" class="sr-only peer" />
+            <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+          </label>
+        </div>
+
         <div>
           <label class="block text-xs font-bold text-slate-300 mb-1">Judul Game <span class="text-rose-400">*</span></label>
           <input type="text" id="new-game-title" placeholder="Contoh: Resident Evil 4 Remake" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white outline-none focus:border-sky-500" />
@@ -5123,6 +5138,21 @@
             <input type="checkbox" id="edit-game-is-active" class="sr-only peer" checked onchange="toggleStatusCheckboxUI('edit')" />
             <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
             <span id="edit-game-status-badge" class="ml-2.5 text-xs font-extrabold text-emerald-400">Aktif</span>
+          </label>
+        </div>
+
+        <!-- Tampilkan di Game Pilihan Terpopuler (Hero Spotlight) -->
+        <div class="p-3 rounded-2xl bg-slate-900/90 border border-amber-500/25 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <i data-lucide="star" class="w-4 h-4 text-amber-400 shrink-0"></i>
+            <div>
+              <span class="text-xs font-bold text-white block">Game Pilihan Terpopuler (Hero)</span>
+              <span class="text-[10px] text-slate-400 block">Tampilkan di banner utama halaman depan (maks. 4 game)</span>
+            </div>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer shrink-0">
+            <input type="checkbox" id="edit-game-is-spotlight" class="sr-only peer" />
+            <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
           </label>
         </div>
 
@@ -7004,6 +7034,6 @@
 
   <!-- Application Scripts (with cache-buster query) -->
   <script src="assets/products-data.js?v=20261116_zero_flash_theme_v84"></script>
-  <script src="assets/app.js?v=20261122_spotlight_sync_v93"></script>
+  <script src="assets/app.js?v=20261122_spotlight_manager_v94"></script>
 </body>
 </html>

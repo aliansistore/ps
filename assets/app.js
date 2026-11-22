@@ -1000,7 +1000,7 @@ async function syncFromSupabase() {
         badge: p.badge,
         isSubIndo: !!p.is_sub_indo,
         isHen: isHenProduct(p) || !!p.is_hen,
-        isSpotlight: !!p.isSpotlight,
+        isSpotlight: !!(p.is_spotlight ?? p.isSpotlight),
         rating: Number(p.rating) || 5.0,
         soldCount: Number(p.sold_count) || 0,
         releaseYear: p.release_year,
@@ -1600,7 +1600,10 @@ function fallbackCopy(text, successMsg) {
 
 // ================= SPOTLIGHT HERO (PS5 CONSOLE UI STYLE) =================
 function getSpotlightGames() {
-  return (state.products || []).filter(p => (p.isSpotlight || p.badge) && p.isActive !== false && p.inStock !== false).slice(0, 4);
+  const active = (state.products || []).filter(p => p && p.isActive !== false && p.inStock !== false);
+  const chosen = active.filter(p => p.isSpotlight === true);
+  if (chosen.length > 0) return chosen.slice(0, 4);
+  return active.slice(0, 4);
 }
 
 function initSpotlightHero() {
@@ -8475,6 +8478,14 @@ function renderAdminProductsTable() {
         </td>
         <td class="py-2.5 px-3 text-right">
           <div class="flex items-center justify-end gap-1.5">
+            <button
+              type="button"
+              onclick="toggleProductSpotlight('${p.id}')"
+              class="p-1.5 rounded-lg border transition-all cursor-pointer ${p.isSpotlight ? 'bg-amber-500/20 text-amber-400 border-amber-500/40 hover:bg-amber-500/30 shadow-sm' : 'bg-slate-800/50 text-slate-500 border-slate-700/60 hover:text-amber-400 hover:border-amber-500/40'}"
+              title="${p.isSpotlight ? 'Aktif di Game Pilihan Terpopuler (Hero) • Klik untuk lepas' : 'Tampilkan di Game Pilihan Terpopuler (Hero)'}"
+            >
+              <i data-lucide="star" class="w-3.5 h-3.5 ${p.isSpotlight ? 'fill-amber-400 text-amber-400' : ''}"></i>
+            </button>
             <button onclick="openEditProductModal('${p.id}')" class="p-1 rounded text-sky-400 hover:text-sky-300" title="Edit Game">
               <i data-lucide="edit-3" class="w-4 h-4"></i>
             </button>
@@ -8490,6 +8501,37 @@ function renderAdminProductsTable() {
   if (window.lucide && typeof lucide.createIcons === 'function') {
     lucide.createIcons();
   }
+}
+
+function toggleProductSpotlight(productId) {
+  playSfx('click');
+  const p = state.products.find(item => item.id === productId);
+  if (!p) return;
+
+  const nextSpotlight = !p.isSpotlight;
+  const activeSpotlights = (state.products || []).filter(item => item.isSpotlight === true && item.isActive !== false && item.inStock !== false);
+
+  if (nextSpotlight && activeSpotlights.length >= 4) {
+    showToast('Maksimal 4 game di Pilihan Terpopuler (Hero)! Matikan dulu bintang ⭐ pada salah satu game lain untuk menggantinya.', 'warning', 'Slot Spotlight Penuh (4/4)');
+    return;
+  }
+
+  p.isSpotlight = nextSpotlight;
+  p.updatedAt = new Date().toISOString();
+
+  saveProducts();
+  syncProductToSupabase(p);
+
+  renderAdminProductsTable();
+  initSpotlightHero();
+
+  const countNow = (state.products || []).filter(item => item.isSpotlight === true && item.isActive !== false && item.inStock !== false).length;
+  showToast(
+    nextSpotlight
+      ? `⭐ "${p.title}" ditambahkan ke Game Pilihan Terpopuler (${countNow}/4)`
+      : `"${p.title}" dilepas dari Game Pilihan Terpopuler (${countNow}/4)`,
+    nextSpotlight ? 'success' : 'info'
+  );
 }
 
 function toggleProductStatus(productId) {
@@ -10256,6 +10298,8 @@ function openAddProductModal() {
   const modal = document.getElementById('modal-admin-add-product');
   if (!modal) return;
   document.getElementById('new-game-title').value = '';
+  const newSpotEl = document.getElementById('new-game-is-spotlight');
+  if (newSpotEl) newSpotEl.checked = false;
   const newCatEl = document.getElementById('new-game-category');
   if (newCatEl) newCatEl.value = '';
   document.querySelectorAll('input[name="new-game-platform"]').forEach(cb => {
@@ -10490,6 +10534,7 @@ function submitNewProduct() {
     driveLink: driveLink,
     type: 'digital',
     badge: 'NEW ARRIVAL',
+    isSpotlight: !!document.getElementById('new-game-is-spotlight')?.checked,
     rating: 5.0,
     soldCount: 0,
     releaseYear: 2024,
@@ -10549,6 +10594,10 @@ function openEditProductModal(productId) {
   if (editIsActiveEl) {
     editIsActiveEl.checked = (p.isActive !== false && p.inStock !== false);
     toggleStatusCheckboxUI('edit');
+  }
+  const editSpotEl = document.getElementById('edit-game-is-spotlight');
+  if (editSpotEl) {
+    editSpotEl.checked = !!p.isSpotlight;
   }
 
   document.getElementById('edit-game-title').value = p.title;
@@ -10697,6 +10746,10 @@ function submitEditProduct() {
     p.inStock = isAct;
     if (!p.images) p.images = {};
     p.images.isActive = isAct;
+  }
+  const editSpotEl = document.getElementById('edit-game-is-spotlight');
+  if (editSpotEl) {
+    p.isSpotlight = !!editSpotEl.checked;
   }
 
   p.isHen = isHenProduct(p);
