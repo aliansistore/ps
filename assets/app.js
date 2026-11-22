@@ -1628,6 +1628,7 @@ function renderSpotlightThumbnails(games) {
       onmouseenter="playSfx('hover')"
       class="spotlight-thumb group w-full p-2 sm:p-2.5 rounded-2xl flex items-center gap-3 transition-all duration-300 text-left cursor-pointer border ${idx === 0 ? 'active bg-sky-950/80 border-sky-400 ring-2 ring-sky-400/30 shadow-lg shadow-sky-500/20' : 'bg-slate-950/50 border-slate-800/80 hover:bg-slate-800/60 hover:border-slate-700'}"
       data-index="${idx}"
+      data-product-id="${game.id}"
       title="Lihat ${game.title}"
     >
       <div class="relative w-11 h-14 sm:w-12 sm:h-16 rounded-xl overflow-hidden shrink-0 border border-slate-700/60 shadow-md bg-slate-900">
@@ -1673,6 +1674,15 @@ function setSpotlightIndex(index) {
 function updateSpotlightDisplay(index) {
   const spotlightGames = getSpotlightGames();
   if (!spotlightGames[index]) return;
+
+  // Pastikan daftar thumbnail sebelah kanan selalu 100% sinkron dengan spotlightGames
+  const existingThumbs = document.querySelectorAll('.spotlight-thumb');
+  const thumbsOutOfSync =
+    existingThumbs.length !== spotlightGames.length ||
+    spotlightGames.some((g, i) => !existingThumbs[i] || existingThumbs[i].getAttribute('data-product-id') !== String(g.id));
+  if (thumbsOutOfSync) {
+    renderSpotlightThumbnails(spotlightGames);
+  }
 
   state.spotlightIndex = index;
   const game = spotlightGames[index];
@@ -10518,6 +10528,7 @@ function submitNewProduct() {
   closeModals();
   playSfx('success');
   renderProducts();
+  initSpotlightHero();
   renderAdminProductsTable();
   renderAdminStats();
   showToast(`Game baru "${title}" berhasil ditambahkan!`, 'success');
@@ -10699,6 +10710,7 @@ function submitEditProduct() {
   closeModals();
   playSfx('success');
   renderProducts();
+  initSpotlightHero();
   renderAdminProductsTable();
   showToast(`Game "${p.title}" berhasil diperbarui!`, 'success');
 }
